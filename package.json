@@ -1,0 +1,22 @@
+{
+  "name": "jarvis-mf-platform",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:shell": "npm --workspace apps/mf-shell run dev"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.9",
+    "@mui/material": "^7.3.9"
+  },
+  "devDependencies": {
+    "@originjs/vite-plugin-federation": "^1.4.1"
+  }
+}

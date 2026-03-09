@@ -1,0 +1,16 @@
+{
+ "menu":[
+  {
+   "name":"Home",
+   "path":"/home"
+  },
+  {
+   "name":"Pacientes",
+   "path":"/patients"
+  },
+  {
+   "name":"Reportes",
+   "path":"/reports"
+  }
+ ]
+}
