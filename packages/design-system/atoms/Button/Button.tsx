@@ -46,7 +46,7 @@ export const Button = ({ label, onClick }: Props) => {
   return (
     <MuiButton
       variant="contained"
-      color="secondary"
+      color="primary"
       onClick={onClick}
       sx={{ textTransform: "none" }}
     >

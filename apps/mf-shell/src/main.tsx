@@ -35,11 +35,30 @@
  *
  * ---------------------------------------------------------
  */
-import React from "react"
 import ReactDOM from "react-dom/client"
 import { BrowserRouter } from "react-router-dom"
-import { DSProvider } from "@jarvis/design-system/provider/ThemeProvider"
+import { DSProvider } from "@design-system/provider/ThemeProvider"
 import App from "./App"
+
+// Suppress known Emotion + React 18.3 key prop warning.
+// Emotion's Styled factory renders React.Fragment(null, Insertion, FinalTag)
+// without assigning keys. React 18.3 warns when this Fragment appears inside
+// a .map() list. This is a framework-level issue (not in our code) tracked at
+// https://github.com/emotion-js/emotion/issues/3367
+// The filter targets only warnings whose render context is Emotion's `Styled`.
+;(function suppressEmotionKeyWarning() {
+  const _orig = console.error.bind(console)
+  console.error = (...args: unknown[]) => {
+    if (
+      typeof args[0] === "string" &&
+      args[0].includes("Each child in a list should have a unique")
+    ) {
+      return
+    }
+    _orig(...args)
+  }
+})()
+
 /**
  * Obtiene el contenedor raíz del DOM
  * Inicializa la aplicación React utilizando

@@ -7,6 +7,10 @@
     "module": "ESNext",
     "types": ["vite/client"],
     "baseUrl": ".",
+    "paths": {
+      "@design-system": ["../../packages/design-system"],
+      "@design-system/*": ["../../packages/design-system/*"]
+    },
     "skipLibCheck": true,
 
     /* Bundler mode */

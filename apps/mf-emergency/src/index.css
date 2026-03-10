@@ -1,0 +1,25 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Scrollbars sutiles para la tabla */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f4f7fb;
+}
+::-webkit-scrollbar-thumb {
+  background: #d0dbf0;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2b5ba8;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

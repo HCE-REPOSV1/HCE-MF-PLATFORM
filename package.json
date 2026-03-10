@@ -8,7 +8,11 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:shell": "npm --workspace apps/mf-shell run dev"
+    "build:remotes":   "npm run build -w apps/mf-header -w apps/mf-navigation -w apps/mf-home -w apps/mf-patient -w apps/mf-emergency",
+    "preview:remotes": "concurrently -n header,navigation,home,patient,emergency -c blue,cyan,green,yellow,red \"npm --workspace apps/mf-header run preview\" \"npm --workspace apps/mf-navigation run preview\" \"npm --workspace apps/mf-home run preview\" \"npm --workspace apps/mf-patient run preview\" \"npm --workspace apps/mf-emergency run preview\"",
+    "dev:shell":       "npm --workspace apps/mf-shell run dev",
+    "dev:emergency":   "npm --workspace apps/mf-emergency run dev",
+    "start":           "npm run build:remotes && concurrently -n remotes,shell -c bgBlue,bgGreen \"npm run preview:remotes\" \"npm run dev:shell\""
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -17,6 +21,7 @@
     "@mui/material": "^7.3.9"
   },
   "devDependencies": {
-    "@originjs/vite-plugin-federation": "^1.4.1"
+    "@originjs/vite-plugin-federation": "^1.4.1",
+    "concurrently": "^9.0.0"
   }
 }

@@ -15,10 +15,10 @@ export default defineConfig({
     })
   ],
   server: {
-    port: 5004
+    port: 5104
   },
   preview: {
-    port: 5004
+    port: 5104
   },
   build: {
     target: "esnext",

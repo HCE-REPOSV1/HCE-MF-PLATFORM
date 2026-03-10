@@ -65,14 +65,32 @@ export default function Login() {
     }
   }
   return (
-    <div style={{ padding: "40px" }}>
-      {/* Título de la plataforma */}
-      <h1>Jarvis MF Platform</h1>
-      {/* Botón del Design System */}
-      <Button
-        label="Login"
-        onClick={login}
-      />
+    <div style={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: "100vh",
+      backgroundColor: "#f4f6f8",
+    }}>
+      <div style={{ textAlign: "center" }}>
+        {/* Título de la plataforma */}
+        <h1 style={{ marginBottom: "24px", color: "#1A3A6B", fontFamily: "Roboto, system-ui, sans-serif" }}>
+          Jarvis MF Platform
+        </h1>
+        {/* Botón del Design System */}
+        <Button
+          label="Login"
+          onClick={login}
+        />
+        {/* Acceso directo al Monitor de Emergencia — solo durante desarrollo */}
+        <div style={{ marginTop: "16px" }}>
+          <Button
+            label="Ir al Monitor de Emergencia →"
+            onClick={() => navigate("/emergency")}
+          />
+        </div>
+      </div>
     </div>
   )
 }

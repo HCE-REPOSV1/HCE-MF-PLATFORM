@@ -1,10 +1,11 @@
 {
- "compilerOptions": {
-  "baseUrl": ".",
-  "paths": {
-   "@design-system/*": [
-    "packages/design-system/*"
-   ]
+  "compilerOptions": {
+    "baseUrl": ".",
+    "jsx": "react-jsx",
+    "paths": {
+      "@design-system/*": [
+        "packages/design-system/*"
+      ]
+    }
   }
- }
 }

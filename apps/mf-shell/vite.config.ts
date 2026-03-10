@@ -10,10 +10,11 @@ export default defineConfig({
     federation({
       name: "mf-shell",
       remotes: {
-        header: "http://localhost:5001/assets/remoteEntry.js",
-        navigation: "http://localhost:5002/assets/remoteEntry.js",
-        home: "http://localhost:5003/assets/remoteEntry.js",
-        patient: "http://localhost:5004/assets/remoteEntry.js"
+        header:    "http://localhost:5101/assets/remoteEntry.js",
+        navigation:"http://localhost:5102/assets/remoteEntry.js",
+        home:      "http://localhost:5103/assets/remoteEntry.js",
+        patient:   "http://localhost:5104/assets/remoteEntry.js",
+        emergency: "http://localhost:5106/assets/remoteEntry.js"
       },
       shared: ["react", "react-dom"]
     })
