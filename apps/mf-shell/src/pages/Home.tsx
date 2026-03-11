@@ -64,20 +64,16 @@ export default function Home() {
 
   return (
     <div>
-
       <h2>Monitor de Emergencia</h2>
-
       <DataTable
         columns={columns}
         rows={rows}
       />
-
       <Pagination
         page={1}
         total={10}
         onChange={() => {}}
       />
-
     </div>
   )
 }

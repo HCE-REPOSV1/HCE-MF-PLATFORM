@@ -1,45 +1,9 @@
-/* Reset base */
-* {
-  box-sizing: border-box;
-}
-
 html,
 body,
 #root {
   width: 100%;
   height: 100%;
   margin: 0;
+  padding: 0;
 }
 
-/* evitar centrado */
-body {
-  display: block;
-}
-
-/* layout principal */
-.app-layout {
-  display: grid;
-  grid-template-rows: 60px 1fr;
-  grid-template-columns: 240px 1fr;
-  grid-template-areas:
-    "header header"
-    "nav content";
-  width: 100vw;
-  height: 100vh;
-}
-
-.app-header {
-  grid-area: header;
-  width: 100%;
-}
-
-.app-nav {
-  grid-area: nav;
-  background: #f2f2f2;
-}
-
-.app-content {
-  grid-area: content;
-  padding: 20px;
-  width: 100%;
-}s
