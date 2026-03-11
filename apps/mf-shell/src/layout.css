@@ -1,22 +1,3 @@
-/* Reset base */
-* {
-  box-sizing: border-box;
-}
-
-html,
-body,
-#root {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-}
-
-/* evitar centrado */
-body {
-  display: block;
-}
-
-/* layout principal */
 .app-layout {
   display: grid;
   grid-template-rows: 60px 1fr;
@@ -24,13 +5,12 @@ body {
   grid-template-areas:
     "header header"
     "nav content";
-  width: 100vw;
   height: 100vh;
+  width: 100%;
 }
 
 .app-header {
   grid-area: header;
-  width: 100%;
 }
 
 .app-nav {
@@ -41,5 +21,4 @@ body {
 .app-content {
   grid-area: content;
   padding: 20px;
-  width: 100%;
-}s
+}
