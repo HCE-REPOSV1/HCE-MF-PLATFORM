@@ -38,6 +38,7 @@
 import React from "react"
 import ReactDOM from "react-dom/client"
 import { BrowserRouter } from "react-router-dom"
+import "@jarvis/design-system/theme/theme.css"
 import { DSProvider } from "@jarvis/design-system/provider/ThemeProvider"
 import App from "./App"
 /**

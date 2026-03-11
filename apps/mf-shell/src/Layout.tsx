@@ -2,11 +2,10 @@ import "./layout.css"
 
 import Header from "header/Header"
 import Navigation from "navigation/Navigation"
-import Home from "home/Home"
-import Patient from "patient/Patient"
-import { Routes, Route } from "react-router-dom"
+import {  Outlet, useNavigate } from "react-router-dom"
 
 export default function Layout() {
+  const navigate = useNavigate()
   return (
     <div className="app-layout">
 
@@ -15,14 +14,13 @@ export default function Layout() {
       </div>
 
       <div className="app-nav">
-        <Navigation />
+        <Navigation
+          onNavigate={(path) => navigate(path)}
+        />
       </div>
 
       <div className="app-content">
-        <Routes>
-          <Route path="/home" element={<Home />} />
-          <Route path="/patient" element={<Patient />} />
-        </Routes>
+        <Outlet />
       </div>
 
     </div>

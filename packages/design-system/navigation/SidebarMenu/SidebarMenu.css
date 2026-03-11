@@ -1,0 +1,41 @@
+/**
+Sidebar Menu Styles
+Respeta el theme del design system
+*/
+
+.jarvis-sidebar-menu {
+  height: 100%;
+  padding: 16px;
+  background: var(--color-surface);
+}
+
+.jarvis-menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.jarvis-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  transition: background 0.2s ease;
+}
+
+.jarvis-menu-item:hover {
+  background: var(--color-surface-hover);
+}
+
+.jarvis-menu-icon {
+  display: flex;
+  align-items: center;
+}
+
+.jarvis-menu-label {
+  flex: 1;
+}

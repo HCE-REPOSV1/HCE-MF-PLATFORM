@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "dev:shell": "npm --workspace apps/mf-shell run dev",
+    "build": "concurrently  \"npm run build --prefix apps/mf-header\" \"npm run build --prefix apps/mf-navigation\" \"npm run build --prefix apps/mf-home\" \"npm run build --prefix apps/mf-patient\"",
     "dev": "concurrently  \"npm run preview --prefix apps/mf-header\" \"npm run preview --prefix apps/mf-navigation\" \"npm run preview --prefix apps/mf-home\" \"npm run preview --prefix apps/mf-patient\" \"npm run dev --prefix apps/mf-shell\""
   },
   "dependencies": {

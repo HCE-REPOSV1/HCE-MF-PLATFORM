@@ -15,7 +15,7 @@ export default defineConfig({
         home: "http://localhost:5003/assets/remoteEntry.js",
         patient: "http://localhost:5004/assets/remoteEntry.js"
       },
-      shared: ["react", "react-dom"]
+      shared: ["react", "react-dom","react-router-dom"]
     })
   ],
   resolve: {

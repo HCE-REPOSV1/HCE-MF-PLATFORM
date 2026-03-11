@@ -1,13 +1,47 @@
-export default function Navigation() {
+import {
+  SidebarMenu,
+  type MenuItem
+} from "@design-system/navigation/SidebarMenu"
+
+/**
+ * Props que recibe el microfrontend
+ */
+type Props = {
+  onNavigate: (path: string) => void
+}
+
+const menuItems: MenuItem[] = [
+
+  {
+    label: "Monitor Emergencia",
+    path: "/home"
+  },
+
+  {
+    label: "Pacientes",
+    path: "/patients"
+  },
+
+  {
+    label: "Reportes",
+    path: "/reports"
+  },
+
+  {
+    label: "Configuración",
+    path: "/settings"
+  }
+
+]
+
+export default function Navigation({ onNavigate }: Props) {
+
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "100%",
-        background: "#f3f3f3"
-      }}
-    >
-      Menu
-    </div>
+
+    <SidebarMenu
+      items={menuItems}
+      onNavigate={onNavigate}
+    />
+
   )
 }
