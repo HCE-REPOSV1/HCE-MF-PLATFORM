@@ -12,7 +12,7 @@ export default defineConfig({
       exposes:{
         "./Patient":"./src/Patient.tsx"
       },
-      shared: ["react", "react-dom","react-router-dom"]
+      shared: ["react", "react-dom","react-router-dom", "lucide-react" ]
     })
   ],
   resolve: {

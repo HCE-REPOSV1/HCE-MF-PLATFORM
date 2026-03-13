@@ -1,0 +1,19 @@
+.jarvis-table-wrapper {
+
+  width: 100%;
+
+  overflow-x: auto;
+
+}
+
+.jarvis-table {
+
+  min-width: 600px;
+
+}
+
+.jarvis-table table{
+
+  width:100%;
+
+}

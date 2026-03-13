@@ -1,6 +1,30 @@
 :root {
-  --color-surface: #f5f6f8;
-  --color-surface-hover: #e9eef6;
-  --color-text-primary: #1f2937;
-  --color-primary: #2563eb;
+
+  /* Brand */
+
+  --color-primary: #1E4FA1;
+  --color-primary-dark: #153B7A;
+  --color-secondary: #8BC53F;
+
+  /* Surface */
+
+  --color-surface: #FFFFFF;
+  --color-surface-light: #F5F7FA;
+
+  /* Text */
+
+  --color-text-primary: #374151;
+  --color-text-secondary: #6B7280;
+
+  /* Borders */
+
+  --color-border: #E5E7EB;
+
+  /* SideBar*/
+  --jarvis-sidebar-bg: #f3f4f6;
+  --jarvis-sidebar-hover: #e5e7eb;
+  --jarvis-sidebar-active: #dbeafe;
+
+  --jarvis-text-primary: #1f2937;
+
 }

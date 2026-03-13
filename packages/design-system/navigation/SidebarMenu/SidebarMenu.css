@@ -2,10 +2,14 @@
 Sidebar Menu Styles
 Respeta el theme del design system
 */
+.jarvis-menu {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+}
 
 .jarvis-sidebar-menu {
   height: 100%;
-  padding: 16px;
   background: var(--color-surface);
 }
 
@@ -19,23 +23,83 @@ Respeta el theme del design system
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 14px;
+  padding: 10px 16px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-  color: var(--color-text-primary);
+  color: var(--jarvis-text-primary);
   transition: background 0.2s ease;
 }
 
 .jarvis-menu-item:hover {
-  background: var(--color-surface-hover);
+  background: var(--jarvis-sidebar-hover);
+}
+
+.jarvis-menu-item.active {
+  background: var(--jarvis-sidebar-active);
 }
 
 .jarvis-menu-icon {
   display: flex;
   align-items: center;
+  width: 20px;
+  height: 20px;
+}
+.jarvis-menu-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.jarvis-menu-label {
+  white-space: nowrap;
+}
+.jarvis-sidenav.collapsed .jarvis-menu-label {
+  display: none;
+}
+
+.jarvis-sidenav.collapsed .jarvis-menu-item {
+  justify-content: center;
+}
+
+.jarvis-sidenav.collapsed .jarvis-menu-icon {
+  margin-right: 0;
+}
+
+.jarvis-menu-item {
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 10px 16px;
+
+}
+
+.jarvis-menu-icon {
+
+  display: flex;
+
+  width: 20px;
+  justify-content: center;
+
 }
 
 .jarvis-menu-label {
-  flex: 1;
+
+  white-space: nowrap;
+
+}
+
+/* collapsed */
+
+.jarvis-sidenav.collapsed .jarvis-menu-label {
+
+  display: none;
+
+}
+
+.jarvis-sidenav.collapsed .jarvis-menu-item {
+
+  justify-content: center;
+
 }

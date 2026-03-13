@@ -1,24 +1,22 @@
-/**
- * SidebarMenu
- *
- * Organism del design system encargado
- * de renderizar navegación lateral.
- *
- * Este componente NO depende de microfrontends.
- */
-
-import type { MenuItem } from "./types"
 import "./SidebarMenu.css"
 
-type Props = {
-  /** items del menú */
+export interface MenuItem {
+  label: string
+  path: string
+  icon?: React.ReactNode
+}
+
+interface Props {
   items: MenuItem[]
-  /** callback cuando se hace click */
+  collapsed?: boolean
   onNavigate: (path: string) => void
 }
 
-export const SidebarMenu = ({ items, onNavigate }: Props) => {
-
+export function SidebarMenu({
+  items,
+  collapsed = false,
+  onNavigate
+}: Props) {
   return (
     <nav className="jarvis-sidebar-menu">
       <ul className="jarvis-menu-list">
@@ -28,14 +26,16 @@ export const SidebarMenu = ({ items, onNavigate }: Props) => {
             className="jarvis-menu-item"
             onClick={() => onNavigate(item.path)}
           >
+            {/* ICON */}
             {item.icon && (
               <span className="jarvis-menu-icon">
                 {item.icon}
               </span>
             )}
-            <span className="jarvis-menu-label">
-              {item.label}
-            </span>
+            {/* LABEL */}
+           <span className="jarvis-menu-label">
+            {item.label}
+          </span>
           </li>
         ))}
       </ul>

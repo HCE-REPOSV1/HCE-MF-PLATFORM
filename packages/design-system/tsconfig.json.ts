@@ -7,6 +7,8 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "noUnusedParameters": false
-  }
+    "noUnusedParameters": false,
+    "baseUrl": "."
+  },
+  "include": ["**/*.ts", "**/*.tsx"]
 }
