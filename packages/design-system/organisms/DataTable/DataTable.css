@@ -1,19 +1,26 @@
-.jarvis-table-wrapper {
-
+.jarvis-table-container {
   width: 100%;
+  overflow: hidden;
+  margin-top: 20px;
+}
 
-  overflow-x: auto;
+.jarvis-table-wrapper {
+  max-height: 70vh; /* Ideal para monitoreo sin perder los headers */
+  overflow: auto;
+}
 
+/* Custom Scrollbar para un look más limpio */
+.jarvis-table-wrapper::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.jarvis-table-wrapper::-webkit-scrollbar-thumb {
+  background: #CBD5E0;
+  border-radius: 10px;
 }
 
 .jarvis-table {
-
-  min-width: 600px;
-
-}
-
-.jarvis-table table{
-
-  width:100%;
-
+  border-collapse: separate;
+  border-spacing: 0;
 }

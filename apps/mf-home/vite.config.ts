@@ -12,7 +12,17 @@ export default defineConfig({
       exposes:{
         "./Home":"./src/Home.tsx"
       },
-      shared: ["react", "react-dom","react-router-dom", "lucide-react" ]
+      shared: [
+        "react",
+        "react-dom",
+        "react-router-dom",
+        "lucide-react",
+        "@mui/material",
+        // "@mui/icons-material",
+        "@emotion/react",
+        "@emotion/styled",
+        "@jarvis/design-system"
+      ],
     })
   ],
   resolve: {

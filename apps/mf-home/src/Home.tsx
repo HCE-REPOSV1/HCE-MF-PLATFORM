@@ -1,4 +1,4 @@
-import { DataTable, Pagination } from "@jarvis/design-system/"
+import { DataTable, Pagination } from "@jarvis/design-system"
 import { Typography, Box } from "@mui/material"
 import DashboardLayout from "./layouts/DashboardLayout"
 
@@ -25,7 +25,13 @@ export default function Home() {
         <DataTable columns={columns} rows={rows} />
       </Box>
 
-      <Box sx={{ mt: 3 }}>
+      <Box 
+        sx={{ 
+          mt: 3, 
+          display: 'flex', 
+          justifyContent: 'center' 
+        }}
+      >
         <Pagination page={1} total={10} onChange={() => {}} />
       </Box>
 

@@ -14,7 +14,6 @@ interface Props {
 
 export function SidebarMenu({
   items,
-  collapsed = false,
   onNavigate
 }: Props) {
   return (
