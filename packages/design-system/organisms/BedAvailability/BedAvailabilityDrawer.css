@@ -347,3 +347,18 @@
   background: rgba(0,0,0,0.3);
   z-index: 1050;
 }
+
+@media (max-width: 768px) {
+
+  .bed-drawer {
+    max-width: 100%;
+    border-radius: 0;
+  }
+
+}
+
+@media (max-width: 480px) {
+  .box-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
