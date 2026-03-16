@@ -5,7 +5,7 @@ import { Outlet, useNavigate } from "react-router-dom"
 
 import { useIsMobile } from "./hooks/useIsMobile"
 import { getFormattedDateTime, getShortDateTime } from "./utils/date"
-import { Header, SideNav } from "@jarvis/design-system"
+import { Header, SideNav,BedAvailabilityDrawer  } from "@jarvis/design-system"
 import Navigation from "navigation/Navigation"
 
 export default function Layout() {
@@ -94,6 +94,8 @@ useEffect(() => {
         <Outlet />
 
       </main>
+      {/* BOTON FLOTANTE + DRAWER */}
+      <BedAvailabilityDrawer />
 
     </div>
 
