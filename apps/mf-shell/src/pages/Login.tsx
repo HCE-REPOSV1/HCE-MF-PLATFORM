@@ -41,38 +41,65 @@
  * - React Router
  * - Design System
  * ---------------------------------------------------------
- */
-import { useNavigate } from "react-router-dom"
+ */import { useNavigate } from "react-router-dom"
+import { useState } from "react"
 import { Button } from "@design-system/atoms/Button/Button"
-/**
- * Componente Login
- */
+
+import "./login.css"
+
 export default function Login() {
-  /**
-   * Hook de navegación de React Router
-   */
+
   const navigate = useNavigate()
-  /**
-   * Función que simula el proceso de autenticación
-   */
+
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+
   const login = async () => {
-    // Consumo de servicio mock de autenticación
+
     const res = await fetch("/mocks/login.json")
     const data = await res.json()
-    // Si el login es exitoso se redirige al dashboard
+
     if (data.success) {
       navigate("/home")
     }
   }
+
   return (
-    <div style={{ padding: "40px" }}>
-      {/* Título de la plataforma */}
-      <h1>Jarvis MF Platform</h1>
-      {/* Botón del Design System */}
-      <Button
-        label="Login"
-        onClick={login}
-      />
+
+    <div className="login-page">
+
+      <div className="login-card">
+
+        <h1 className="login-title">
+          Welcome Jarvis Platform!
+        </h1>
+
+        <div className="login-form">
+
+          <input
+            type="text"
+            placeholder="Email or phone"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          <Button
+            label="Sign In"
+            onClick={login}
+          />
+
+        </div>
+
+      </div>
+
     </div>
+
   )
 }

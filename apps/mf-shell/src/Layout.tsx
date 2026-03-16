@@ -9,61 +9,61 @@ import { Header, SideNav,BedAvailabilityDrawer  } from "@jarvis/design-system"
 import Navigation from "navigation/Navigation"
 
 export default function Layout() {
-
   const navigate = useNavigate()
-
   const isMobile = useIsMobile()
-
   const [date, setDate] = useState(
     isMobile ? getShortDateTime() : getFormattedDateTime()
   )
-
   const [collapsed, setCollapsed] = useState(false)
-
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-useEffect(() => {
-
+  useEffect(() => {
   const updateDate = () => {
-
     setDate(
       isMobile
         ? getShortDateTime()
         : getFormattedDateTime()
     )
-
   }
-
-  updateDate()
-
-  const interval = setInterval(updateDate, 60000)
-
+    updateDate()
+    const interval = setInterval(updateDate, 60000)
   return () => clearInterval(interval)
-
-}, [isMobile])
+  }, [isMobile])
 
   const handleNavigate = (path: string) => {
-
     navigate(path)
-
     /* cerrar menu mobile */
     setMobileMenuOpen(false)
+  }
 
+  const logout = () => {
+    navigate("/")
   }
 
   return (
-
     <div className={`app-layout ${collapsed ? "collapsed" : ""}`}>
 
       {/* HEADER */}
-
       <header className="app-header">
 
-        <Header
-          title="Monitor de Emergencia"
-          date={date}
-          site="SEDE CENTRAL"
-          onToggleSidebar={() => setMobileMenuOpen(!mobileMenuOpen)}
-        />
+        <div className="header-container">
+
+          <Header
+            title="Monitor de Emergencia"
+            date={date}
+            site="SEDE CENTRAL"
+            onToggleSidebar={() => setMobileMenuOpen(!mobileMenuOpen)}
+          />
+
+          <div className="header-actions">
+            <button
+              className="logout-button"
+              onClick={logout}
+            >
+              Cerrar sesión
+            </button>
+          </div>
+
+        </div>
 
       </header>
 
