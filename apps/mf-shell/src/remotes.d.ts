@@ -17,7 +17,11 @@ declare module "header/Header" {
 
 declare module "navigation/Navigation" {
   import type { ComponentType } from "react"
-  const Navigation: ComponentType<Record<string, never>>
+  type NavigationProps = {
+    onNavigate: (path: string) => void
+    collapsed?: boolean
+  }
+  const Navigation: ComponentType<NavigationProps>
   export default Navigation
 }
 

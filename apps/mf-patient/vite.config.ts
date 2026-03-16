@@ -1,7 +1,7 @@
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
-import federation from "@originjs/vite-plugin-federation"
 import path from "path"
+import federation from "@originjs/vite-plugin-federation"
 export default defineConfig({
   plugins: [
     react(),
@@ -11,7 +11,7 @@ export default defineConfig({
       exposes:{
         "./Patient":"./src/Patient.tsx"
       },
-      shared:["react","react-dom"]
+      shared: ["react", "react-dom","react-router-dom", "lucide-react" ]
     })
   ],
       resolve: {

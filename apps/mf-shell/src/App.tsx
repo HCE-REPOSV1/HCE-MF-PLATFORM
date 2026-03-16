@@ -32,6 +32,9 @@
 import { Routes, Route } from "react-router-dom"
 import Login from "./pages/Login"
 import Layout from "./Layout"
+import Home from "home/Home"
+import Patient from "patient/Patient"
+
 /**
  * Componente raíz de la aplicación
  */
@@ -40,12 +43,22 @@ function App() {
     /**
      * Definición de rutas principales
      */
+
     <Routes>
-      {/* Ruta pública de autenticación */}
+
+      {/* Login */}
       <Route path="/" element={<Login />} />
-      {/* Ruta que delega al Layout principal de la aplicación */}
-      <Route path="/*" element={<Layout />} />
+
+      {/* Layout principal */}
+      <Route path="/*" element={<Layout />}>
+
+        <Route path="home" element={<Home />} />
+        <Route path="patients" element={<Patient />} />
+
+      </Route>
+
     </Routes>
+
   )
 }
 

@@ -37,7 +37,8 @@
  */
 import ReactDOM from "react-dom/client"
 import { BrowserRouter } from "react-router-dom"
-import { DSProvider } from "@design-system/provider/ThemeProvider"
+import "@jarvis/design-system/theme/theme.css"
+import { DSProvider } from "@jarvis/design-system/provider/ThemeProvider"
 import App from "./App"
 
 // Suppress known Emotion + React 18.3 key prop warning.

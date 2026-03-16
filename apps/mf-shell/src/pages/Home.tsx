@@ -38,11 +38,42 @@
  *
  * Representa la página principal de la aplicación.
  */
-export const Home = () => {
+import { DataTable } from "@design-system"
+import { Pagination } from "@design-system"
 
- return (
-  <div>
-   <h1>Jarvis Platform</h1>
-  </div>
- )
+const columns = [
+  { field: "patient", header: "Paciente" },
+  { field: "age", header: "Edad" },
+  { field: "doctor", header: "Doctor" }
+]
+
+const rows = [
+  {
+    patient: "Henry Vidal",
+    age: "30",
+    doctor: "Adulto"
+  },
+  {
+    patient: "Juan Perez",
+    age: "45",
+    doctor: "Pediatría"
+  }
+]
+
+export default function Home() {
+
+  return (
+    <div>
+      <h2>Monitor de Emergencia</h2>
+      <DataTable
+        columns={columns}
+        rows={rows}
+      />
+      <Pagination
+        page={1}
+        total={10}
+        onChange={() => {}}
+      />
+    </div>
+  )
 }

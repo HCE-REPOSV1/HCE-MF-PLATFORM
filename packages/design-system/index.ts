@@ -48,3 +48,18 @@ export { BedsAvailabilityTab }   from "./molecules/BedsAvailabilityTab/BedsAvail
 // ── Types — Molecules ──────────────────────────────────────
 export type { PatientRowData } from "./molecules/PatientRow/PatientRow"
 export type { ExtraAction }    from "./molecules/ActionBar/ActionBar"
+
+export * from "./atoms/Button/Button"
+export * from "./atoms/Badge/Badge"
+export * from "./atoms/Chip/Chip"
+export * from "./atoms/Icon/Icon"
+
+export * from "./molecules/IconButton/IconButton"
+
+export * from "./organisms/DataTable/DataTable"
+export * from "./organisms/Pagination/Pagination"
+export * from "./organisms/Header/Header"
+export * from "./organisms/SideNav/SideNav"
+export * from "./organisms/BedAvailability/BedAvailabilityDrawer"
+export * from "./navigation/SidebarMenu"
+

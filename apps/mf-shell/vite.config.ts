@@ -16,7 +16,17 @@ export default defineConfig({
         patient:   "http://localhost:5104/assets/remoteEntry.js",
         emergency: "http://localhost:5106/assets/remoteEntry.js"
       },
-      shared: ["react", "react-dom"]
+      shared: [
+        "react",
+        "react-dom",
+        "react-router-dom",
+        "lucide-react",
+        "@mui/material",
+        // "@mui/icons-material",
+        "@emotion/react",
+        "@emotion/styled",
+        "@jarvis/design-system"
+      ],
     })
   ],
   resolve: {
@@ -28,6 +38,11 @@ export default defineConfig({
       react: path.resolve("./node_modules/react"),
       "react-dom": path.resolve("./node_modules/react-dom")
     }
+  },
+  build: {
+    target: "esnext",
+    minify: false,
+    cssCodeSplit: false
   },
   server: {
     port: 5000

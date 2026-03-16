@@ -1,0 +1,11 @@
+.page-title {
+  font-size: 26px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.page-content {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+}

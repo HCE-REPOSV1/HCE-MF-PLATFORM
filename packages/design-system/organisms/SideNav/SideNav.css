@@ -1,0 +1,40 @@
+.jarvis-sidenav {
+
+  width:100%;
+  background:#f8fafc;
+
+  border-right:1px solid #e5e7eb;
+
+  position:relative;
+
+  overflow:visible;   /* IMPORTANTE */
+
+}
+
+/* BOTON TOGGLE */
+
+.jarvis-sidenav-toggle{
+
+  position:absolute;
+
+  top:80px;
+  right:-14px;
+
+  width:28px;
+  height:28px;
+
+  border-radius:50%;
+
+  border:1px solid #e5e7eb;
+
+  background:white;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  cursor:pointer;
+
+  z-index:20;
+
+}

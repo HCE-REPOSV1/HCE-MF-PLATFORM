@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(for app:*)",
+      "Bash(do echo:*)",
+      "Read(//c/Users/fpinedo/Documents/TEMPLATE JARVIS/V2 10032026/jarvis-mf-platform/apps/mf-$app/**)",
+      "Bash(done)"
+    ]
+  }
+}
