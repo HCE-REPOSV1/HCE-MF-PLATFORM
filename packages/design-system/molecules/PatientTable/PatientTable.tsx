@@ -41,25 +41,11 @@ interface HeaderColumn {
   align: "center" | "left"
 }
 
-const HEADER_COLUMNS: HeaderColumn[] = [
-  { label: "Prioridad",  width: 70,  align: "center" },
-  { label: "Box",        width: 80,  align: "center" },
-  { label: "Paciente",   width: 180, align: "left"   },
-  { label: "Edad",       width: 55,  align: "center" },
-  { label: "Sexo",       width: 55,  align: "center" },
-  { label: "N.Documento",width: 100, align: "left"   },
-  { label: "Médico",     width: 160, align: "left"   },
-  { label: "Lab",        width: 50,  align: "center" },
-  { label: "Img",        width: 50,  align: "center" },
-  { label: "Indc.Med",   width: 50,  align: "center" },
-  { label: "Interc.",    width: 50,  align: "center" },
-  { label: "Atención",   width: 90,  align: "left"   },
-  { label: "Info",       width: 50,  align: "center" },
-]
 
 interface Props {
   /** Array de datos de pacientes para renderizar en la tabla */
   rows: PatientRowData[]
+  header:HeaderColumn[]
   /** Altura máxima del contenedor con scroll (default: "calc(100vh - 160px)") */
   maxHeight?: string
 }
@@ -72,7 +58,7 @@ interface Props {
  * Filas con prioridad 1 tienen fondo sutil rojo.
  * Filas seleccionadas tienen borde izquierdo azul.
  */
-export const PatientTable = ({ rows, maxHeight = "calc(100vh - 160px)" }: Props) => {
+export const PatientTable = ({ rows,header, maxHeight = "calc(100vh - 160px)" }: Props) => {
   return (
     <TableContainer
       component={Paper}
@@ -89,7 +75,7 @@ export const PatientTable = ({ rows, maxHeight = "calc(100vh - 160px)" }: Props)
         {/* ── Header sticky ── */}
         <TableHead>
           <TableRow>
-            {HEADER_COLUMNS.map((col) => (
+            {header.map((col) => (
               <TableCell
                 key={col.label}
                 align={col.align}
@@ -127,7 +113,7 @@ export const PatientTable = ({ rows, maxHeight = "calc(100vh - 160px)" }: Props)
           {rows.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={HEADER_COLUMNS.length}
+                colSpan={header.length}
                 sx={{
                   textAlign: "center",
                   height:    120,

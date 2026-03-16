@@ -98,6 +98,26 @@ export default function EmergencyMonitor() {
   const handlePrint = () => {
     window.print()
   }
+    interface HeaderColumn {
+    label: string
+    width: number
+    align: "center" | "left"
+  }
+  const HEADER_COLUMNS: HeaderColumn[] = [
+  { label: "Prioridad",  width: 70,  align: "center" },
+  { label: "Box",        width: 80,  align: "center" },
+  { label: "Paciente",   width: 180, align: "left"   },
+  { label: "Edad",       width: 55,  align: "center" },
+  { label: "Sexo",       width: 55,  align: "center" },
+  { label: "N.Documento",width: 100, align: "left"   },
+  { label: "Médico",     width: 160, align: "left"   },
+  { label: "Lab",        width: 50,  align: "center" },
+  { label: "Img",        width: 50,  align: "center" },
+  { label: "Indc.Med",   width: 50,  align: "center" },
+  { label: "Interc.",    width: 50,  align: "center" },
+  { label: "Atención",   width: 90,  align: "left"   },
+  { label: "Info",       width: 50,  align: "center" },
+]
 
   // ─── Render ───────────────────────────────────────────
   return (
@@ -151,6 +171,7 @@ export default function EmergencyMonitor() {
           <Box sx={{ flex: 1, overflow: "hidden", minHeight: 0 }}>
             <PatientTable
               rows={paginatedRows}
+              header={HEADER_COLUMNS}
               maxHeight="100%"
             />
           </Box>
