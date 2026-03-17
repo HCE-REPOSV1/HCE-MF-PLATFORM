@@ -12,11 +12,12 @@ body,
   display: grid;
 
   grid-template-columns: 240px 1fr;
-  grid-template-rows: 56px 1fr;
+  grid-template-rows: 64px 1fr auto;
 
   grid-template-areas:
-    "header header"
-    "sidebar content";
+    "header  header"
+    "sidebar content"
+    "footer  footer";
 
   height: 100vh;
   width: 100%;
@@ -34,7 +35,7 @@ body,
   grid-area: header;
 
   width: 100%;
-  height: 56px;
+  height: 64px;
 
   z-index: 10;
 
@@ -50,6 +51,12 @@ body,
 
   overflow: visible;
 
+}
+
+/* FOOTER */
+
+.app-footer {
+  grid-area: footer;
 }
 
 /* CONTENT */
@@ -93,10 +100,10 @@ body,
     position: fixed;
 
     left: -260px;
-    top: 56px;
+    top: 64px;
 
     width: 240px;
-    height: calc(100vh - 56px);
+    height: calc(100vh - 64px);
 
     background: #fff;
 

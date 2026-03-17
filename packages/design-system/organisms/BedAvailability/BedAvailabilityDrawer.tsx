@@ -1,34 +1,43 @@
-import { useState, useEffect } from "react"
-import "./BedAvailabilityDrawer.css"
+import { useState, useEffect }                         from "react"
+import {
+  Box, Drawer, Typography, Tooltip,
+  Divider, Accordion, AccordionSummary, AccordionDetails,
+  IconButton, Button,
+}                                                       from "@mui/material"
+import CloseIcon                                        from "@mui/icons-material/Close"
+import KingBedOutlinedIcon                              from "@mui/icons-material/KingBedOutlined"
+import ExpandMoreIcon                                   from "@mui/icons-material/ExpandMore"
+import { emergencyTokens }                              from "../../tokens/emergency.tokens"
+import { BedsAvailabilityTab }                          from "../../molecules/BedsAvailabilityTab/BedsAvailabilityTab"
+import { PriorityBadge }                                from "../../atoms/PriorityBadge/PriorityBadge"
+import type { PriorityLevel }                           from "../../atoms/PriorityBadge/PriorityBadge"
 
-// ─── Tipos ────────────────────────────────────────────────
+// ─── Tipos internos ───────────────────────────────────────
 type BoxOccupied = {
   label:    string
   status:   "ocupado"
-  priority: number | "none"
+  priority: PriorityLevel
   patient:  string
   age:      number | string
   sex:      string
   doctor:   string
 }
-
 type BoxFree = {
   label:  string
   status: "disponible" | "mantenimiento"
 }
-
 type BoxData = BoxOccupied | BoxFree
 
 type WaitingPatient = {
-  id:      string
-  name:    string
-  age:     number | string
-  sex:     string
-  doctor:  string
-  type:    "espera" | "tp"
+  id:     string
+  name:   string
+  age:    number | string
+  sex:    string
+  doctor: string
+  type:   "espera" | "tp"
 }
 
-// ─── Data derivada de patients.mock.ts ───────────────────
+// ─── Data ─────────────────────────────────────────────────
 const BOXES: BoxData[] = [
   { label: "Box 1",  status: "ocupado", priority: 1, patient: "Vera, Alejandro",    age: 58, sex: "M", doctor: "Dr. Muñoz"      },
   { label: "Box 2",  status: "ocupado", priority: 1, patient: "Mardones, Carolina", age: 34, sex: "F", doctor: "Dr. Pérez"      },
@@ -58,102 +67,293 @@ const WAITING: WaitingPatient[] = [
   { id: "p14", name: "Paredes, Isabel",     age: 41, sex: "F", doctor: "Dr. Ramírez",     type: "tp"     },
 ]
 
-// ─── Helpers ─────────────────────────────────────────────
-const PRIORITY_COLOR: Record<number | string, string> = {
-  1: "#dc2626",
-  2: "#f97316",
-  3: "#eab308",
-  4: "#22c55e",
-  none: "#9ca3af",
+const BOX_STATUS_COLOR = {
+  disponible:    emergencyTokens.colors.boxActive,
+  mantenimiento: emergencyTokens.colors.priority2,
 }
 
-const PRIORITY_LABEL: Record<number | string, string> = {
-  1: "P1", 2: "P2", 3: "P3", 4: "P4", none: "--",
+const PRIORITY_LABEL: Record<string, string> = {
+  "1": "Crítico",
+  "2": "Urgente",
+  "3": "Moderado",
+  "4": "Leve",
 }
 
-// ─── BoxCell: celda de grilla con tooltip ─────────────────
+// ─── SummaryChip ──────────────────────────────────────────
+function SummaryChip({ label, count, color }: { label: string; count: number; color: string }) {
+  return (
+    <Box sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", py: 1.5 }}>
+      <Typography sx={{
+        fontFamily: emergencyTokens.typography.fontFamily,
+        fontSize:   "22px",
+        fontWeight: emergencyTokens.typography.weight.bold,
+        color,
+        lineHeight: 1,
+      }}>
+        {count}
+      </Typography>
+      <Typography sx={{
+        fontFamily: emergencyTokens.typography.fontFamily,
+        fontSize:   "10px",
+        color:      emergencyTokens.colors.textSecondary,
+        mt:         "4px",
+        textAlign:  "center",
+      }}>
+        {label}
+      </Typography>
+    </Box>
+  )
+}
+
+// ─── SummaryGroup: grupo de chips con etiqueta superior ───
+function SummaryGroup({ title, flex, children }: { title: string; flex: number; children: React.ReactNode }) {
+  return (
+    <Box sx={{ flex, display: "flex", flexDirection: "column" }}>
+      <Typography sx={{
+        fontFamily:    emergencyTokens.typography.fontFamily,
+        fontSize:      "9px",
+        fontWeight:    700,
+        textTransform: "uppercase",
+        letterSpacing: "0.08em",
+        color:         emergencyTokens.colors.textSecondary,
+        textAlign:     "center",
+        pt:            "6px",
+        pb:            "2px",
+        opacity:       0.7,
+      }}>
+        {title}
+      </Typography>
+      <Box sx={{ display: "flex", flex: 1 }}>
+        {children}
+      </Box>
+    </Box>
+  )
+}
+
+// ─── BoxCell ──────────────────────────────────────────────
 function BoxCell({ box }: { box: BoxData }) {
-  const isOccupied     = box.status === "ocupado"
-  const isDisponible   = box.status === "disponible"
-  const isMaintenance  = box.status === "mantenimiento"
+  const isOccupied   = box.status === "ocupado"
+  const isDisponible = box.status === "disponible"
 
-  const color = isOccupied
-    ? PRIORITY_COLOR[(box as BoxOccupied).priority]
+  const borderColor = isOccupied
+    ? emergencyTokens.colors[`priority${(box as BoxOccupied).priority}` as keyof typeof emergencyTokens.colors] as string
+    : BOX_STATUS_COLOR[box.status as keyof typeof BOX_STATUS_COLOR]
+
+  const bgColor = isOccupied
+    ? `${borderColor}18`
     : isDisponible
-      ? "#16a34a"
-      : "#d97706"
+      ? `${emergencyTokens.colors.boxActive}12`
+      : `${emergencyTokens.colors.priority2}12`
+
+  const tooltipContent = isOccupied ? (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: "4px", p: "2px" }}>
+      <Typography sx={{ fontFamily: emergencyTokens.typography.fontFamily, fontSize: "13px", fontWeight: 700, color: "#fff" }}>
+        {(box as BoxOccupied).patient}
+      </Typography>
+      <Typography sx={{ fontFamily: emergencyTokens.typography.fontFamily, fontSize: "11px", color: "#d1d5db" }}>
+        {(box as BoxOccupied).age} años · {(box as BoxOccupied).sex}
+      </Typography>
+      <Typography sx={{ fontFamily: emergencyTokens.typography.fontFamily, fontSize: "11px", color: "#d1d5db" }}>
+        {(box as BoxOccupied).doctor}
+      </Typography>
+      <Box sx={{
+        mt: "2px", alignSelf: "flex-start",
+        px: "8px", py: "2px",
+        borderRadius:    emergencyTokens.borderRadius.pill,
+        backgroundColor: borderColor,
+        fontSize: "10px", fontWeight: 700, color: "#fff",
+        fontFamily: emergencyTokens.typography.fontFamily,
+      }}>
+        P{(box as BoxOccupied).priority} — {PRIORITY_LABEL[String((box as BoxOccupied).priority)]}
+      </Box>
+    </Box>
+  ) : isDisponible ? "Disponible — listo para asignar" : "En mantenimiento"
 
   return (
-    <div className={`box-cell box-cell--${box.status}`} style={{ "--box-color": color } as React.CSSProperties}>
-      <span className="box-cell-label">{box.label}</span>
+    <Tooltip title={tooltipContent} placement="top" arrow>
+      <Box sx={{
+        display:         "flex",
+        flexDirection:   "column",
+        alignItems:      "center",
+        justifyContent:  "center",
+        gap:             "6px",
+        p:               "12px 8px 10px",
+        borderRadius:    emergencyTokens.borderRadius.lg,
+        border:          `2px solid ${borderColor}`,
+        borderStyle:     isOccupied ? "solid" : "dashed",
+        backgroundColor: bgColor,
+        minHeight:       "72px",
+        cursor:          "default",
+        opacity:         box.status === "mantenimiento" ? 0.6 : 1,
+        transition:      "transform 0.15s, box-shadow 0.15s",
+        "&:hover":       { transform: "scale(1.03)", boxShadow: emergencyTokens.shadows.card },
+      }}>
+        <Typography sx={{
+          fontFamily: emergencyTokens.typography.fontFamily,
+          fontSize:   "12px",
+          fontWeight: emergencyTokens.typography.weight.bold,
+          color:      emergencyTokens.colors.textPrimary,
+        }}>
+          {box.label}
+        </Typography>
 
-      {isOccupied && (
-        <span className="box-cell-priority" style={{ background: color }}>
-          {PRIORITY_LABEL[(box as BoxOccupied).priority]}
-        </span>
-      )}
+        {isOccupied && <PriorityBadge priority={(box as BoxOccupied).priority} tooltipText="" />}
 
-      {/* Tooltip */}
-      <div className="box-tooltip">
-        {isOccupied && (
-          <>
-            <div className="box-tooltip-name">{(box as BoxOccupied).patient}</div>
-            <div className="box-tooltip-row">
-              <span>{(box as BoxOccupied).age} años</span>
-              <span>·</span>
-              <span>{(box as BoxOccupied).sex}</span>
-            </div>
-            <div className="box-tooltip-row">{(box as BoxOccupied).doctor}</div>
-            <div className="box-tooltip-badge" style={{ background: color }}>
-              {PRIORITY_LABEL[(box as BoxOccupied).priority]} — Prioridad {(box as BoxOccupied).priority}
-            </div>
-          </>
+        {!isOccupied && (
+          <Box sx={{
+            fontSize:      "9px",
+            fontWeight:    700,
+            fontFamily:    emergencyTokens.typography.fontFamily,
+            color:         borderColor,
+            textTransform: "uppercase",
+            letterSpacing: "0.04em",
+          }}>
+            {isDisponible ? "Libre" : "Mant."}
+          </Box>
         )}
-        {isDisponible   && <div className="box-tooltip-free">Disponible</div>}
-        {isMaintenance  && <div className="box-tooltip-maint">En mantenimiento</div>}
-      </div>
-    </div>
+      </Box>
+    </Tooltip>
   )
 }
 
-// ─── WaitingCard: fila del acordeón ──────────────────────
-function WaitingCard({ p }: { p: WaitingPatient }) {
+// ─── WaitingRow ───────────────────────────────────────────
+function WaitingRow({ p, onAssign }: { p: WaitingPatient; onAssign: (id: string) => void }) {
+  const isTP      = p.type === "tp"
+  const typeColor = isTP ? emergencyTokens.colors.priority2 : emergencyTokens.colors.boxWaiting
+  const typeLabel = isTP ? "Triage" : "En espera"
+
   return (
-    <div className="bed-card bed-card--espera">
-      <div className="bed-card-left">
-        <span className="bed-card-number">{p.type === "tp" ? "TP" : "Sala"}</span>
-        <span className={`bed-card-badge ${p.type === "tp" ? "bed-badge--tp" : "bed-badge--espera"}`}>
-          {p.type === "tp" ? "Triage" : "En espera"}
-        </span>
-      </div>
-      <div className="bed-card-right">
-        <span className="bed-card-patient">{p.name}</span>
-        <span className="bed-card-meta">{p.age} años · {p.sex} · {p.doctor}</span>
-      </div>
-    </div>
+    <Box sx={{
+      display:         "flex",
+      alignItems:      "center",
+      gap:             emergencyTokens.spacing[3],
+      p:               `${emergencyTokens.spacing[2]} ${emergencyTokens.spacing[3]}`,
+      borderRadius:    emergencyTokens.borderRadius.lg,
+      backgroundColor: emergencyTokens.colors.rowAlternate,
+      border:          `1px solid ${emergencyTokens.colors.border}`,
+      borderLeft:      `4px solid ${typeColor}`,
+    }}>
+      {/* Tipo */}
+      <Box sx={{ minWidth: 60 }}>
+        <Typography sx={{
+          fontFamily:    emergencyTokens.typography.fontFamily,
+          fontSize:      emergencyTokens.typography.size.badge,
+          fontWeight:    emergencyTokens.typography.weight.bold,
+          color:         typeColor,
+          textTransform: "uppercase",
+          letterSpacing: "0.04em",
+        }}>
+          {typeLabel}
+        </Typography>
+      </Box>
+
+      <Divider orientation="vertical" flexItem />
+
+      {/* Info del paciente */}
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography sx={{
+          fontFamily:   emergencyTokens.typography.fontFamily,
+          fontSize:     emergencyTokens.typography.size.tableCell,
+          fontWeight:   emergencyTokens.typography.weight.semibold,
+          color:        emergencyTokens.colors.textPrimary,
+          whiteSpace:   "nowrap",
+          overflow:     "hidden",
+          textOverflow: "ellipsis",
+        }}>
+          {p.name}
+        </Typography>
+        <Typography sx={{
+          fontFamily: emergencyTokens.typography.fontFamily,
+          fontSize:   "11px",
+          color:      emergencyTokens.colors.textSecondary,
+          mt:         "2px",
+        }}>
+          {p.age} años · {p.sex} · {p.doctor}
+        </Typography>
+      </Box>
+
+      {/* Botón asignar */}
+      <Button
+        size="small"
+        variant="outlined"
+        onClick={() => onAssign(p.id)}
+        sx={{
+          fontSize:    "10px",
+          fontFamily:  emergencyTokens.typography.fontFamily,
+          fontWeight:  700,
+          py:          "3px",
+          px:          "10px",
+          minWidth:    "auto",
+          whiteSpace:  "nowrap",
+          borderColor: emergencyTokens.colors.boxActive,
+          color:       emergencyTokens.colors.boxActive,
+          borderRadius: emergencyTokens.borderRadius.md,
+          textTransform: "none",
+          "&:hover": {
+            backgroundColor: `${emergencyTokens.colors.boxActive}14`,
+            borderColor:     emergencyTokens.colors.boxActive,
+          },
+        }}
+      >
+        Asignar Box
+      </Button>
+    </Box>
   )
 }
 
-// ─── SummaryCard ──────────────────────────────────────────
-function SummaryCard({ label, count, color }: { label: string; count: number; color: string }) {
+// ─── PriorityLegend ───────────────────────────────────────
+function PriorityLegend() {
+  const items = [
+    { label: "P1 Crítico",  color: emergencyTokens.colors.priority1 },
+    { label: "P2 Urgente",  color: emergencyTokens.colors.priority2 },
+    { label: "P3 Moderado", color: emergencyTokens.colors.priority3 },
+    { label: "P4 Leve",     color: emergencyTokens.colors.priority4 },
+    { label: "Libre",       color: emergencyTokens.colors.boxActive,  dashed: true },
+    { label: "Mant.",       color: emergencyTokens.colors.priority2,  dashed: true, dim: true },
+  ]
   return (
-    <div className="bed-summary-card">
-      <span className="bed-summary-count" style={{ color }}>{count}</span>
-      <span className="bed-summary-label">{label}</span>
-    </div>
+    <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px 14px", mt: emergencyTokens.spacing[2] }}>
+      {items.map(item => (
+        <Box key={item.label} sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
+          <Box sx={{
+            width:           10,
+            height:          10,
+            borderRadius:    "50%",
+            backgroundColor: item.dashed ? "transparent" : item.color,
+            border:          item.dashed ? `2px dashed ${item.color}` : "none",
+            opacity:         item.dim ? 0.6 : 1,
+          }} />
+          <Typography sx={{
+            fontFamily: emergencyTokens.typography.fontFamily,
+            fontSize:   "10px",
+            color:      emergencyTokens.colors.textSecondary,
+          }}>
+            {item.label}
+          </Typography>
+        </Box>
+      ))}
+    </Box>
   )
 }
 
 // ─── Componente principal ─────────────────────────────────
 export function BedAvailabilityDrawer() {
-  const [open,          setOpen]          = useState(false)
-  const [waitingOpen,   setWaitingOpen]   = useState(false)
+  const [open, setOpen] = useState(false)
 
   const ocupados      = BOXES.filter(b => b.status === "ocupado").length
   const disponibles   = BOXES.filter(b => b.status === "disponible").length
   const mantenimiento = BOXES.filter(b => b.status === "mantenimiento").length
   const enEspera      = WAITING.filter(w => w.type === "espera").length
   const enTriage      = WAITING.filter(w => w.type === "tp").length
+
+  const handleAssign = (patientId: string) => {
+    const available = BOXES.find(b => b.status === "disponible")
+    if (available) {
+      console.info(`[BedAvailabilityDrawer] Asignar paciente ${patientId} → ${available.label}`)
+    } else {
+      console.warn("[BedAvailabilityDrawer] No hay boxes disponibles")
+    }
+  }
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false) }
@@ -163,85 +363,195 @@ export function BedAvailabilityDrawer() {
 
   return (
     <>
-      <div className="bed-floating-button" onClick={() => setOpen(true)}>
-        🛏 Ver disponibilidad de camas
-      </div>
+      <BedsAvailabilityTab isActive={open} onClick={() => setOpen(true)} />
 
-      <div className={`bed-drawer ${open ? "open" : ""}`}>
+      <Drawer
+        anchor="right"
+        open={open}
+        onClose={() => setOpen(false)}
+        sx={{
+          "& .MuiDrawer-paper": {
+            width:         460,
+            display:       "flex",
+            flexDirection: "column",
+            overflow:      "hidden",
+          },
+        }}
+      >
+        {/* ── Header ── */}
+        <Box sx={{
+          display:         "flex",
+          justifyContent:  "space-between",
+          alignItems:      "center",
+          px:              emergencyTokens.spacing[4],
+          py:              emergencyTokens.spacing[3],
+          backgroundColor: emergencyTokens.colors.headerBg,
+          flexShrink:      0,
+        }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: emergencyTokens.spacing[3] }}>
+            <KingBedOutlinedIcon sx={{ fontSize: 24, color: "#fff" }} />
+            <Box>
+              <Typography sx={{
+                fontFamily: emergencyTokens.typography.fontFamily,
+                fontSize:   "16px",
+                fontWeight: emergencyTokens.typography.weight.bold,
+                color:      "#fff",
+              }}>
+                Disponibilidad de Boxes
+              </Typography>
+              <Typography sx={{
+                fontFamily: emergencyTokens.typography.fontFamily,
+                fontSize:   "12px",
+                color:      "rgba(255,255,255,0.75)",
+                mt:         "2px",
+              }}>
+                {BOXES.length} boxes · {WAITING.length} pacientes sin box
+              </Typography>
+            </Box>
+          </Box>
+          <IconButton onClick={() => setOpen(false)} size="small" sx={{
+            color:           "#fff",
+            backgroundColor: "rgba(255,255,255,0.12)",
+            borderRadius:    emergencyTokens.borderRadius.sm,
+            "&:hover":       { backgroundColor: "rgba(255,255,255,0.22)" },
+          }}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
 
-        {/* Header */}
-        <div className="bed-drawer-header">
-          <div className="bed-drawer-title">
-            <span className="bed-drawer-icon">🛏</span>
-            <div>
-              <div className="bed-drawer-heading">Disponibilidad de Boxes</div>
-              <div className="bed-drawer-subheading">{BOXES.length} boxes · {WAITING.length} pacientes sin box</div>
-            </div>
-          </div>
-          <button className="bed-close" onClick={() => setOpen(false)}>✕</button>
-        </div>
+        {/* ── Resumen con grupos etiquetados ── */}
+        <Box sx={{
+          display:      "flex",
+          borderBottom: `1px solid ${emergencyTokens.colors.border}`,
+          flexShrink:   0,
+        }}>
+          {/* Grupo Boxes */}
+          <SummaryGroup title="Boxes" flex={3}>
+            <SummaryChip label="Ocupados"      count={ocupados}      color={emergencyTokens.colors.priority1}  />
+            <Divider orientation="vertical" flexItem />
+            <SummaryChip label="Disponibles"   count={disponibles}   color={emergencyTokens.colors.boxActive}  />
+            <Divider orientation="vertical" flexItem />
+            <SummaryChip label="Mantenimiento" count={mantenimiento} color={emergencyTokens.colors.priority2}  />
+          </SummaryGroup>
 
-        {/* Resumen */}
-        <div className="bed-summary-row">
-          <SummaryCard label="Ocupados"      count={ocupados}      color="#dc2626" />
-          <SummaryCard label="Disponibles"   count={disponibles}   color="#16a34a" />
-          <SummaryCard label="Mantenimiento" count={mantenimiento} color="#d97706" />
-          <SummaryCard label="En espera"     count={enEspera}      color="#6366f1" />
-          <SummaryCard label="Triage"        count={enTriage}      color="#f97316" />
-        </div>
+          <Divider orientation="vertical" flexItem />
 
-        {/* Contenido scrolleable */}
-        <div className="bed-drawer-content">
+          {/* Grupo Pacientes */}
+          <SummaryGroup title="Pacientes" flex={2}>
+            <SummaryChip label="En espera" count={enEspera} color={emergencyTokens.colors.boxWaiting} />
+            <Divider orientation="vertical" flexItem />
+            <SummaryChip label="Triage"    count={enTriage} color={emergencyTokens.colors.priority2}  />
+          </SummaryGroup>
+        </Box>
+
+        {/* ── Contenido scrolleable ── */}
+        <Box sx={{
+          flex:      1,
+          minHeight: 0,           // ← clave para que el scroll funcione en flex
+          overflowY: "auto",
+          p:         emergencyTokens.spacing[4],
+          display:   "flex",
+          flexDirection: "column",
+          gap:       emergencyTokens.spacing[5],
+        }}>
 
           {/* Grilla de boxes */}
-          <div className="bed-sector">
-            <div className="bed-sector-header">
-              <span className="bed-sector-name">Boxes de Atención</span>
-              <span className="bed-sector-stats">{disponibles} disp. / {BOXES.length}</span>
-            </div>
-            <div className="box-grid">
+          <Box>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: emergencyTokens.spacing[3] }}>
+              <Typography sx={{
+                fontFamily:    emergencyTokens.typography.fontFamily,
+                fontSize:      emergencyTokens.typography.size.tableHeader,
+                fontWeight:    emergencyTokens.typography.weight.bold,
+                textTransform: "uppercase",
+                letterSpacing: "0.07em",
+                color:         emergencyTokens.colors.textSecondary,
+              }}>
+                Boxes de Atención
+              </Typography>
+              <Box sx={{
+                px: "10px", py: "2px",
+                borderRadius:    emergencyTokens.borderRadius.pill,
+                backgroundColor: emergencyTokens.colors.rowAlternate,
+                border:          `1px solid ${emergencyTokens.colors.border}`,
+                fontSize:        "11px",
+                color:           emergencyTokens.colors.textSecondary,
+                fontFamily:      emergencyTokens.typography.fontFamily,
+              }}>
+                {disponibles} disp. / {BOXES.length}
+              </Box>
+            </Box>
+
+            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: emergencyTokens.spacing[2] }}>
               {BOXES.map(box => <BoxCell key={box.label} box={box} />)}
-            </div>
-            {/* Leyenda */}
-            <div className="box-legend">
-              <span className="box-legend-item"><span className="box-legend-dot" style={{ background: "#dc2626" }} />P1</span>
-              <span className="box-legend-item"><span className="box-legend-dot" style={{ background: "#f97316" }} />P2</span>
-              <span className="box-legend-item"><span className="box-legend-dot" style={{ background: "#eab308" }} />P3</span>
-              <span className="box-legend-item"><span className="box-legend-dot" style={{ background: "#22c55e" }} />P4</span>
-              <span className="box-legend-item"><span className="box-legend-dot" style={{ background: "#16a34a", opacity: 0.3 }} />Libre</span>
-              <span className="box-legend-item"><span className="box-legend-dot" style={{ background: "#d97706", opacity: 0.3 }} />Mant.</span>
-            </div>
-          </div>
+            </Box>
+
+            <PriorityLegend />
+          </Box>
 
           {/* Acordeón: pacientes sin box */}
           {WAITING.length > 0 && (
-            <div className="bed-accordion">
-              <button
-                className={`bed-accordion-header ${waitingOpen ? "open" : ""}`}
-                onClick={() => setWaitingOpen(v => !v)}
+            <Accordion
+              disableGutters
+              elevation={0}
+              sx={{
+                border:       `1px solid ${emergencyTokens.colors.border}`,
+                borderRadius: `${emergencyTokens.borderRadius.lg} !important`,
+                "&:before":   { display: "none" },
+              }}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon sx={{ color: emergencyTokens.colors.textSecondary }} />}
+                sx={{
+                  backgroundColor: emergencyTokens.colors.rowAlternate,
+                  minHeight:       "48px !important",
+                  px:              emergencyTokens.spacing[4],
+                  "& .MuiAccordionSummary-content": { alignItems: "center", gap: emergencyTokens.spacing[2], my: "10px" },
+                }}
               >
-                <div className="bed-accordion-title">
-                  <span>Pacientes sin Box</span>
-                  <div className="bed-accordion-badges">
-                    <span className="bed-badge--espera bed-card-badge">{enEspera} espera</span>
-                    <span className="bed-badge--tp bed-card-badge">{enTriage} triage</span>
-                  </div>
-                </div>
-                <span className={`bed-accordion-chevron ${waitingOpen ? "open" : ""}`}>▾</span>
-              </button>
+                <Typography sx={{
+                  fontFamily:    emergencyTokens.typography.fontFamily,
+                  fontSize:      emergencyTokens.typography.size.tableHeader,
+                  fontWeight:    emergencyTokens.typography.weight.bold,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.07em",
+                  color:         emergencyTokens.colors.textSecondary,
+                }}>
+                  Pacientes sin Box
+                </Typography>
+                <Box sx={{
+                  px: "8px", py: "2px",
+                  borderRadius:    emergencyTokens.borderRadius.pill,
+                  backgroundColor: `${emergencyTokens.colors.boxWaiting}22`,
+                  border:          `1px solid ${emergencyTokens.colors.boxWaiting}`,
+                  fontSize:        "10px", fontWeight: 700,
+                  color:           emergencyTokens.colors.boxWaiting,
+                  fontFamily:      emergencyTokens.typography.fontFamily,
+                }}>
+                  {enEspera} espera
+                </Box>
+                <Box sx={{
+                  px: "8px", py: "2px",
+                  borderRadius:    emergencyTokens.borderRadius.pill,
+                  backgroundColor: `${emergencyTokens.colors.priority2}22`,
+                  border:          `1px solid ${emergencyTokens.colors.priority2}`,
+                  fontSize:        "10px", fontWeight: 700,
+                  color:           emergencyTokens.colors.priority2,
+                  fontFamily:      emergencyTokens.typography.fontFamily,
+                }}>
+                  {enTriage} triage
+                </Box>
+              </AccordionSummary>
 
-              <div className={`bed-accordion-body ${waitingOpen ? "open" : ""}`}>
-                <div className="bed-sector-list">
-                  {WAITING.map(p => <WaitingCard key={p.id} p={p} />)}
-                </div>
-              </div>
-            </div>
+              <AccordionDetails sx={{ p: emergencyTokens.spacing[3], display: "flex", flexDirection: "column", gap: emergencyTokens.spacing[2] }}>
+                {WAITING.map(p => (
+                  <WaitingRow key={p.id} p={p} onAssign={handleAssign} />
+                ))}
+              </AccordionDetails>
+            </Accordion>
           )}
 
-        </div>
-      </div>
-
-      {open && <div className="drawer-overlay" onClick={() => setOpen(false)} />}
+        </Box>
+      </Drawer>
     </>
   )
 }

@@ -36,10 +36,10 @@ export default defineConfig({
     }
   },
   server: {
-    port: 5103
+    port: 5101
   },
   preview: {
-    port: 5103
+    port: 5101
   },
   build: {
     target: "esnext",

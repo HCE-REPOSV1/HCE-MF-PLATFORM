@@ -23,32 +23,33 @@
  * ---------------------------------------------------------
  */
 import MuiButton from "@mui/material/Button"
-/**
- * Props del componente Button
- */
+
 interface Props {
-  /**
-   * Texto que se mostrará dentro del botón
-   */
-  label: string
-  /**
-   * Función que se ejecuta al hacer click
-   */
-  onClick?: () => void
+  label:      string
+  onClick?:   () => void
+  fullWidth?: boolean
+  color?:     "primary" | "secondary"
+  type?:      "button" | "submit" | "reset"
+  disabled?:  boolean
 }
-/**
- * Componente Button
- *
- * Encapsula el botón de Material UI para mantener consistencia
- * visual y funcional dentro del Design System.
- */
-export const Button = ({ label, onClick }: Props) => {
+
+export const Button = ({
+  label,
+  onClick,
+  fullWidth = false,
+  color     = "primary",
+  type      = "button",
+  disabled  = false,
+}: Props) => {
   return (
     <MuiButton
       variant="contained"
-      color="primary"
+      color={color}
       onClick={onClick}
-      sx={{ textTransform: "none" }}
+      fullWidth={fullWidth}
+      type={type}
+      disabled={disabled}
+      sx={{ textTransform: "none", fontWeight: 700, py: "12px", fontSize: "1rem" }}
     >
       {label}
     </MuiButton>

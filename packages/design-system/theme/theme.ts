@@ -1,142 +1,97 @@
 /**
  * ---------------------------------------------------------
- * File: theme.ts
- * Author: Gregorovichz Carlos Rossi
- * Created: 09-03-2026
+ * File: theme/theme.ts
  * Description:
- * Definición del tema global de la aplicación utilizando
- * Material UI (MUI). Este archivo centraliza los estilos
- * visuales del Design System, permitiendo mantener
- * consistencia visual en todos los microfrontends.
- *
- * Responsabilidades:
- * - Definir la paleta de colores corporativa
- * - Configurar tipografía global
- * - Estandarizar estilos de componentes MUI
- * - Mantener consistencia visual entre aplicaciones
- *
- * Arquitectura:
- * Este theme es consumido por el ThemeProvider en el
- * microfrontend shell o en cada microfrontend.
- *
- * Ejemplo de uso:
- *
- * import { ThemeProvider } from "@mui/material/styles"
- * import { theme } from "./theme"
- *
- * <ThemeProvider theme={theme}>
- *    <App />
- * </ThemeProvider>
- *
- * Tecnologías:
- * - React
- * - Material UI (MUI v5+)
- * - TypeScript
+ * Tema MUI base del Design System Jarvis.
+ * Consume baseTokens — no define valores crudos aquí.
+ * Todos los colores, tamaños y tipografía vienen de
+ * tokens/base.tokens.ts.
  * ---------------------------------------------------------
  */
-import { createTheme } from "@mui/material/styles";
-/**
- * Theme principal del Design System
- */
+import { createTheme }  from "@mui/material/styles"
+import {
+  baseColors,
+  baseTypography,
+  baseBorderRadius,
+} from "../tokens/base.tokens"
+
 export const theme = createTheme({
-  /**
-   * Paleta de colores corporativa
-   */
   palette: {
-    /**
-     * Color primario de la marca
-     */
     primary: {
-      main: "#1E4FA3",
+      main:  baseColors.primary,
+      dark:  baseColors.primaryDark,
+      light: baseColors.primaryLight,
     },
-    /**
-     * Colores secundarios utilizados en botones
-     * acciones positivas y elementos destacados
-     */
     secondary: {
-      main: "#6FB23F",
-      light: "#8BCB5A",
-      dark: "#5AA12E",
-      contrastText: "#ffffff",
+      main:         baseColors.secondary,
+      light:        baseColors.secondaryLight,
+      dark:         baseColors.secondaryDark,
+      contrastText: baseColors.surface,
     },
-    /**
-     * Color de fondo general de la aplicación
-     */
     background: {
-      default: "#F7F9FC",
+      default: baseColors.background,
+      paper:   baseColors.surface,
     },
+    text: {
+      primary:   baseColors.textPrimary,
+      secondary: baseColors.textSecondary,
+    },
+    divider: baseColors.border,
   },
-  /**
-   * Configuración global de bordes
-   */
+
   shape: {
-    borderRadius: 8,
+    borderRadius: parseInt(baseBorderRadius.lg),
   },
-  /**
-   * Tipografía corporativa
-   */
+
   typography: {
-    /**
-     * Fuente base del sistema
-     */
-    // fontFamily: "'Poppins', sans-serif",
-    // fontFamily: "'Inter', sans-serif",
-    fontFamily: "'Montserrat', sans-serif",
-    fontSize: 14, 
-    
+    fontFamily: baseTypography.fontFamily,
+    fontSize:   baseTypography.fontSize,
     h1: {
-      fontSize: "2rem",
-      fontWeight: 600,
-      letterSpacing: "-0.02em" // Poppins se ve muy profesional con un tracking ajustado
+      fontSize:      baseTypography.size.h1,
+      fontWeight:    baseTypography.weight.semibold,
+      letterSpacing: baseTypography.letterSpacing.tight,
     },
     h4: {
-      fontSize: "1.25rem",
-      fontWeight: 600,
-      letterSpacing: "-0.01em"
+      fontSize:      baseTypography.size.h4,
+      fontWeight:    baseTypography.weight.semibold,
+      letterSpacing: baseTypography.letterSpacing.tight,
     },
     button: {
-      fontWeight: 500,
-      textTransform: "none"
+      fontWeight:    baseTypography.weight.medium,
+      textTransform: 'none',
     },
   },
-  /**
-   * Personalización de componentes de Material UI
-   * para alinearlos con el Design System
-   */
-  // theme.ts (Adición en el objeto components)
+
   components: {
     MuiButton: {
       styleOverrides: {
-        /**
-         * Estilo base aplicado a todos los botones
-         */
         root: {
-          borderRadius: 8,
-          textTransform: "none", // evita uppercase automático
+          borderRadius:  baseBorderRadius.lg,
+          textTransform: 'none',
         },
       },
     },
     MuiTable: {
       styleOverrides: {
         root: {
-          backgroundColor: "#ffffff",
-          borderRadius: "12px",
-          overflow: "hidden",
-          boxShadow: "0px 2px 12px rgba(0, 0, 0, 0.05)",
+          backgroundColor: baseColors.surface,
+          borderRadius:    baseBorderRadius.xl,
+          overflow:        'hidden',
+          boxShadow:       '0px 2px 12px rgba(0,0,0,0.05)',
         },
       },
     },
     MuiTableHead: {
       styleOverrides: {
         root: {
-          backgroundColor: "#F7F9FC", // Un tono grisáceo suave para diferenciar la cabecera
-          "& .MuiTableCell-root": {
-            color: "#4A5568",
-            fontWeight: 700,
-            textTransform: "uppercase",
-            fontSize: "0.75rem",
-            letterSpacing: "0.05em",
-            borderBottom: "2px solid #E2E8F0",
+          backgroundColor: baseColors.surfaceLight,
+          '& .MuiTableCell-root': {
+            color:         baseColors.textSecondary,
+            fontWeight:    baseTypography.weight.bold,
+            textTransform: 'uppercase',
+            fontSize:      baseTypography.size.xs,
+            letterSpacing: baseTypography.letterSpacing.wide,
+            borderBottom:  `2px solid ${baseColors.border}`,
           },
         },
       },
@@ -144,21 +99,21 @@ export const theme = createTheme({
     MuiTableCell: {
       styleOverrides: {
         root: {
-          padding: "16px",
-          borderColor: "#EDF2F7",
-          color: "#2D3748",
-          fontSize: "0.875rem",
+          padding:     '16px',
+          borderColor: baseColors.border,
+          color:       baseColors.textPrimary,
+          fontSize:    baseTypography.size.sm,
         },
       },
     },
     MuiTableRow: {
       styleOverrides: {
         root: {
-          "&:hover": {
-            backgroundColor: "#F1F5F9", // Efecto hover sutil
-            transition: "background-color 0.2s ease",
+          '&:hover': {
+            backgroundColor: baseColors.surfaceLight,
+            transition:      'background-color 0.2s ease',
           },
-          "&:last-child td": {
+          '&:last-child td': {
             borderBottom: 0,
           },
         },
@@ -167,38 +122,29 @@ export const theme = createTheme({
     MuiPagination: {
       styleOverrides: {
         root: {
-          "& .MuiPagination-ul": {
-            gap: "8px", // Espaciado entre números
-          },
+          '& .MuiPagination-ul': { gap: '8px' },
         },
       },
     },
     MuiPaginationItem: {
       styleOverrides: {
         root: {
-          borderRadius: "8px", // Match con el borderRadius global
-          fontWeight: 500,
-          color: "#4A5568",
-          "&.Mui-selected": {
-            backgroundColor: "#1E4FA3", // Tu color primario
-            color: "#ffffff",
-            "&:hover": {
-              backgroundColor: "#163d7e",
-            },
+          borderRadius: baseBorderRadius.lg,
+          fontWeight:   baseTypography.weight.medium,
+          color:        baseColors.textSecondary,
+          '&.Mui-selected': {
+            backgroundColor: baseColors.primary,
+            color:           baseColors.surface,
+            '&:hover': { backgroundColor: baseColors.primaryDark },
           },
-          "&:hover": {
-            backgroundColor: "#EDF2F7",
-          },
+          '&:hover': { backgroundColor: baseColors.surfaceLight },
         },
-        // Estilo para las flechas (prev/next)
         previousNext: {
-          backgroundColor: "#ffffff",
-          border: "1px solid #E2E8F0",
-          "&:hover": {
-            backgroundColor: "#F7F9FC",
-          },
+          backgroundColor: baseColors.surface,
+          border:          `1px solid ${baseColors.border}`,
+          '&:hover':       { backgroundColor: baseColors.background },
         },
       },
     },
   },
-});
+})

@@ -9,6 +9,18 @@ export { emergencyTheme } from "./theme/emergencyTheme"
 // ── Provider ──────────────────────────────────────────────
 export { DSProvider } from "./provider/ThemeProvider"
 
+// ── Design Tokens — Base ───────────────────────────────────
+export {
+  baseTokens,
+  baseColors,
+  baseTypography,
+  baseSpacing,
+  baseBorderRadius,
+  baseShadows,
+  baseZIndex,
+  injectBaseTokens,
+} from "./tokens/base.tokens"
+
 // ── Design Tokens — Emergency Monitor ─────────────────────
 export {
   emergencyTokens,
@@ -22,44 +34,51 @@ export {
   injectEmergencyTokens,
 } from "./tokens/emergency.tokens"
 
+// ── MUI Primitives re-exported ─────────────────────────────
+export { Box, Typography } from "@mui/material"
+
 // ── Atoms ─────────────────────────────────────────────────
-export { Button }             from "./atoms/Button/Button"
-export { PriorityBadge }      from "./atoms/PriorityBadge/PriorityBadge"
-export { BoxBadge }           from "./atoms/BoxBadge/BoxBadge"
-export { ClinicalStatusIcon } from "./atoms/ClinicalStatusIcon/ClinicalStatusIcon"
-export { AttentionCode }      from "./atoms/AttentionCode/AttentionCode"
-export { InfoButton }         from "./atoms/InfoButton/InfoButton"
-export { ActionIconButton }   from "./atoms/ActionIconButton/ActionIconButton"
+export { Button }        from "./atoms/Button/Button"
+export { Badge }         from "./atoms/Badge/Badge"
+export { Chip }          from "./atoms/Chip/Chip"
+export { Icon }          from "./atoms/Icon/Icon"
+export { Card }          from "./atoms/Card/Card"
+export { PriorityBadge } from "./atoms/PriorityBadge/PriorityBadge"
+export { BoxBadge }      from "./atoms/BoxBadge/BoxBadge"
+export { AttentionCode } from "./atoms/AttentionCode/AttentionCode"
+export { TextInput }     from "./atoms/TextInput/TextInput"
+export { SelectField }   from "./atoms/SelectField/SelectField"
 
 // ── Types — Atoms ──────────────────────────────────────────
-export type { PriorityLevel }      from "./atoms/PriorityBadge/PriorityBadge"
-export type { BoxStatus }          from "./atoms/BoxBadge/BoxBadge"
-export type { ClinicalIconStatus } from "./atoms/ClinicalStatusIcon/ClinicalStatusIcon"
+export type { PriorityLevel } from "./atoms/PriorityBadge/PriorityBadge"
+export type { BoxStatus }     from "./atoms/BoxBadge/BoxBadge"
 
 // ── Molecules ─────────────────────────────────────────────
-export { Card }                  from "./molecules/Card/Card"
-export { EmergencyHeader }       from "./molecules/EmergencyHeader/EmergencyHeader"
-export { ActionBar }             from "./molecules/ActionBar/ActionBar"
-export { PatientRow }            from "./molecules/PatientRow/PatientRow"
-export { PatientTable }          from "./molecules/PatientTable/PatientTable"
-export { EmergencyPagination }   from "./molecules/EmergencyPagination/EmergencyPagination"
-export { BedsAvailabilityTab }   from "./molecules/BedsAvailabilityTab/BedsAvailabilityTab"
+export { ActionBar }           from "./molecules/ActionBar/ActionBar"
+export { ActionIconButton }    from "./molecules/ActionIconButton/ActionIconButton"
+export { BedsAvailabilityTab } from "./molecules/BedsAvailabilityTab/BedsAvailabilityTab"
+export { ClinicalStatusIcon }  from "./molecules/ClinicalStatusIcon/ClinicalStatusIcon"
+export { EmergencyHeader }     from "./molecules/EmergencyHeader/EmergencyHeader"
+export { EmergencyPagination } from "./molecules/EmergencyPagination/EmergencyPagination"
+export { IconButton }          from "./molecules/IconButton/IconButton"
+export { InfoButton }          from "./molecules/InfoButton/InfoButton"
+export { PatientRow }          from "./molecules/PatientRow/PatientRow"
+export { PasswordInput }       from "./molecules/PasswordInput/PasswordInput"
 
 // ── Types — Molecules ──────────────────────────────────────
-export type { PatientRowData } from "./molecules/PatientRow/PatientRow"
-export type { ExtraAction }    from "./molecules/ActionBar/ActionBar"
+export type { ClinicalIconStatus } from "./molecules/ClinicalStatusIcon/ClinicalStatusIcon"
+export type { PatientRowData }     from "./molecules/PatientRow/PatientRow"
+export type { ExtraAction }        from "./molecules/ActionBar/ActionBar"
 
-export * from "./atoms/Button/Button"
-export * from "./atoms/Badge/Badge"
-export * from "./atoms/Chip/Chip"
-export * from "./atoms/Icon/Icon"
+// ── Organisms ─────────────────────────────────────────────
+export { Header }                from "./organisms/Header/Header"
+export { Footer }                from "./organisms/Footer/Footer"
+export { SideNav }               from "./organisms/SideNav/SideNav"
+export { DataTable }             from "./organisms/DataTable/DataTable"
+export { Pagination }            from "./organisms/Pagination/Pagination"
+export { PatientTable }          from "./organisms/PatientTable/PatientTable"
+export { BedAvailabilityDrawer } from "./organisms/BedAvailability/BedAvailabilityDrawer"
+export { SidebarMenu }           from "./organisms/SidebarMenu/SidebarMenu"
 
-export * from "./molecules/IconButton/IconButton"
-
-export * from "./organisms/DataTable/DataTable"
-export * from "./organisms/Pagination/Pagination"
-export * from "./organisms/Header/Header"
-export * from "./organisms/SideNav/SideNav"
-export * from "./organisms/BedAvailability/BedAvailabilityDrawer"
-export * from "./navigation/SidebarMenu"
-
+// ── Types — Organisms ──────────────────────────────────────
+export type { MenuItem } from "./organisms/SidebarMenu/types"

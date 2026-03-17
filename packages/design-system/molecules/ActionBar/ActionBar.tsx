@@ -24,7 +24,7 @@ import FilterListIcon       from "@mui/icons-material/FilterList"
 import PersonOutlineIcon    from "@mui/icons-material/PersonOutline"
 import PrintOutlinedIcon    from "@mui/icons-material/PrintOutlined"
 import RefreshOutlinedIcon  from "@mui/icons-material/RefreshOutlined"
-import { ActionIconButton } from "../../atoms/ActionIconButton/ActionIconButton"
+import { ActionIconButton } from "../ActionIconButton/ActionIconButton"
 import { emergencyTokens }  from "../../tokens/emergency.tokens"
 import type { SvgIconComponent } from "@mui/icons-material"
 

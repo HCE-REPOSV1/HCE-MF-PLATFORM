@@ -37,9 +37,12 @@
  */
 import ReactDOM from "react-dom/client"
 import { BrowserRouter } from "react-router-dom"
-import "@jarvis/design-system/theme/theme.css"
+import { injectBaseTokens } from "@jarvis/design-system"
 import { DSProvider } from "@jarvis/design-system/provider/ThemeProvider"
 import App from "./App"
+
+// Inyecta los CSS custom properties del Design System base en :root
+injectBaseTokens()
 
 // Suppress known Emotion + React 18.3 key prop warning.
 // Emotion's Styled factory renders React.Fragment(null, Insertion, FinalTag)

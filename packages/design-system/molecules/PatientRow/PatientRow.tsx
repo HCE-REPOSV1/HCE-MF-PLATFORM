@@ -32,10 +32,10 @@ import { PriorityBadge } from "../../atoms/PriorityBadge/PriorityBadge"
 import type { PriorityLevel } from "../../atoms/PriorityBadge/PriorityBadge"
 import { BoxBadge } from "../../atoms/BoxBadge/BoxBadge"
 import type { BoxStatus } from "../../atoms/BoxBadge/BoxBadge"
-import { ClinicalStatusIcon } from "../../atoms/ClinicalStatusIcon/ClinicalStatusIcon"
-import type { ClinicalIconStatus } from "../../atoms/ClinicalStatusIcon/ClinicalStatusIcon"
+import { ClinicalStatusIcon } from "../ClinicalStatusIcon/ClinicalStatusIcon"
+import type { ClinicalIconStatus } from "../ClinicalStatusIcon/ClinicalStatusIcon"
 import { AttentionCode }  from "../../atoms/AttentionCode/AttentionCode"
-import { InfoButton }     from "../../atoms/InfoButton/InfoButton"
+import { InfoButton }     from "../InfoButton/InfoButton"
 import { emergencyTokens } from "../../tokens/emergency.tokens"
 
 /** Estructura de datos de un paciente en la tabla de emergencia */

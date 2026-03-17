@@ -4,41 +4,67 @@
  * Description:
  * Declaraciones de módulos remotos consumidos via Module Federation.
  * IMPORTANTE: este archivo NO debe tener imports a nivel raíz.
- * Si los tiene, TypeScript lo trata como un módulo y las
- * declaraciones "declare module" dejan de ser ambientales globales.
  * ---------------------------------------------------------
  */
 
-declare module "header/Header" {
-  import type { ComponentType } from "react"
-  const Header: ComponentType<Record<string, never>>
-  export default Header
+// ─── Shared type for all menuConfig remotes ───────────────
+type MenuConfigItem = {
+  label:      string
+  path:       string
+  icon:       import("react").ComponentType<{ size?: number }>
+  permission: string
 }
 
-declare module "navigation/Navigation" {
+// ─── Auth ─────────────────────────────────────────────────
+declare module "auth/Login" {
   import type { ComponentType } from "react"
-  type NavigationProps = {
-    onNavigate: (path: string) => void
-    collapsed?: boolean
-  }
-  const Navigation: ComponentType<NavigationProps>
-  export default Navigation
+  const Login: ComponentType<Record<string, never>>
+  export default Login
 }
 
+// ─── Home ─────────────────────────────────────────────────
 declare module "home/Home" {
   import type { ComponentType } from "react"
   const Home: ComponentType<Record<string, never>>
   export default Home
 }
 
-declare module "patient/Patient" {
-  import type { ComponentType } from "react"
-  const Patient: ComponentType<Record<string, never>>
-  export default Patient
-}
-
+// ─── Emergency ────────────────────────────────────────────
 declare module "emergency/Emergency" {
   import type { ComponentType } from "react"
   const Emergency: ComponentType<Record<string, never>>
   export default Emergency
+}
+declare module "emergency/menuConfig" {
+  export const menuConfig: MenuConfigItem[]
+}
+
+// ─── Hospital ─────────────────────────────────────────────
+declare module "hospital/Hospital" {
+  import type { ComponentType } from "react"
+  const Hospital: ComponentType<Record<string, never>>
+  export default Hospital
+}
+declare module "hospital/menuConfig" {
+  export const menuConfig: MenuConfigItem[]
+}
+
+// ─── Ambulatorio ──────────────────────────────────────────
+declare module "ambulatorio/Ambulatorio" {
+  import type { ComponentType } from "react"
+  const Ambulatorio: ComponentType<Record<string, never>>
+  export default Ambulatorio
+}
+declare module "ambulatorio/menuConfig" {
+  export const menuConfig: MenuConfigItem[]
+}
+
+// ─── Auditoria ────────────────────────────────────────────
+declare module "auditoria/Auditoria" {
+  import type { ComponentType } from "react"
+  const Auditoria: ComponentType<Record<string, never>>
+  export default Auditoria
+}
+declare module "auditoria/menuConfig" {
+  export const menuConfig: MenuConfigItem[]
 }
