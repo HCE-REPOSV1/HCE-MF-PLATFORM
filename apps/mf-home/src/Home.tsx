@@ -60,10 +60,13 @@ export default function Home() {
           position:            "relative",
           zIndex:              1,
           display:             "grid",
-          gridTemplateColumns: `repeat(${visibleModules.length}, 1fr)`,
-          gap:                 3,
-          width:               "100%",
-          maxWidth:            900,
+          gridTemplateColumns: {
+            xs: "repeat(2, 1fr)",
+            md: `repeat(${visibleModules.length}, 1fr)`,
+          },
+          gap:      { xs: 2, md: 3 },
+          width:    "100%",
+          maxWidth: 900,
         }}
       >
         {visibleModules.map(({ Icon, label, path }) => (
@@ -77,8 +80,8 @@ export default function Home() {
               flexDirection:   "column",
               alignItems:      "center",
               justifyContent:  "center",
-              gap:             2.5,
-              py:              5,
+              gap:             { xs: 1.5, md: 2.5 },
+              py:              { xs: 3.5, md: 5 },
               px:              2,
               cursor:          "pointer",
               transition:      "transform 0.15s ease, box-shadow 0.15s ease",

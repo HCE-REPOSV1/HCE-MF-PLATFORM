@@ -117,7 +117,7 @@ export default function Login() {
       ))}
 
       {/* ── Wrapper de tarjeta ── */}
-      <Box sx={{ position: "relative", zIndex: 1 }}>
+      <Box sx={{ position: "relative", zIndex: 1, width: { xs: "calc(100vw - 32px)", sm: "auto" } }}>
 
         {/* Logo verde con cruz */}
         <Box sx={{
@@ -145,8 +145,8 @@ export default function Login() {
           borderRadius:    "16px",
           pt:              8,
           pb:              5,
-          px:              5,
-          width:           440,
+          px:              { xs: 3, sm: 5 },
+          width:           { xs: "100%", sm: 440 },
           boxShadow:       "0 8px 40px rgba(30,79,163,0.12)",
         }}>
 

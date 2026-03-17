@@ -108,9 +108,14 @@ export default function AppLayout() {
         />
       </header>
 
+      {/* OVERLAY — cierra sidebar al tocar fuera en mobile */}
+      {mobileMenuOpen && (
+        <div className="app-sidebar-overlay" onClick={() => setMenuOpen(false)} />
+      )}
+
       {/* SIDEBAR */}
       <aside className={`app-sidebar ${mobileMenuOpen ? "open" : ""}`}>
-        <SideNav collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)}>
+        <SideNav collapsed={collapsed} isMobile={isMobile} onToggle={() => setCollapsed(!collapsed)}>
           <SidebarMenu
             items={menuItems}
             collapsed={collapsed}

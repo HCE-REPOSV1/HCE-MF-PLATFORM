@@ -371,7 +371,7 @@ export function BedAvailabilityDrawer() {
         onClose={() => setOpen(false)}
         sx={{
           "& .MuiDrawer-paper": {
-            width:         460,
+            width:         { xs: "100vw", sm: 460 },
             display:       "flex",
             flexDirection: "column",
             overflow:      "hidden",

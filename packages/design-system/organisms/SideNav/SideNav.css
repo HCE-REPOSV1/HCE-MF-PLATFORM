@@ -1,40 +1,40 @@
 .jarvis-sidenav {
-
-  width:100%;
-  background:#f8fafc;
+  width: 100%;
+  background: #f8fafc;
   height: 100%;
-  border-right:1px solid #e5e7eb;
-
-  position:relative;
-
-  overflow:visible;   /* IMPORTANTE */
-
+  border-right: 1px solid #e5e7eb;
+  position: relative;
+  overflow: visible;
 }
 
-/* BOTON TOGGLE */
+/* ── Botón colapsar ──────────────────────────────────────── */
 
-.jarvis-sidenav-toggle{
+.jarvis-sidenav-toggle {
+  position:        absolute;
+  top:             80px;
+  right:           -13px;
 
-  position:absolute;
+  width:           26px;
+  height:          26px;
+  border-radius:   50%;
 
-  top:80px;
-  right:-14px;
+  border:          1.5px solid #d1d5db;
+  background:      #ffffff;
+  color:           #6b7280;
 
-  width:28px;
-  height:28px;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
 
-  border-radius:50%;
+  cursor:          pointer;
+  z-index:         20;
 
-  border:1px solid #e5e7eb;
+  box-shadow:      0 1px 4px rgba(0,0,0,0.10);
+  transition:      background 0.15s, color 0.15s, border-color 0.15s;
+}
 
-  background:white;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  cursor:pointer;
-
-  z-index:20;
-
+.jarvis-sidenav-toggle:hover {
+  background:    #1E4FA1;
+  color:         #ffffff;
+  border-color:  #1E4FA1;
 }

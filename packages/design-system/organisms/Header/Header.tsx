@@ -140,7 +140,7 @@ export function Header({
         position:   "absolute",
         left:       "50%",
         transform:  "translateX(-50%)",
-        display:    "flex",
+        display:    { xs: "none", sm: "flex" },
         alignItems: "center",
         gap:        1,
       }}>
@@ -195,6 +195,7 @@ export function Header({
             sx: {
               mt:        1,
               width:     320,
+              maxWidth:  "calc(100vw - 16px)",
               boxShadow: "0 4px 24px rgba(0,0,0,0.14)",
               borderRadius: "10px",
               overflow:  "hidden",

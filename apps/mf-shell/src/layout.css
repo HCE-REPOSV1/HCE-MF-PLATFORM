@@ -1,56 +1,59 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html,
 body,
 #root {
   height: 100%;
   margin: 0;
+  padding: 0;
 }
 
-/* GRID LAYOUT */
+/* ── GRID LAYOUT ─────────────────────────────────────────── */
 
 .app-layout {
-
   display: grid;
-
   grid-template-columns: 240px 1fr;
   grid-template-rows: 64px 1fr auto;
-
   grid-template-areas:
     "header  header"
     "sidebar content"
     "footer  footer";
-
   height: 100vh;
   width: 100%;
-
 }
 
 /* HEADER */
 
 .app-header {
+  grid-area: header;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-
   padding: 0;
-  grid-area: header;
-
   width: 100%;
   height: 64px;
-
   z-index: 10;
-
 }
 
 /* SIDEBAR */
 
 .app-sidebar {
-
   grid-area: sidebar;
-
   height: 100%;
-
   overflow: visible;
+}
 
+/* CONTENT */
+
+.app-content {
+  grid-area: content;
+  width: 100%;
+  padding: 24px;
+  overflow: auto;
+  min-width: 0;   /* evita que el contenido empuje el grid */
 }
 
 /* FOOTER */
@@ -59,112 +62,70 @@ body,
   grid-area: footer;
 }
 
-/* CONTENT */
-
-.app-content {
-
-  grid-area: content;
-
-  width: 100%;
-
-  padding: 24px;
-
-  overflow: auto;
-
-}
-
 /* SIDEBAR COLLAPSED */
 
 .app-layout.collapsed {
-
   grid-template-columns: 72px 1fr;
-
 }
 
-/* MOBILE */
+/* ── OVERLAY (cierra sidebar en mobile al tocar fuera) ───── */
 
-@media (max-width: 768px) {
+.app-sidebar-overlay {
+  display: none;
+}
+
+/* ── TABLET / MOBILE  ≤ 900px ────────────────────────────── */
+
+@media (max-width: 900px) {
 
   .app-layout {
-
     grid-template-columns: 1fr;
-
+    grid-template-rows: 64px 1fr auto;
     grid-template-areas:
       "header"
-      "content";
-
+      "content"
+      "footer";
   }
 
+  /* Sidebar se convierte en panel flotante */
   .app-sidebar {
-
     position: fixed;
-
-    left: -260px;
-    top: 64px;
-
-    width: 240px;
-    height: calc(100vh - 64px);
-
+    top:      64px;
+    left:     -260px;
+    width:    240px;
+    height:   calc(100vh - 64px);
     background: #fff;
-
-    transition: left .25s ease;
-
-    z-index: 100;
-
+    box-shadow: 4px 0 20px rgba(0,0,0,0.12);
+    transition: left 0.25s ease;
+    z-index:  200;
+    overflow-y: auto;
   }
 
   .app-sidebar.open {
-
     left: 0;
-
   }
 
-}
-.header-actions {
+  /* Overlay oscuro detrás del sidebar */
+  .app-sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 199;
+  }
 
-  display: flex;
+  /* Menos padding en content */
+  .app-content {
+    padding: 16px;
+  }
 
-  align-items: center;
-
-  gap: 10px;
-
-}
-
-/* botón logout */
-.logout-button {
-
-  background: rgba(255,255,255,0.15);
-
-  border: none;
-
-  color: white;
-
-  padding: 6px 12px;
-
-  border-radius: 6px;
-
-  cursor: pointer;
-
-  font-size: 13px;
 
 }
 
-.logout-button:hover {
+/* ── SMALL MOBILE  ≤ 480px ───────────────────────────────── */
 
-  background: rgba(255,255,255,0.25);
-
-}
-
-.header-container {
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-  width: 100%;
-
-  height: 100%;
-
+@media (max-width: 480px) {
+  .app-content {
+    padding: 12px;
+  }
 }
