@@ -161,7 +161,7 @@ export function Header({
             Clínica
           </Typography>
           <Typography sx={{ color: "white", fontWeight: 700, fontSize: "0.9rem", lineHeight: 1.2 }}>
-            San Felipe
+            XXXXXXX
           </Typography>
         </Box>
       </Box>

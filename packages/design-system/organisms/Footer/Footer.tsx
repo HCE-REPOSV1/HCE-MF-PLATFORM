@@ -24,7 +24,7 @@ export function Footer() {
         fontSize:   "0.68rem",
         userSelect: "none",
       }}>
-        © {year} Clínica San Felipe · Todos los derechos reservados · Sistema HCE v2.0
+        © {year} Clínica XXXXXXX · Todos los derechos reservados · Sistema HCE v2.0
       </Typography>
     </Box>
   )
