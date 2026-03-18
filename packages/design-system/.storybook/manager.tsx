@@ -13,25 +13,25 @@ const C = {
   primaryDark:  "#153B7A",
   primaryLight: "#EEF2F9",
   secondary:    "#6FB23F",
-  surface:      "#141f30",   // card / content bg
-  surfaceLight: "#1a2740",   // inputs / hover
-  background:   "#0d1624",   // fondo general
-  textPrimary:  "#e2e8f0",
-  textSecond:   "#94a3b8",
-  border:       "#243352",
-  sidebarBg:    "#111c2d",   // sidebar
+  surface:      "#FFFFFF",
+  surfaceLight: "#F5F7FA",
+  background:   "#F7F9FC",
+  textPrimary:  "#374151",
+  textSecond:   "#6B7280",
+  border:       "#E5E7EB",
+  sidebarBg:    "#F3F4F6",   // sidebar gris claro original
 }
 
 // ─── Tema Storybook con paleta del proyecto ─────────────────────────
 addons.setConfig({
   theme: create({
-    base:            "dark",
+    base:            "light",
     brandTitle:      "Storybook — Proyecto HCE",
     brandUrl:        "javascript:void(0)",
 
     // Colores de la UI
     colorPrimary:    C.primary,
-    colorSecondary:  C.secondary,
+    colorSecondary:  C.primary,
 
     // App shell
     appBg:           C.sidebarBg,
@@ -274,7 +274,7 @@ if (sessionStorage.getItem(STORAGE_KEY) !== "true") {
   overlay.id = "hce-auth-overlay"
   overlay.style.cssText = [
     "position:fixed", "inset:0", "z-index:999999",
-    `background:${C.background}`,
+    "background:#1E4FA3",
     "display:flex", "align-items:center", "justify-content:center",
   ].join(";")
   document.body.appendChild(overlay)
