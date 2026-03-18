@@ -13,7 +13,8 @@
     "preview:remotes": "concurrently -n auth,home,emergency,hospital,ambulatorio,auditoria -c magenta,green,red,blue,yellow,white \"npm --workspace apps/mf-auth run preview\" \"npm --workspace apps/mf-home run preview\" \"npm --workspace apps/mf-emergency run preview\" \"npm --workspace apps/mf-hospital run preview\" \"npm --workspace apps/mf-ambulatorio run preview\" \"npm --workspace apps/mf-auditoria run preview\"",
     "preview:shell":   "npm --workspace apps/mf-shell run preview",
     "dev:shell":       "npm --workspace apps/mf-shell run dev",
-    "start":           "npm run build:remotes && npm run build:shell && concurrently -n remotes,shell -c bgBlue,bgGreen \"npm run preview:remotes\" \"npm run preview:shell\""
+    "start":           "npm run build:remotes && npm run build:shell && concurrently -n remotes,shell -c bgBlue,bgGreen \"npm run preview:remotes\" \"npm run preview:shell\"",
+    "storybook":       "npm --workspace packages/design-system run storybook"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
