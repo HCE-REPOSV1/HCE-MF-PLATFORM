@@ -7,16 +7,63 @@ const STORAGE_KEY = "sb_hce_auth"
 const VALID_USER  = "admin"
 const VALID_PASS  = "admin"
 
-// ─── Tema / nombre del proyecto ────────────────────────────────────
+// ─── Paleta del proyecto (variante oscura) ──────────────────────────
+const C = {
+  primary:      "#1E4FA3",
+  primaryDark:  "#153B7A",
+  primaryLight: "#EEF2F9",
+  secondary:    "#6FB23F",
+  surface:      "#141f30",   // card / content bg
+  surfaceLight: "#1a2740",   // inputs / hover
+  background:   "#0d1624",   // fondo general
+  textPrimary:  "#e2e8f0",
+  textSecond:   "#94a3b8",
+  border:       "#243352",
+  sidebarBg:    "#111c2d",   // sidebar
+}
+
+// ─── Tema Storybook con paleta del proyecto ─────────────────────────
 addons.setConfig({
   theme: create({
-    base:       "dark",
-    brandTitle: "Storybook — Proyecto HCE",
-    brandUrl:   "javascript:void(0)",
+    base:            "dark",
+    brandTitle:      "Storybook — Proyecto HCE",
+    brandUrl:        "javascript:void(0)",
+
+    // Colores de la UI
+    colorPrimary:    C.primary,
+    colorSecondary:  C.secondary,
+
+    // App shell
+    appBg:           C.sidebarBg,
+    appContentBg:    C.surface,
+    appPreviewBg:    C.background,
+    appBorderColor:  C.border,
+    appBorderRadius: 8,
+
+    // Toolbar
+    barBg:           C.primary,
+    barTextColor:    "rgba(255,255,255,0.85)",
+    barSelectedColor: C.secondary,
+    barHoverColor:   "#FFFFFF",
+
+    // Inputs
+    inputBg:         C.surface,
+    inputBorder:     C.border,
+    inputTextColor:  C.textPrimary,
+    inputBorderRadius: 6,
+
+    // Texto global
+    textColor:        C.textPrimary,
+    textInverseColor: C.surface,
+    textMutedColor:   C.textSecond,
+
+    // Fuente del proyecto
+    fontBase:   "'Montserrat', 'Segoe UI', sans-serif",
+    fontCode:   "'Fira Mono', monospace",
   }),
 })
 
-// ─── Botón de logout en la toolbar ─────────────────────────────────
+// ─── Botón cerrar sesión en toolbar ────────────────────────────────
 addons.register("hce/logout", () => {
   addons.add("hce/logout/tool", {
     type:  types.TOOL,
@@ -34,26 +81,24 @@ addons.register("hce/logout", () => {
           alignItems:      "center",
           gap:             6,
           background:      "transparent",
-          border:          "1px solid #ef4444",
+          border:          "1px solid rgba(255,255,255,0.5)",
           borderRadius:    6,
-          color:           "#ef4444",
+          color:           "#FFFFFF",
           cursor:          "pointer",
           fontSize:        12,
           fontWeight:      600,
           padding:         "4px 10px",
           margin:          "0 6px",
-          fontFamily:      "inherit",
+          fontFamily:      "'Montserrat', sans-serif",
           transition:      "all 0.2s",
         }}
         onMouseEnter={e => {
-          const t = e.currentTarget
-          t.style.backgroundColor = "#ef4444"
-          t.style.color = "#fff"
+          e.currentTarget.style.background      = "rgba(255,255,255,0.15)"
+          e.currentTarget.style.borderColor     = "#FFFFFF"
         }}
         onMouseLeave={e => {
-          const t = e.currentTarget
-          t.style.backgroundColor = "transparent"
-          t.style.color = "#ef4444"
+          e.currentTarget.style.background      = "transparent"
+          e.currentTarget.style.borderColor     = "rgba(255,255,255,0.5)"
         }}
       >
         ⏻ Cerrar sesión
@@ -62,7 +107,7 @@ addons.register("hce/logout", () => {
   })
 })
 
-// ─── Login gate ─────────────────────────────────────────────────────
+// ─── Pantalla de login ──────────────────────────────────────────────
 function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
   const [user, setUser]       = useState("")
   const [pass, setPass]       = useState("")
@@ -83,43 +128,82 @@ function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
     }, 400)
   }
 
+  const inputStyle: React.CSSProperties = {
+    backgroundColor: C.surfaceLight,
+    border:          `1px solid ${C.border}`,
+    borderRadius:    8,
+    color:           C.textPrimary,
+    fontSize:        14,
+    padding:         "10px 12px",
+    outline:         "none",
+    width:           "100%",
+    boxSizing:       "border-box",
+    fontFamily:      "'Montserrat', sans-serif",
+    transition:      "border-color 0.2s",
+  }
+
   return (
     <div style={{
-      display:        "flex",
-      alignItems:     "center",
-      justifyContent: "center",
-      width:          "100%",
-      height:         "100%",
-      fontFamily:     "'Inter', 'Segoe UI', sans-serif",
+      display:         "flex",
+      alignItems:      "center",
+      justifyContent:  "center",
+      width:           "100%",
+      height:          "100%",
+      fontFamily:      "'Montserrat', 'Segoe UI', sans-serif",
     }}>
       <div style={{
-        backgroundColor: "#1e293b",
-        border:          "1px solid #334155",
+        backgroundColor: "#ffffff",
+        border:          "1px solid #e2e8f0",
         borderRadius:    14,
         padding:         "44px 40px",
-        width:           340,
-        boxShadow:       "0 25px 60px rgba(0,0,0,0.6)",
+        width:           360,
+        boxShadow:       "0 24px 64px rgba(0,0,0,0.4)",
       }}>
-        {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "center", marginBottom: 6 }}>
+
+        {/* Header del card */}
+        <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div style={{
-            width: 38, height: 38, borderRadius: 8,
-            backgroundColor: "#3b82f6", color: "#fff",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontWeight: 800, fontSize: 20,
+            width:           52,
+            height:          52,
+            borderRadius:    12,
+            backgroundColor: C.primary,
+            color:           "#fff",
+            display:         "flex",
+            alignItems:      "center",
+            justifyContent:  "center",
+            fontWeight:      800,
+            fontSize:        24,
+            margin:          "0 auto 14px",
+            boxShadow:       `0 4px 16px rgba(30,79,163,0.3)`,
           }}>H</div>
-          <span style={{ color: "#f1f5f9", fontSize: 17, fontWeight: 700 }}>
+
+          <h2 style={{
+            margin:        0,
+            color:         "#1e293b",
+            fontSize:      18,
+            fontWeight:    700,
+            letterSpacing: "-0.02em",
+          }}>
             Proyecto HCE
-          </span>
+          </h2>
+          <p style={{ margin: "6px 0 0", color: "#64748b", fontSize: 13 }}>
+            Storybook — acceso restringido
+          </p>
         </div>
 
-        <p style={{ textAlign: "center", color: "#64748b", fontSize: 13, marginTop: 4, marginBottom: 32 }}>
-          Storybook — acceso restringido
-        </p>
+        {/* Separador con color primario */}
+        <div style={{
+          height:       3,
+          borderRadius: 2,
+          background:   `linear-gradient(90deg, ${C.primary}, ${C.secondary})`,
+          marginBottom: 28,
+        }} />
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <label style={{ color: "#94a3b8", fontSize: 13, fontWeight: 500 }}>Usuario</label>
+            <label style={{ color: "#64748b", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Usuario
+            </label>
             <input
               type="text"
               value={user}
@@ -127,34 +211,30 @@ function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
               placeholder="admin"
               autoFocus
               autoComplete="username"
-              style={{
-                backgroundColor: "#0f172a", border: "1px solid #334155",
-                borderRadius: 8, color: "#f1f5f9", fontSize: 14,
-                padding: "10px 12px", outline: "none",
-                width: "100%", boxSizing: "border-box",
-              }}
+              style={{ ...inputStyle, backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", color: "#1e293b" }}
+              onFocus={e => { e.currentTarget.style.borderColor = C.primary }}
+              onBlur={e  => { e.currentTarget.style.borderColor = "#e2e8f0" }}
             />
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <label style={{ color: "#94a3b8", fontSize: 13, fontWeight: 500 }}>Contraseña</label>
+            <label style={{ color: "#64748b", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Contraseña
+            </label>
             <input
               type="password"
               value={pass}
               onChange={e => { setPass(e.target.value); setError("") }}
               placeholder="••••••"
               autoComplete="current-password"
-              style={{
-                backgroundColor: "#0f172a", border: "1px solid #334155",
-                borderRadius: 8, color: "#f1f5f9", fontSize: 14,
-                padding: "10px 12px", outline: "none",
-                width: "100%", boxSizing: "border-box",
-              }}
+              style={{ ...inputStyle, backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", color: "#1e293b" }}
+              onFocus={e => { e.currentTarget.style.borderColor = C.primary }}
+              onBlur={e  => { e.currentTarget.style.borderColor = "#e2e8f0" }}
             />
           </div>
 
           {error && (
-            <p style={{ color: "#f87171", fontSize: 13, margin: 0, textAlign: "center" }}>
+            <p style={{ color: "#ef4444", fontSize: 13, margin: 0, textAlign: "center", fontWeight: 500 }}>
               {error}
             </p>
           )}
@@ -163,11 +243,22 @@ function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
             type="submit"
             disabled={loading}
             style={{
-              backgroundColor: "#3b82f6", border: "none", borderRadius: 8,
-              color: "#fff", cursor: loading ? "not-allowed" : "pointer",
-              fontSize: 14, fontWeight: 600, padding: "12px",
-              marginTop: 4, opacity: loading ? 0.7 : 1,
+              backgroundColor: loading ? C.primaryDark : C.primary,
+              border:          "none",
+              borderRadius:    8,
+              color:           "#fff",
+              cursor:          loading ? "not-allowed" : "pointer",
+              fontSize:        14,
+              fontWeight:      700,
+              padding:         "12px",
+              marginTop:       4,
+              fontFamily:      "'Montserrat', sans-serif",
+              letterSpacing:   "0.02em",
+              transition:      "background-color 0.2s",
+              boxShadow:       loading ? "none" : `0 4px 12px rgba(30,79,163,0.3)`,
             }}
+            onMouseEnter={e => { if (!loading) e.currentTarget.style.backgroundColor = C.primaryDark }}
+            onMouseLeave={e => { if (!loading) e.currentTarget.style.backgroundColor = C.primary }}
           >
             {loading ? "Verificando..." : "Ingresar"}
           </button>
@@ -177,10 +268,15 @@ function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
   )
 }
 
+// ─── Gate ───────────────────────────────────────────────────────────
 if (sessionStorage.getItem(STORAGE_KEY) !== "true") {
   const overlay = document.createElement("div")
   overlay.id = "hce-auth-overlay"
-  overlay.style.cssText = "position:fixed;inset:0;z-index:999999;background:#0f172a;display:flex;align-items:center;justify-content:center;"
+  overlay.style.cssText = [
+    "position:fixed", "inset:0", "z-index:999999",
+    `background:${C.background}`,
+    "display:flex", "align-items:center", "justify-content:center",
+  ].join(";")
   document.body.appendChild(overlay)
 
   const root = createRoot(overlay)
