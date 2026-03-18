@@ -4,13 +4,11 @@ import {
   Box, Typography,
   TextInput, PasswordInput, SelectField, Button,
   baseColors,
-} from "@jarvis/design-system"
-import {
   Syringe, Heart, Pill, Plus, Activity,
   Stethoscope, Bandage, Asterisk, FlaskConical, Thermometer,
   User, Lock,
-} from "lucide-react"
-import type { LucideIcon } from "lucide-react"
+} from "@jarvis/design-system"
+import type { LucideIcon } from "@jarvis/design-system"
 
 // ─── Background icon map ──────────────────────────────────
 type BgIconDef = { Icon: LucideIcon; top: number; left: number; rotate: number }

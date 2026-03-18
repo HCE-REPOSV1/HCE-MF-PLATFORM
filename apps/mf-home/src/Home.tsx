@@ -1,9 +1,9 @@
 import { useNavigate }        from "react-router-dom"
-import { Box, Typography }    from "@mui/material"
 import {
+  Box, Typography,
   Stethoscope, FileText, Building2, ClipboardList,
-} from "lucide-react"
-import type { LucideIcon }   from "lucide-react"
+} from "@jarvis/design-system"
+import type { LucideIcon } from "@jarvis/design-system"
 import { baseColors }        from "@jarvis/design-system"
 import clinicBg              from "./assets/clinic-bg.jpg"
 

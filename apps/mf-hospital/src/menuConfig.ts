@@ -1,4 +1,4 @@
-import { LayoutDashboard, BedDouble, Scissors, BarChart } from "lucide-react"
+import { LayoutDashboard, BedDouble, Scissors, BarChart } from "@jarvis/design-system"
 import type { ComponentType } from "react"
 
 export type MenuConfigItem = {

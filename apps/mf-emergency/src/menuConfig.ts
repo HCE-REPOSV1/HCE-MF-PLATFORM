@@ -1,4 +1,4 @@
-import { Monitor, Users, BarChart, Settings } from "lucide-react"
+import { Monitor, Users, BarChart, Settings } from "@jarvis/design-system"
 import type { ComponentType } from "react"
 
 export type MenuConfigItem = {

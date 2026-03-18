@@ -1,4 +1,4 @@
-import { CalendarDays, Stethoscope, BarChart } from "lucide-react"
+import { CalendarDays, Stethoscope, BarChart } from "@jarvis/design-system"
 import type { ComponentType } from "react"
 
 export type MenuConfigItem = {

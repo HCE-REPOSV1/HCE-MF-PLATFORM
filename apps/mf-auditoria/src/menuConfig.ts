@@ -1,4 +1,4 @@
-import { LayoutDashboard, ClipboardList, BarChart } from "lucide-react"
+import { LayoutDashboard, ClipboardList, BarChart } from "@jarvis/design-system"
 import type { ComponentType } from "react"
 
 export type MenuConfigItem = {

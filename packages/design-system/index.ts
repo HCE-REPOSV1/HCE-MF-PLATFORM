@@ -37,11 +37,21 @@ export {
 // ── MUI Primitives re-exported ─────────────────────────────
 export { Box, Typography } from "@mui/material"
 
+// ── Icons ──────────────────────────────────────────────────
+export {
+  Monitor, Users, BarChart, Settings,
+  LayoutDashboard, ClipboardList, BedDouble, Scissors,
+  CalendarDays, Stethoscope, FileText, Building2,
+  Syringe, Heart, Pill, Plus, Activity,
+  Bandage, Asterisk, FlaskConical, Thermometer,
+  User, Lock,
+} from "./atoms/Icon/Icon"
+export type { LucideIcon } from "./atoms/Icon/Icon"
+
 // ── Atoms ─────────────────────────────────────────────────
 export { Button }        from "./atoms/Button/Button"
 export { Badge }         from "./atoms/Badge/Badge"
 export { Chip }          from "./atoms/Chip/Chip"
-export { Icon }          from "./atoms/Icon/Icon"
 export { Card }          from "./atoms/Card/Card"
 export { PriorityBadge } from "./atoms/PriorityBadge/PriorityBadge"
 export { BoxBadge }      from "./atoms/BoxBadge/BoxBadge"

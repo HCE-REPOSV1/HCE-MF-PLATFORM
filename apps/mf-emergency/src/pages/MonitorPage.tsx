@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react"
-import { Box }                   from "@mui/material"
+import { Box }                   from "@jarvis/design-system"
 import { emergencyTokens }       from "@design-system/tokens/emergency.tokens"
 import { ActionBar }             from "@design-system/molecules/ActionBar/ActionBar"
 import { PatientTable }          from "@design-system/organisms/PatientTable/PatientTable"

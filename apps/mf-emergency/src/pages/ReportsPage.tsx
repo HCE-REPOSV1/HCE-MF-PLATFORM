@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material"
+import { Box, Typography } from "@jarvis/design-system"
 
 export default function ReportsPage() {
   return (
