@@ -282,6 +282,8 @@ design-system
 
 ## Instalacion
 
+> **Requisito:** Verdaccio debe estar activo en `http://localhost:10100` con `@hce/design-system` publicado antes de ejecutar `npm install`.
+
 Clonar el repositorio:
 
 ```bash
@@ -304,27 +306,33 @@ npm install
 
 ## Levantar la plataforma
 
-### Opcion 1 - Todo de una sola vez (recomendado)
-
-Desde la raiz del proyecto, un solo comando construye todos los remotes y levanta todo:
+### Desarrollo local
 
 ```bash
-npm run start
+npm start
 ```
 
 Esto ejecuta en orden:
 1. `build:remotes` - compila los 5 microfrontends remotos
-2. `preview:remotes` - sirve los remotes compilados en puertos 5101-5106
-3. `dev:shell` - levanta el shell en modo dev en el puerto 5000
+2. `preview:remotes` - sirve los remotes compilados en puertos 10301-10306
+3. `dev:shell` - levanta el shell en modo dev en el puerto 10300
 
 Luego abrir:
 
 | URL | Descripcion |
 |-----|-------------|
-| http://localhost:5000 | Shell principal |
-| http://localhost:5000/emergency | Monitor de Emergencia (pantalla completa) |
+| http://localhost:10300 | Shell principal |
+| http://localhost:10300/emergency | Monitor de Emergencia (pantalla completa) |
 
 > **Nota importante:** Module Federation con `@originjs/vite-plugin-federation` v1.x requiere que los remotes esten **compilados y servidos via `preview`**. El servidor `dev` de los remotes no genera `remoteEntry.js`. Por eso el flujo correcto es siempre `build` + `preview` para los remotes.
+
+### Produccion (Docker)
+
+```bash
+docker compose down
+docker compose build
+docker compose up -d
+```
 
 ---
 
@@ -352,25 +360,7 @@ Util para desarrollar o debuggear un microfrontend especifico de forma aislada.
 ```bash
 cd apps/mf-shell
 npm run dev
-# http://localhost:5000
-```
-
-#### mf-header
-
-```bash
-cd apps/mf-header
-npm run build
-npm run preview
-# http://localhost:5101
-```
-
-#### mf-navigation
-
-```bash
-cd apps/mf-navigation
-npm run build
-npm run preview
-# http://localhost:5102
+# http://localhost:10300
 ```
 
 #### mf-home
@@ -379,16 +369,7 @@ npm run preview
 cd apps/mf-home
 npm run build
 npm run preview
-# http://localhost:5103
-```
-
-#### mf-patient
-
-```bash
-cd apps/mf-patient
-npm run build
-npm run preview
-# http://localhost:5104
+# http://localhost:10302
 ```
 
 #### mf-emergency
@@ -397,7 +378,7 @@ npm run preview
 cd apps/mf-emergency
 npm run build
 npm run preview
-# http://localhost:5106
+# http://localhost:10303
 ```
 
 Para desarrollo standalone de mf-emergency (sin shell):
@@ -405,7 +386,7 @@ Para desarrollo standalone de mf-emergency (sin shell):
 ```bash
 cd apps/mf-emergency
 npm run dev
-# http://localhost:5106
+# http://localhost:10303
 ```
 
 ---
@@ -414,12 +395,13 @@ npm run dev
 
 | Microfrontend | Dev | Preview |
 |---------------|-----|---------|
-| mf-shell | 5000 | 5000 |
-| mf-header | 5101 | 5101 |
-| mf-navigation | 5102 | 5102 |
-| mf-home | 5103 | 5103 |
-| mf-patient | 5104 | 5104 |
-| mf-emergency | 5106 | 5106 |
+| mf-shell | 10300 | 10300 |
+| mf-auth | 10301 | 10301 |
+| mf-home | 10302 | 10302 |
+| mf-emergency | 10303 | 10303 |
+| mf-hospital | 10304 | 10304 |
+| mf-ambulatorio | 10305 | 10305 |
+| mf-auditoria | 10306 | 10306 |
 
 ---
 
@@ -427,11 +409,21 @@ npm run dev
 
 | Script | Descripcion |
 |--------|-------------|
-| `npm run start` | Build remotes + preview remotes + dev shell (todo en uno) |
+| `npm start` | Build remotes + preview remotes + dev shell (todo en uno) |
 | `npm run build:remotes` | Compila todos los microfrontends remotos |
 | `npm run preview:remotes` | Sirve todos los remotes compilados en paralelo |
 | `npm run dev:shell` | Levanta solo el shell en modo dev |
-| `npm run dev:emergency` | Levanta solo mf-emergency en modo dev |
+
+### Actualizar un solo microfrontend
+
+Cuando se realizan cambios en un único remote, no es necesario reconstruir todos. El shell resuelve los remotes en runtime buscando `remoteEntry.js`, por lo que basta con reconstruir y re-servir solo el módulo modificado:
+
+```bash
+# Reemplazar mf-emergency con el nombre del módulo que cambió
+npm run build -w apps/mf-emergency && npm run preview -w apps/mf-emergency
+```
+
+El shell tomará los cambios automáticamente en el siguiente reload del navegador, sin necesidad de reiniciarlo.
 
 ---
 

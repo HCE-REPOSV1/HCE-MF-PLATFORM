@@ -23,7 +23,7 @@ export default defineConfig({
       "react-dom": path.resolve(__dirname, "./node_modules/react-dom"),
     },
   },
-  server:  { port: 5105 },
-  preview: { port: 5105 },
+  server:  { port: 10306 },
+  preview: { port: 10306 },
   build: { target: "esnext", minify: false, cssCodeSplit: false },
 })

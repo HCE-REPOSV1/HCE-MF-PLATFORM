@@ -31,10 +31,10 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5100,
+    port: 10301,
   },
   preview: {
-    port: 5100,
+    port: 10301,
   },
   build: {
     target: "esnext",

@@ -9,12 +9,12 @@ export default defineConfig({
     federation({
       name: "mf-shell",
       remotes: {
-        auth:        "http://localhost:5100/assets/remoteEntry.js",
-        home:        "http://localhost:5101/assets/remoteEntry.js",
-        emergency:   "http://localhost:5102/assets/remoteEntry.js",
-        hospital:    "http://localhost:5103/assets/remoteEntry.js",
-        ambulatorio: "http://localhost:5104/assets/remoteEntry.js",
-        auditoria:   "http://localhost:5105/assets/remoteEntry.js",
+        auth:        "http://localhost:10301/assets/remoteEntry.js",
+        home:        "http://localhost:10302/assets/remoteEntry.js",
+        emergency:   "http://localhost:10303/assets/remoteEntry.js",
+        hospital:    "http://localhost:10304/assets/remoteEntry.js",
+        ambulatorio: "http://localhost:10305/assets/remoteEntry.js",
+        auditoria:   "http://localhost:10306/assets/remoteEntry.js",
       },
       shared: [
         "react",
@@ -39,6 +39,6 @@ export default defineConfig({
     minify:       false,
     cssCodeSplit: false,
   },
-  server:  { port: 5000 },
-  preview: { port: 5000 },
+  server:  { port: 10300 },
+  preview: { port: 10300 },
 })
