@@ -16,7 +16,7 @@ COPY apps/mf-auditoria/package.json   apps/mf-auditoria/
 RUN sed -i "s|http://localhost:10100|${VERDACCIO_URL}|g" .npmrc 2>/dev/null || true \
  && sed -i "s|http://localhost:4873|${VERDACCIO_URL}|g; s|http://localhost:10100|${VERDACCIO_URL}|g" package-lock.json 2>/dev/null || true
 
-RUN npm ci
+RUN npm install
 
 # Solo el código fuente de este microfrontend
 COPY apps/mf-shell ./apps/mf-shell
