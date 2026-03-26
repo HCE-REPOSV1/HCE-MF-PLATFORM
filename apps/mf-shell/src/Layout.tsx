@@ -5,7 +5,7 @@ import { Outlet, useNavigate, useLocation }   from "react-router-dom"
 
 import { useIsMobile }                           from "./hooks/useIsMobile"
 import { getFormattedDateTime, getShortDateTime } from "./utils/date"
-import { Header, SideNav, SidebarMenu, Footer }   from "@jarvis/design-system"
+import { Header, SideNav, SidebarMenu, Footer }   from "@hce/design-system"
 
 // Imports estáticos de menuConfig — la federación los inicializa correctamente
 import { menuConfig as emergencyMenu }   from "emergency/menuConfig"
@@ -13,7 +13,7 @@ import { menuConfig as hospitalMenu }    from "hospital/menuConfig"
 import { menuConfig as ambulatorioMenu } from "ambulatorio/menuConfig"
 import { menuConfig as auditoriaMenu }   from "auditoria/menuConfig"
 
-import type { MenuItem } from "@design-system/organisms/SidebarMenu/types"
+import type { MenuItem } from "@hce/design-system"
 
 // ─── Tipos ────────────────────────────────────────────────
 type MenuConfigItem = {
@@ -94,6 +94,11 @@ export default function AppLayout() {
     setMenuOpen(false)
   }
 
+  const handleLogout = () => {
+    sessionStorage.removeItem("jarvis_user")
+    navigate("/")
+  }
+
   return (
     <div className={`app-layout ${collapsed ? "collapsed" : ""}`}>
 
@@ -105,6 +110,7 @@ export default function AppLayout() {
           userName={user.name}
           userRole={user.role}
           onToggleSidebar={() => setMenuOpen(!mobileMenuOpen)}
+          onLogout={handleLogout}
         />
       </header>
 
@@ -120,6 +126,7 @@ export default function AppLayout() {
             items={menuItems}
             collapsed={collapsed}
             onNavigate={handleNavigate}
+            currentPath={location.pathname}
           />
         </SideNav>
       </aside>

@@ -1,4 +1,4 @@
-import { Box, Typography } from "@jarvis/design-system"
+import { Box, Typography } from "@hce/design-system"
 
 export default function ConsultasPage() {
   return (

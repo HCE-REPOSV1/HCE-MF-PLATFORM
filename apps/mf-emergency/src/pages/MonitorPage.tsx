@@ -1,12 +1,14 @@
 import { useState, useCallback } from "react"
-import { Box }                   from "@jarvis/design-system"
-import { emergencyTokens }       from "@design-system/tokens/emergency.tokens"
-import { ActionBar }             from "@design-system/molecules/ActionBar/ActionBar"
-import { PatientTable }          from "@design-system/organisms/PatientTable/PatientTable"
-import { EmergencyPagination }   from "@design-system/molecules/EmergencyPagination/EmergencyPagination"
-import { BedAvailabilityDrawer } from "@design-system/organisms/BedAvailability/BedAvailabilityDrawer"
+import {
+  Box,
+  emergencyTokens,
+  ActionBar,
+  PatientTable,
+  EmergencyPagination,
+  BedAvailabilityDrawer,
+} from "@hce/design-system"
 import { MOCK_PATIENTS, PAGE_SIZE } from "../mock/patients.mock"
-import type { PatientRowData }   from "@design-system/molecules/PatientRow/PatientRow"
+import type { PatientRowData }   from "@hce/design-system"
 
 interface HeaderColumn {
   label: string

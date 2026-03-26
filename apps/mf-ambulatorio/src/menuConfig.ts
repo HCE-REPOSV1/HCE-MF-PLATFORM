@@ -1,4 +1,4 @@
-import { CalendarDays, Stethoscope, BarChart } from "@jarvis/design-system"
+import { CalendarDays, Stethoscope, BarChart } from "@hce/design-system"
 import type { ComponentType } from "react"
 
 export type MenuConfigItem = {

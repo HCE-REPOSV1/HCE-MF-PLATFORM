@@ -1,6 +1,6 @@
 import { useEffect }      from "react"
 import { Routes, Route }  from "react-router-dom"
-import { injectEmergencyTokens } from "@design-system/tokens/emergency.tokens"
+import { injectEmergencyTokens } from "@hce/design-system"
 
 import MonitorPage  from "./pages/MonitorPage"
 import ReportsPage  from "./pages/ReportsPage"

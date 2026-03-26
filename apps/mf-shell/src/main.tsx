@@ -37,8 +37,8 @@
  */
 import ReactDOM from "react-dom/client"
 import { BrowserRouter } from "react-router-dom"
-import { injectBaseTokens } from "@jarvis/design-system"
-import { DSProvider } from "@jarvis/design-system/provider/ThemeProvider"
+import { injectBaseTokens } from "@hce/design-system"
+import { DSProvider } from "@hce/design-system"
 import App from "./App"
 
 // Inyecta los CSS custom properties del Design System base en :root

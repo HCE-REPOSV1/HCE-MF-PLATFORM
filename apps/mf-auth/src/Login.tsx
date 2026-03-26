@@ -7,8 +7,8 @@ import {
   Syringe, Heart, Pill, Plus, Activity,
   Stethoscope, Bandage, Asterisk, FlaskConical, Thermometer,
   User, Lock,
-} from "@jarvis/design-system"
-import type { LucideIcon } from "@jarvis/design-system"
+} from "@hce/design-system"
+import type { LucideIcon } from "@hce/design-system"
 
 // ─── Background icon map ──────────────────────────────────
 type BgIconDef = { Icon: LucideIcon; top: number; left: number; rotate: number }

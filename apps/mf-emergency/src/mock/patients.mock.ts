@@ -7,7 +7,7 @@
  * estados de atención, prioridad, sala y estudios clínicos.
  * ---------------------------------------------------------
  */
-import type { PatientRowData } from "@design-system/molecules/PatientRow/PatientRow"
+import type { PatientRowData } from "@hce/design-system"
 
 export const MOCK_PATIENTS: PatientRowData[] = [
   {

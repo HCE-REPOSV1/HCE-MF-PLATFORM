@@ -1,4 +1,4 @@
-import { LayoutDashboard, ClipboardList, BarChart } from "@jarvis/design-system"
+import { LayoutDashboard, ClipboardList, BarChart } from "@hce/design-system"
 import type { ComponentType } from "react"
 
 export type MenuConfigItem = {

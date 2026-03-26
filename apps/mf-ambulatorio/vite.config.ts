@@ -19,7 +19,6 @@ export default defineConfig({
   resolve: {
     dedupe: ["react", "react-dom"],
     alias: {
-      "@design-system": path.resolve(__dirname, "../../packages/design-system"),
       "react":     path.resolve(__dirname, "./node_modules/react"),
       "react-dom": path.resolve(__dirname, "./node_modules/react-dom"),
     },

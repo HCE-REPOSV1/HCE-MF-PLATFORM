@@ -21,16 +21,12 @@ export default defineConfig({
         // "@mui/icons-material",
         "@emotion/react",
         "@emotion/styled",
-        "@jarvis/design-system"
+        "@hce/design-system"
       ],
     })
   ],
   resolve: {
     alias: {
-      "@design-system": path.resolve(
-        __dirname,
-        "../../packages/design-system"
-      ),
       react: path.resolve("./node_modules/react"),
       "react-dom": path.resolve("./node_modules/react-dom")
     }

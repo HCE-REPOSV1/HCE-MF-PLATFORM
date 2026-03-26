@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom"
-import { Header, Footer }  from "@jarvis/design-system"
+import { Header, Footer }  from "@hce/design-system"
 import { useIsMobile }          from "./hooks/useIsMobile"
 import { getFormattedDateTime, getShortDateTime } from "./utils/date"
 import { useState, useEffect }  from "react"

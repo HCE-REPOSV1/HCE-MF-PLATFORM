@@ -2,9 +2,9 @@ import { useNavigate }        from "react-router-dom"
 import {
   Box, Typography,
   Stethoscope, FileText, Building2, ClipboardList,
-} from "@jarvis/design-system"
-import type { LucideIcon } from "@jarvis/design-system"
-import { baseColors }        from "@jarvis/design-system"
+} from "@hce/design-system"
+import type { LucideIcon } from "@hce/design-system"
+import { baseColors }        from "@hce/design-system"
 import clinicBg              from "./assets/clinic-bg.jpg"
 
 // ─── Definición de módulos ────────────────────────────────
