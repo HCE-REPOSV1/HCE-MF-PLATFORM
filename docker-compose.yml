@@ -1,0 +1,84 @@
+services:
+  mf-shell:
+    build:
+      context: .
+      dockerfile: apps/mf-shell/Dockerfile
+      args:
+        VERDACCIO_URL: http://host.docker.internal:10100
+      extra_hosts:
+        - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    ports:
+      - "10300:80"
+
+  mf-auth:
+    build:
+      context: .
+      dockerfile: apps/mf-auth/Dockerfile
+      args:
+        VERDACCIO_URL: http://host.docker.internal:10100
+      extra_hosts:
+        - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    ports:
+      - "10301:80"
+
+  mf-home:
+    build:
+      context: .
+      dockerfile: apps/mf-home/Dockerfile
+      args:
+        VERDACCIO_URL: http://host.docker.internal:10100
+      extra_hosts:
+        - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    ports:
+      - "10302:80"
+
+  mf-emergency:
+    build:
+      context: .
+      dockerfile: apps/mf-emergency/Dockerfile
+      args:
+        VERDACCIO_URL: http://host.docker.internal:10100
+      extra_hosts:
+        - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    ports:
+      - "10303:80"
+
+  mf-hospital:
+    build:
+      context: .
+      dockerfile: apps/mf-hospital/Dockerfile
+      args:
+        VERDACCIO_URL: http://host.docker.internal:10100
+      extra_hosts:
+        - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    ports:
+      - "10304:80"
+
+  mf-ambulatorio:
+    build:
+      context: .
+      dockerfile: apps/mf-ambulatorio/Dockerfile
+      args:
+        VERDACCIO_URL: http://host.docker.internal:10100
+      extra_hosts:
+        - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    ports:
+      - "10305:80"
+
+  mf-auditoria:
+    build:
+      context: .
+      dockerfile: apps/mf-auditoria/Dockerfile
+      args:
+        VERDACCIO_URL: http://host.docker.internal:10100
+      extra_hosts:
+        - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    ports:
+      - "10306:80"

@@ -1,10 +1,14 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import Emergency from './Emergency'
+import { StrictMode } from "react"
+import { createRoot } from "react-dom/client"
+import { BrowserRouter } from "react-router-dom"
+import "./index.css"
+import Emergency from "./Emergency"
 
-createRoot(document.getElementById('root')!).render(
+// Standalone entry — solo para desarrollo independiente del MF
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <Emergency />
-  </StrictMode>,
+    <BrowserRouter>
+      <Emergency />
+    </BrowserRouter>
+  </StrictMode>
 )

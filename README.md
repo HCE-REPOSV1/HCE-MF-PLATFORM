@@ -328,11 +328,101 @@ Luego abrir:
 
 ### Produccion (Docker)
 
+> **Requisito:** Verdaccio debe estar activo en `http://localhost:10100` con `@hce/design-system` publicado antes de hacer el build.
+
+> **Verdaccio solo se necesita en build time.** Una vez que las imágenes están construidas, Verdaccio puede detenerse sin afectar los contenedores en ejecución. El paquete `@hce/design-system` queda compilado dentro del bundle JS de cada imagen — no hay ninguna conexión a Verdaccio en runtime.
+
+Cada microfrontend tiene su propio `Dockerfile` y genera su propia imagen nginx independiente. Esto permite desplegarlo de forma aislada y reutilizarlo desde otros proyectos apuntando a su URL.
+
+No se necesita red Docker interna entre los microfrontends. La integración ocurre en el browser: el shell le pide al browser que cargue cada `remoteEntry.js` desde su puerto correspondiente.
+
+| Servicio | Puerto | URL del remote (para consumir desde otro proyecto) |
+|----------|--------|-----------------------------------------------------|
+| mf-shell | 10300 | — (orquestador, no es un remote) |
+| mf-auth | 10301 | `http://<host>:10301/assets/remoteEntry.js` |
+| mf-home | 10302 | `http://<host>:10302/assets/remoteEntry.js` |
+| mf-emergency | 10303 | `http://<host>:10303/assets/remoteEntry.js` |
+| mf-hospital | 10304 | `http://<host>:10304/assets/remoteEntry.js` |
+| mf-ambulatorio | 10305 | `http://<host>:10305/assets/remoteEntry.js` |
+| mf-auditoria | 10306 | `http://<host>:10306/assets/remoteEntry.js` |
+
+#### Levantar todos juntos
+
 ```bash
 docker compose down
 docker compose build
 docker compose up -d
 ```
+
+#### Actualizar un solo microfrontend
+
+No es necesario bajar ni reconstruir los demás:
+
+```bash
+# Reemplazar mf-emergency con el que cambió
+docker compose build mf-emergency
+docker compose up -d mf-emergency
+```
+
+También se pueden actualizar varios a la vez separando por espacio:
+
+```bash
+docker compose build mf-emergency mf-home
+docker compose up -d mf-emergency mf-home
+```
+
+#### Detener un solo microfrontend
+
+`docker compose down` no acepta servicio individual — usar `stop` + `rm`:
+
+```bash
+# Detener y eliminar el contenedor (la imagen queda intacta)
+docker compose rm -f -s mf-emergency
+#  -s  detiene el contenedor antes de removerlo
+#  -f  sin pedir confirmación
+```
+
+Para volver a levantarlo sin reconstruir (usa la imagen existente):
+
+```bash
+docker compose up -d mf-emergency
+```
+
+Para reconstruir y levantar en un solo flujo:
+
+```bash
+docker compose rm -f -s mf-emergency
+docker compose build mf-emergency
+docker compose up -d mf-emergency
+```
+
+#### Ver estado de los servicios
+
+```bash
+docker compose ps                    # estado de todos
+docker compose logs -f mf-emergency  # logs en tiempo real de uno
+docker compose logs -f mf-emergency mf-home  # logs de varios
+```
+
+#### Consumir un remote desde otro proyecto
+
+Si `mf-emergency` está desplegado en `192.168.42.44:10303`, cualquier shell externo puede usarlo agregando en su `vite.config.ts`:
+
+```ts
+federation({
+  remotes: {
+    emergency: "http://192.168.42.44:10303/assets/remoteEntry.js",
+  }
+})
+```
+
+El browser del usuario descarga el componente en runtime directamente desde ese servidor. El shell externo no necesita conocer el código fuente ni estar en la misma red Docker.
+
+> **⚠️ `npm link` y Docker no son compatibles.** Si tenés `npm link @hce/design-system` activo, el build de Docker fallará porque el symlink apunta a una carpeta fuera del contexto de build. Antes de hacer `docker compose build`, ejecutar en el proyecto afectado:
+> ```bash
+> npm unlink @hce/design-system
+> npm install
+> ```
 
 ---
 
