@@ -18,7 +18,7 @@ RUN sed -i "s|http://localhost:10100|${VERDACCIO_URL}|g" .npmrc 2>/dev/null || t
  && echo "registry=${VERDACCIO_URL}" >> .npmrc \
  && echo "replace-registry-host=always" >> .npmrc
 
-RUN npm install
+RUN npm install --install-strategy=nested
 
 # Solo el código fuente de este microfrontend
 COPY apps/mf-shell ./apps/mf-shell

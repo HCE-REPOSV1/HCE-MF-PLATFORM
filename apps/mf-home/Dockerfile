@@ -17,7 +17,7 @@ RUN sed -i "s|http://localhost:10100|${VERDACCIO_URL}|g" .npmrc 2>/dev/null || t
  && echo "registry=${VERDACCIO_URL}" >> .npmrc \
  && echo "replace-registry-host=always" >> .npmrc
 
-RUN npm install
+RUN npm install --install-strategy=nested
 
 COPY apps/mf-home ./apps/mf-home
 RUN npm run build -w apps/mf-home
