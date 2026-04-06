@@ -9,6 +9,7 @@ import {
   User, Lock,
 } from "@hce/design-system"
 import type { LucideIcon } from "@hce/design-system"
+import { ENDPOINTS } from "./config/endpoints"
 
 // ─── Background icon map ──────────────────────────────────
 type BgIconDef = { Icon: LucideIcon; top: number; left: number; rotate: number }
@@ -63,27 +64,89 @@ const BG_ICONS: BgIconDef[] = [
   { Icon: Syringe,     top: 83, left: 82, rotate: -30 },
 ]
 
-const EMPRESA_OPTIONS = [
-  { value: "CENTRAL", label: "Sede Central" },
-  { value: "NORTE",   label: "Sede Norte"   },
-]
+interface Sucursal {
+  idSede:      string
+  descripcion: string
+}
 
-// ─────────────────────────────────────────────────────────
-export default function Login() {
+interface LoginProps {
+  onSuccess?: (sede: string) => void
+}
+
+export default function Login({ onSuccess }: LoginProps) {
   const navigate = useNavigate()
 
-  const [empresa,  setEmpresa]  = useState("")
-  const [usuario,  setUsuario]  = useState("")
-  const [password, setPassword] = useState("")
+  const [step,       setStep]       = useState<1 | 2>(1)
+  const [usuario,    setUsuario]    = useState("")
+  const [password,   setPassword]   = useState("")
+  const [sucursales, setSucursales] = useState<Sucursal[]>([])
+  const [sede,       setSede]       = useState("")
+  const [error,      setError]      = useState("")
+  const [loading,    setLoading]    = useState(false)
 
+  // ── Paso 1: autenticar credenciales ──────────────────────
   const handleLogin = async () => {
-    const res  = await fetch("/mocks/login.json")
-    const data = await res.json()
-    if (data.success) {
-      sessionStorage.setItem("jarvis_user", JSON.stringify(data.user))
+    if (!usuario || !password) {
+      setError("Ingresa usuario y contraseña")
+      return
+    }
+    setError("")
+    setLoading(true)
+    try {
+      const res  = await fetch(ENDPOINTS.auth.login, {
+        method:      "POST",
+        headers:     { "Content-Type": "application/json" },
+        credentials: "include",
+        body:        JSON.stringify({ username: usuario, password }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data?.message ?? "Credenciales inválidas")
+        return
+      }
+      const sedes: Sucursal[] = data?.data?.user?.sucursales ?? []
+      if (sedes.length === 0) {
+        setError("Tu usuario no tiene sedes asignadas")
+        return
+      }
+      // Si solo hay una sede, seleccionarla automáticamente
+      if (sedes.length === 1) {
+        await handleSedeConfirm(sedes[0].descripcion)
+        return
+      }
+      setSucursales(sedes)
+      setStep(2)
+    } catch {
+      setError("No se pudo conectar con el servidor")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ── Paso 2: confirmar sede seleccionada ──────────────────
+  const handleSedeConfirm = async (sedeDescripcion: string) => {
+    if (onSuccess) {
+      await onSuccess(sedeDescripcion)
+    } else {
       navigate("/home")
     }
   }
+
+  const handleContinuar = async () => {
+    if (!sede) {
+      setError("Selecciona una sede")
+      return
+    }
+    setError("")
+    setLoading(true)
+    try {
+      await handleSedeConfirm(sede)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const sedeOptions = sucursales.map(s => ({ value: s.descripcion, label: s.descripcion }))
 
   return (
     <Box sx={{
@@ -136,7 +199,7 @@ export default function Login() {
           <Plus size={44} color="white" strokeWidth={3} />
         </Box>
 
-        {/* ── Tarjeta de login ── */}
+        {/* ── Tarjeta ── */}
         <Box sx={{
           backgroundColor: baseColors.surface,
           border:          `1.5px solid ${baseColors.primary}`,
@@ -157,55 +220,96 @@ export default function Login() {
             lineHeight: 1.3,
             mb:         1,
           }}>
-            Historia Clínica Electrónica<br />(HCE)
+           Historia Clínica Electrónica
+          </Typography>
+          {/* Título 2 */}
+          <Typography sx={{
+            textAlign:  "center",
+            fontWeight: 700,
+            fontSize:   "1.375rem",
+            color:      baseColors.primary,
+            lineHeight: 1.3,
+            mb:         1,
+          }}>
+           (HCE)
           </Typography>
 
           {/* Subtítulo */}
           <Typography sx={{
             textAlign: "center",
-            color:     baseColors.textSecondary,
+            color:     baseColors.primary,
             fontSize:  "0.875rem",
             mb:        3.5,
           }}>
-            Inicia sesión para acceder
+            {step === 1 ? "Inicia sesión para acceder" : "Selecciona tu sede de trabajo"}
           </Typography>
 
-          {/* ── Formulario ── */}
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-
-            <SelectField
-              label="Empresa"
-              value={empresa}
-              onChange={setEmpresa}
-              options={EMPRESA_OPTIONS}
-            />
-
-            <TextInput
-              label="Usuario"
-              value={usuario}
-              onChange={setUsuario}
-              placeholder="Ingrese Usuario"
-              startIcon={<User size={18} color={baseColors.textSecondary} strokeWidth={1.8} />}
-            />
-
-            <PasswordInput
-              label="Contraseña"
-              value={password}
-              onChange={setPassword}
-              placeholder="Ingrese contraseña"
-              startIcon={<Lock size={18} color={baseColors.textSecondary} strokeWidth={1.8} />}
-            />
-
-            <Box sx={{ mt: 0.5 }}>
-              <Button
-                label="Iniciar Sesión"
-                onClick={handleLogin}
-                fullWidth
-                color="secondary"
+          {/* ── Paso 1: Credenciales ── */}
+          {step === 1 && (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+              <TextInput
+                label="Usuario"
+                value={usuario}
+                onChange={setUsuario}
+                placeholder="Ingrese Usuario"
+                startIcon={<User size={18} color={baseColors.textSecondary} strokeWidth={1.8} />}
               />
+              <PasswordInput
+                label="Contraseña"
+                value={password}
+                onChange={setPassword}
+                placeholder="Ingrese contraseña"
+                startIcon={<Lock size={18} color={baseColors.textSecondary} strokeWidth={1.8} />}
+              />
+              {error && (
+                <Typography sx={{ color: "#c62828", fontSize: "0.8125rem", mt: -1 }}>
+                  {error}
+                </Typography>
+              )}
+              <Box sx={{ mt: 0.5 }}>
+                <Button
+                  label={loading ? "Verificando..." : "Continuar"}
+                  onClick={handleLogin}
+                  fullWidth
+                  color="secondary"
+                />
+              </Box>
             </Box>
+          )}
 
-          </Box>
+          {/* ── Paso 2: Selección de sede ── */}
+          {step === 2 && (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+              <SelectField
+                label="Sede"
+                value={sede}
+                onChange={setSede}
+                options={sedeOptions}
+              />
+              {error && (
+                <Typography sx={{ color: "#c62828", fontSize: "0.8125rem", mt: -1 }}>
+                  {error}
+                </Typography>
+              )}
+              <Box sx={{ mt: 0.5 }}>
+                <Button
+                  label={loading ? "Ingresando..." : "Ingresar"}
+                  onClick={handleContinuar}
+                  fullWidth
+                  color="secondary"
+                />
+              </Box>
+              <Box sx={{ textAlign: "center" }}>
+                <Typography
+                  sx={{ color: baseColors.textSecondary, fontSize: "0.8125rem", cursor: "pointer", "&:hover": { color: baseColors.primary } }}
+                  onClick={() => { setStep(1); setError(""); setSede("") }}
+                >
+                  ← Volver
+                </Typography>
+              </Box>
+            </Box>
+          )}
+
         </Box>
       </Box>
     </Box>

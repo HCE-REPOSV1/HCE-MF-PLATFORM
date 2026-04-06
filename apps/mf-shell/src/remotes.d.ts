@@ -18,7 +18,8 @@ type MenuConfigItem = {
 // ─── Auth ─────────────────────────────────────────────────
 declare module "auth/Login" {
   import type { ComponentType } from "react"
-  const Login: ComponentType<Record<string, never>>
+  interface LoginProps { onSuccess?: (sede: string) => void }
+  const Login: ComponentType<LoginProps>
   export default Login
 }
 

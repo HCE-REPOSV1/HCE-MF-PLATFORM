@@ -9,7 +9,7 @@ services:
         - "host.docker.internal:host-gateway"
     restart: unless-stopped
     ports:
-      - "10300:80"
+      - "10500:80"
 
   mf-auth:
     build:
@@ -21,7 +21,7 @@ services:
         - "host.docker.internal:host-gateway"
     restart: unless-stopped
     ports:
-      - "10301:80"
+      - "10501:80"
 
   mf-home:
     build:
@@ -33,7 +33,7 @@ services:
         - "host.docker.internal:host-gateway"
     restart: unless-stopped
     ports:
-      - "10302:80"
+      - "10502:80"
 
   mf-emergency:
     build:
@@ -45,7 +45,7 @@ services:
         - "host.docker.internal:host-gateway"
     restart: unless-stopped
     ports:
-      - "10303:80"
+      - "10503:80"
 
   mf-hospital:
     build:
@@ -57,7 +57,7 @@ services:
         - "host.docker.internal:host-gateway"
     restart: unless-stopped
     ports:
-      - "10304:80"
+      - "10504:80"
 
   mf-ambulatorio:
     build:
@@ -69,7 +69,7 @@ services:
         - "host.docker.internal:host-gateway"
     restart: unless-stopped
     ports:
-      - "10305:80"
+      - "10505:80"
 
   mf-auditoria:
     build:
@@ -81,4 +81,4 @@ services:
         - "host.docker.internal:host-gateway"
     restart: unless-stopped
     ports:
-      - "10306:80"
+      - "10506:80"

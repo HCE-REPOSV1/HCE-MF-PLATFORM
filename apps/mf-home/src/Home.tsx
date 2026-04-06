@@ -1,4 +1,5 @@
 import { useNavigate }        from "react-router-dom"
+import { useUser }            from "shell/UserContext"
 import {
   Box, Typography,
   Stethoscope, FileText, Building2, ClipboardList,
@@ -16,21 +17,18 @@ type Module = {
 }
 
 const MODULES: Module[] = [
-  { Icon: Stethoscope,   label: "HCE Ambulatorio",  path: "/ambulatorio", permission: "module:ambulatorio" },
-  { Icon: FileText,      label: "HCE Emergencia",   path: "/emergency",   permission: "module:emergency"   },
-  { Icon: Building2,     label: "HCE Hospital",     path: "/hospital",    permission: "module:hospital"    },
-  { Icon: ClipboardList, label: "Auditoria medica", path: "/auditoria",   permission: "module:auditoria"   },
+  { Icon: FileText,      label: "HCE Emergencia",  path: "/emergency",   permission: "01" },
+  { Icon: Stethoscope,   label: "HCE Ambulatorio", path: "/ambulatorio", permission: "02" },
+  { Icon: Building2,     label: "HCE Hospital",    path: "/hospital",    permission: "04" },
+  { Icon: ClipboardList, label: "Auditoría",        path: "/auditoria",   permission: "03" },
 ]
 
 // ─────────────────────────────────────────────────────────
 export default function Home() {
-  const navigate = useNavigate()
+  const navigate       = useNavigate()
+  const { hasPermission } = useUser()
 
-  const user = JSON.parse(sessionStorage.getItem("jarvis_user") ?? "{}") as {
-    permissions?: string[]
-  }
-  const permissions  = user.permissions ?? []
-  const visibleModules = MODULES.filter(m => permissions.includes(m.permission))
+  const canAccess = (permission: string) => hasPermission(permission)
 
   return (
     <Box
@@ -62,19 +60,21 @@ export default function Home() {
           display:             "grid",
           gridTemplateColumns: {
             xs: "repeat(2, 1fr)",
-            md: `repeat(${visibleModules.length}, 1fr)`,
+            md: `repeat(${MODULES.length}, 1fr)`,
           },
           gap:      { xs: 2, md: 3 },
           width:    "100%",
           maxWidth: 900,
         }}
       >
-        {visibleModules.map(({ Icon, label, path }) => (
+        {MODULES.map(({ Icon, label, path, permission }) => {
+          const enabled = canAccess(permission)
+          return (
           <Box
             key={label}
-            onClick={() => navigate(path)}
+            onClick={() => enabled && navigate(path)}
             sx={{
-              backgroundColor: baseColors.secondary,
+              backgroundColor: enabled ? baseColors.secondary : "#c8c8c8",
               borderRadius:    "14px",
               display:         "flex",
               flexDirection:   "column",
@@ -83,15 +83,16 @@ export default function Home() {
               gap:             { xs: 1.5, md: 2.5 },
               py:              { xs: 3.5, md: 5 },
               px:              2,
-              cursor:          "pointer",
+              cursor:          enabled ? "pointer" : "not-allowed",
+              opacity:         enabled ? 1 : 0.55,
               transition:      "transform 0.15s ease, box-shadow 0.15s ease",
-              boxShadow:       "0 4px 16px rgba(111,178,63,0.3)",
-              "&:hover": {
+              boxShadow:       enabled ? "0 4px 16px rgba(111,178,63,0.3)" : "none",
+              "&:hover": enabled ? {
                 backgroundColor: baseColors.secondaryDark,
                 transform:       "translateY(-4px)",
                 boxShadow:       "0 8px 24px rgba(111,178,63,0.4)",
-              },
-              "&:active": { transform: "translateY(0)" },
+              } : {},
+              "&:active": enabled ? { transform: "translateY(0)" } : {},
             }}
           >
             {/* Círculo con ícono */}
@@ -118,7 +119,7 @@ export default function Home() {
               {label}
             </Typography>
           </Box>
-        ))}
+        )})}
       </Box>
     </Box>
   )

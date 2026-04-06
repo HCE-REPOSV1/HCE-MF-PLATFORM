@@ -6,6 +6,7 @@ import { Outlet, useNavigate, useLocation }   from "react-router-dom"
 import { useIsMobile }                           from "./hooks/useIsMobile"
 import { getFormattedDateTime, getShortDateTime } from "./utils/date"
 import { Header, SideNav, SidebarMenu, Footer }   from "@hce/design-system"
+import { useUser } from "./context/UserContext"
 
 // Imports estáticos de menuConfig — la federación los inicializa correctamente
 import { menuConfig as emergencyMenu }   from "emergency/menuConfig"
@@ -21,12 +22,6 @@ type MenuConfigItem = {
   path:       string
   icon:       React.ComponentType<{ size?: number }>
   permission: string
-}
-
-type JarvisUser = {
-  name?:        string
-  role?:        string
-  permissions?: string[]
 }
 
 // ─── Mapa estático de menuConfigs por módulo ──────────────
@@ -45,9 +40,9 @@ function getActiveModule(pathname: string): string | null {
   return null
 }
 
-function buildMenuItems(configs: MenuConfigItem[], permissions: string[]): MenuItem[] {
+function buildMenuItems(configs: MenuConfigItem[], hasPermission: (codigo: string) => boolean): MenuItem[] {
   return configs
-    .filter(item => permissions.length === 0 || permissions.includes(item.permission))
+    .filter(item => !item.permission || hasPermission(item.permission))
     .map((item): MenuItem => ({
       label: item.label,
       path:  item.path,
@@ -66,7 +61,7 @@ export default function AppLayout() {
   const [mobileMenuOpen, setMenuOpen] = useState(false)
   const [menuItems, setMenuItems]     = useState<MenuItem[]>([])
 
-  const user = JSON.parse(sessionStorage.getItem("jarvis_user") ?? "{}") as JarvisUser
+  const { user, sede, logout, hasPermission } = useUser()
 
   // Actualizar reloj
   useEffect(() => {
@@ -84,19 +79,17 @@ export default function AppLayout() {
     const configs = MODULE_MENUS[module]
     if (!configs) return
 
-    const freshUser    = JSON.parse(sessionStorage.getItem("jarvis_user") ?? "{}") as JarvisUser
-    const permissions  = freshUser.permissions ?? []
-    setMenuItems(buildMenuItems(configs, permissions))
-  }, [location.pathname])
+    setMenuItems(buildMenuItems(configs, hasPermission))
+  }, [location.pathname, user])
 
   const handleNavigate = (path: string) => {
     navigate(path)
     setMenuOpen(false)
   }
 
-  const handleLogout = () => {
-    sessionStorage.removeItem("jarvis_user")
-    navigate("/")
+  const handleLogout = async () => {
+    await logout()
+    window.location.replace("/")
   }
 
   return (
@@ -106,9 +99,9 @@ export default function AppLayout() {
       <header className="app-header">
         <Header
           date={date}
-          site="SEDE CENTRAL"
-          userName={user.name}
-          userRole={user.role}
+          site={sede || "—"}
+          userName={user?.nombreCompleto}
+          userRole={user?.nombrePerfil}
           onToggleSidebar={() => setMenuOpen(!mobileMenuOpen)}
           onLogout={handleLogout}
         />

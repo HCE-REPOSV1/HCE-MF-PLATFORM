@@ -39,6 +39,7 @@ import ReactDOM from "react-dom/client"
 import { BrowserRouter } from "react-router-dom"
 import { injectBaseTokens } from "@hce/design-system"
 import { DSProvider } from "@hce/design-system"
+import { UserProvider } from "./context/UserContext"
 import App from "./App"
 
 // Inyecta los CSS custom properties del Design System base en :root
@@ -75,10 +76,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
    * del Design System corporativo
    */
  <DSProvider>
-    {/* Configuración del sistema de rutas */}
-    <BrowserRouter>
-      {/* Componente raíz de la aplicación */}
-      <App />
-    </BrowserRouter>
+    <UserProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </UserProvider>
  </DSProvider>
 )
