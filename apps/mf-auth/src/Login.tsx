@@ -54,7 +54,16 @@ export default function Login({ onSuccess }: LoginProps) {
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data?.message ?? "Credenciales inválidas")
+        const msg = (() => {
+          switch (res.status) {
+            case 401: return "Usuario o contraseña incorrectos"
+            case 403: return "Tu cuenta está bloqueada. Contacta con soporte."
+            case 503: return "Servicio no disponible. Intenta en unos momentos."
+            case 504: return "El servidor tardó demasiado en responder. Intenta nuevamente."
+            default:  return data?.message ?? "Ocurrió un error inesperado"
+          }
+        })()
+        setError(msg)
         setHasError(true)
         return
       }
