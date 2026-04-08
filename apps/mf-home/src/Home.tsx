@@ -25,10 +25,18 @@ const MODULES: Module[] = [
 
 // ─────────────────────────────────────────────────────────
 export default function Home() {
-  const navigate       = useNavigate()
-  const { hasPermission } = useUser()
+  const navigate         = useNavigate()
+  const { permisos }     = useUser()
 
-  const canAccess = (permission: string) => hasPermission(permission)
+  // Devuelve el indicador del permiso raíz del módulo ('E', 'L', 'O', o '' si no existe)
+  const getIndicador = (codigo: string): string =>
+    permisos.find(p => p.codigo === codigo)?.indicador ?? ''
+
+  // E = activo, L = lectura (tratar como activo), O = inactivo / sin permiso = deshabilitado
+  const canAccess = (codigo: string): boolean => {
+    const ind = getIndicador(codigo)
+    return ind === 'E' || ind === 'L'
+  }
 
   return (
     <Box

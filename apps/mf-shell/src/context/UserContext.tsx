@@ -105,8 +105,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // E = activo, L = lectura (tratar como activo), O = inactivo
   const hasPermission = (codigo: string): boolean =>
-    permisos.some(p => p.codigo === codigo)
+    permisos.some(p => p.codigo === codigo && (p.indicador === 'E' || p.indicador === 'L'))
 
   const logout = async () => {
     try {

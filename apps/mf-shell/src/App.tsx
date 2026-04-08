@@ -4,31 +4,9 @@ import { Routes, Route, Navigate, useNavigate } from "react-router-dom"
 import HomeLayout from "./HomeLayout"
 import AppLayout  from "./Layout"
 import { useUser } from "./context/UserContext"
-import { baseColors } from "@hce/design-system"
+import { LoadingOverlay } from "@hce/design-system"
 
-function AppLoader() {
-  return (
-    <div style={{
-      display:         "flex",
-      flexDirection:   "column",
-      alignItems:      "center",
-      justifyContent:  "center",
-      height:          "100vh",
-      backgroundColor: baseColors.primaryLight,
-      gap:             16,
-    }}>
-      <div style={{
-        width:        48,
-        height:       48,
-        border:       `5px solid ${baseColors.primary}30`,
-        borderTop:    `5px solid ${baseColors.primary}`,
-        borderRadius: "50%",
-        animation:    "spin 0.8s linear infinite",
-      }} />
-      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
-    </div>
-  )
-}
+const AppLoader = () => <LoadingOverlay open />
 
 const Login       = lazy(() => import("auth/Login"))
 const Home        = lazy(() => import("home/Home"))
