@@ -26,6 +26,7 @@ RUN npm run build -w apps/mf-shell
 
 # ── Stage 2: Serve ───────────────────────────────────────────
 FROM nginx:alpine
+RUN apk add --no-cache openssl
 COPY --from=builder /app/apps/mf-shell/dist /usr/share/nginx/html
 COPY docker/nginx-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
