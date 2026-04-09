@@ -116,18 +116,18 @@ try_find_certs() {
     tmp_key="/tmp/ssl_nginx.key"
     tmp_cert="/tmp/ssl_nginx.crt"
 
-    echo "   Passphrase: $([ -n "$passphrase" ] && echo 'desde password.txt' || echo 'sin passphrase')"
+    pass_len=$(printf '%s' "$passphrase" | wc -c)
+    echo "   Passphrase: $([ -n "$passphrase" ] && echo "desde password.txt (${pass_len} chars)" || echo 'sin passphrase')"
 
     pfx_ok=false
     # Intentar primero sin -legacy, luego con -legacy (OpenSSL 3.x con PFX legacy)
     for legacy_flag in "" "-legacy"; do
-      if openssl pkcs12 $legacy_flag -in "$pfx" -nocerts -nodes \
-           -passin "pass:${passphrase}" -out "$tmp_key" 2>/dev/null && \
-         openssl pkcs12 $legacy_flag -in "$pfx" -clcerts -nokeys \
-           -passin "pass:${passphrase}" -out "$tmp_cert" 2>/dev/null; then
-        pfx_ok=true
-        break
-      fi
+      err=$(openssl pkcs12 $legacy_flag -in "$pfx" -nocerts -nodes \
+              -passin "pass:${passphrase}" -out "$tmp_key" 2>&1) && \
+      err2=$(openssl pkcs12 $legacy_flag -in "$pfx" -clcerts -nokeys \
+               -passin "pass:${passphrase}" -out "$tmp_cert" 2>&1) && \
+      pfx_ok=true && break
+      echo "   ⚠️  PFX${legacy_flag:+ (legacy)} error: $(echo "$err" | tail -1)"
     done
 
     if [ "$pfx_ok" = "true" ]; then
@@ -148,7 +148,8 @@ try_find_certs() {
 
   if [ -n "$key" ] && [ -n "$cert" ]; then
     encrypted=$(is_key_encrypted "$key")
-    echo "   Clave cifrada: ${encrypted}$([ -n "$passphrase" ] && echo ' (passphrase desde password.txt)' || echo '')"
+    pass_len=$(printf '%s' "$passphrase" | wc -c)
+    echo "   Clave cifrada: ${encrypted}$([ -n "$passphrase" ] && echo " (passphrase desde password.txt, ${pass_len} chars)" || echo '')"
 
     if [ "$encrypted" = "yes" ]; then
       if [ -z "$passphrase" ]; then
@@ -161,10 +162,9 @@ try_find_certs() {
       key_ok=false
       for cmd in "openssl rsa" "openssl pkey" "openssl rsa -legacy" "openssl pkey -legacy"; do
         # shellcheck disable=SC2086
-        if $cmd -in "$key" -passin "pass:${passphrase}" -out "$tmp_key" 2>/dev/null; then
-          key_ok=true
-          break
-        fi
+        key_err=$($cmd -in "$key" -passin "pass:${passphrase}" -out "$tmp_key" 2>&1) && \
+        key_ok=true && break
+        echo "   ⚠️  ${cmd} error: $(echo "$key_err" | tail -1)"
       done
       if [ "$key_ok" = "true" ]; then
         SSL_KEY="$tmp_key"
