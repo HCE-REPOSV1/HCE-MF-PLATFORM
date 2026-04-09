@@ -4,7 +4,7 @@ import path from "path"
 import federation from "@originjs/vite-plugin-federation"
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "")
+  const env = loadEnv(mode, __dirname, "")
 
   const required = [
     "VITE_REMOTE_AUTH", "VITE_REMOTE_HOME", "VITE_REMOTE_EMERGENCY",
