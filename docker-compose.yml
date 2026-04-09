@@ -4,9 +4,7 @@ services:
       context: .
       dockerfile: apps/mf-shell/Dockerfile
       args:
-        VERDACCIO_URL: http://host.docker.internal:10100
-      extra_hosts:
-        - "host.docker.internal:host-gateway"
+        VERDACCIO_URL: http://192.168.42.44:10100
     restart: unless-stopped
     ports:
       - "10500:80"
@@ -16,9 +14,7 @@ services:
       context: .
       dockerfile: apps/mf-auth/Dockerfile
       args:
-        VERDACCIO_URL: http://host.docker.internal:10100
-      extra_hosts:
-        - "host.docker.internal:host-gateway"
+        VERDACCIO_URL: http://192.168.42.44:10100
     restart: unless-stopped
     ports:
       - "10501:80"
@@ -28,9 +24,7 @@ services:
       context: .
       dockerfile: apps/mf-home/Dockerfile
       args:
-        VERDACCIO_URL: http://host.docker.internal:10100
-      extra_hosts:
-        - "host.docker.internal:host-gateway"
+        VERDACCIO_URL: http://192.168.42.44:10100
     restart: unless-stopped
     ports:
       - "10502:80"
@@ -40,9 +34,7 @@ services:
       context: .
       dockerfile: apps/mf-emergency/Dockerfile
       args:
-        VERDACCIO_URL: http://host.docker.internal:10100
-      extra_hosts:
-        - "host.docker.internal:host-gateway"
+        VERDACCIO_URL: http://192.168.42.44:10100
     restart: unless-stopped
     ports:
       - "10503:80"
@@ -52,9 +44,7 @@ services:
       context: .
       dockerfile: apps/mf-hospital/Dockerfile
       args:
-        VERDACCIO_URL: http://host.docker.internal:10100
-      extra_hosts:
-        - "host.docker.internal:host-gateway"
+        VERDACCIO_URL: http://192.168.42.44:10100
     restart: unless-stopped
     ports:
       - "10504:80"
@@ -64,9 +54,7 @@ services:
       context: .
       dockerfile: apps/mf-ambulatorio/Dockerfile
       args:
-        VERDACCIO_URL: http://host.docker.internal:10100
-      extra_hosts:
-        - "host.docker.internal:host-gateway"
+        VERDACCIO_URL: http://192.168.42.44:10100
     restart: unless-stopped
     ports:
       - "10505:80"
@@ -76,9 +64,7 @@ services:
       context: .
       dockerfile: apps/mf-auditoria/Dockerfile
       args:
-        VERDACCIO_URL: http://host.docker.internal:10100
-      extra_hosts:
-        - "host.docker.internal:host-gateway"
+        VERDACCIO_URL: http://192.168.42.44:10100
     restart: unless-stopped
     ports:
       - "10506:80"
