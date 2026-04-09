@@ -8,6 +8,15 @@ services:
     restart: unless-stopped
     ports:
       - "10500:80"
+      - "20500:443"
+    environment:
+      PORT: "80"
+      SSL_PORT: "443"
+      USE_SSL: "true"
+      CERT_PATH: /proyectos/certs
+      NGINX_TYPE: spa
+    volumes:
+      - /proyectos/certs:/proyectos/certs:ro
 
   mf-auth:
     build:
@@ -18,6 +27,15 @@ services:
     restart: unless-stopped
     ports:
       - "10501:80"
+      - "20501:443"
+    environment:
+      PORT: "80"
+      SSL_PORT: "443"
+      USE_SSL: "true"
+      CERT_PATH: /proyectos/certs
+      NGINX_TYPE: remote
+    volumes:
+      - /proyectos/certs:/proyectos/certs:ro
 
   mf-home:
     build:
@@ -28,6 +46,15 @@ services:
     restart: unless-stopped
     ports:
       - "10502:80"
+      - "20502:443"
+    environment:
+      PORT: "80"
+      SSL_PORT: "443"
+      USE_SSL: "true"
+      CERT_PATH: /proyectos/certs
+      NGINX_TYPE: remote
+    volumes:
+      - /proyectos/certs:/proyectos/certs:ro
 
   mf-emergency:
     build:
@@ -38,6 +65,15 @@ services:
     restart: unless-stopped
     ports:
       - "10503:80"
+      - "20503:443"
+    environment:
+      PORT: "80"
+      SSL_PORT: "443"
+      USE_SSL: "true"
+      CERT_PATH: /proyectos/certs
+      NGINX_TYPE: remote
+    volumes:
+      - /proyectos/certs:/proyectos/certs:ro
 
   mf-hospital:
     build:
@@ -48,6 +84,15 @@ services:
     restart: unless-stopped
     ports:
       - "10504:80"
+      - "20504:443"
+    environment:
+      PORT: "80"
+      SSL_PORT: "443"
+      USE_SSL: "true"
+      CERT_PATH: /proyectos/certs
+      NGINX_TYPE: remote
+    volumes:
+      - /proyectos/certs:/proyectos/certs:ro
 
   mf-ambulatorio:
     build:
@@ -58,6 +103,15 @@ services:
     restart: unless-stopped
     ports:
       - "10505:80"
+      - "20505:443"
+    environment:
+      PORT: "80"
+      SSL_PORT: "443"
+      USE_SSL: "true"
+      CERT_PATH: /proyectos/certs
+      NGINX_TYPE: remote
+    volumes:
+      - /proyectos/certs:/proyectos/certs:ro
 
   mf-auditoria:
     build:
@@ -68,3 +122,12 @@ services:
     restart: unless-stopped
     ports:
       - "10506:80"
+      - "20506:443"
+    environment:
+      PORT: "80"
+      SSL_PORT: "443"
+      USE_SSL: "true"
+      CERT_PATH: /proyectos/certs
+      NGINX_TYPE: remote
+    volumes:
+      - /proyectos/certs:/proyectos/certs:ro
