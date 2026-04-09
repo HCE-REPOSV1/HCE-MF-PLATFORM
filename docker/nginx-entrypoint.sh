@@ -45,20 +45,37 @@ read_passphrase() {
   pw_file=$(find "$dir" -maxdepth 1 -iname "password.txt" 2>/dev/null | head -1)
   [ -n "$pw_file" ] || { echo ""; return 0; }
 
-  # Leer contenido limpio (sin \r)
-  raw=$(cat "$pw_file" | tr -d '\r' | head -1)
+  # Leer todo el archivo, quitar \r y \n al final (igual que JS .trim())
+  raw=$(cat "$pw_file" | tr -d '\r' | sed '/^[[:space:]]*$/d' | head -1 | sed 's/[[:space:]]*$//')
 
-  # Intentar match ^(password|passphrase)\s*:\s*(.+)$ — igual que AG
+  # Intentar match ^(password|passphrase)\s*:\s*(.+)$ case-insensitive — igual que AG
   matched=$(echo "$raw" | grep -i '^password[[:space:]]*:' \
-            | sed 's/^[^:]*:[[:space:]]*//' | head -1)
+            | sed 's/^[^:]*:[[:space:]]*//' | sed 's/[[:space:]]*$//')
   [ -z "$matched" ] && matched=$(echo "$raw" | grep -i '^passphrase[[:space:]]*:' \
-            | sed 's/^[^:]*:[[:space:]]*//' | head -1)
+            | sed 's/^[^:]*:[[:space:]]*//' | sed 's/[[:space:]]*$//')
 
   if [ -n "$matched" ]; then
     echo "$matched"
   else
+    # Sin prefijo password:/passphrase: → usar línea cruda como passphrase
     echo "$raw"
   fi
+}
+
+# ── log_cert_info <certfile> ─────────────────────────────────────────────────
+# Equivalente de logCertInfo() del AG — muestra CN, SANs y fecha de expiración
+log_cert_info() {
+  certfile="$1"
+  [ -f "$certfile" ] || return 0
+  cn=$(openssl x509 -in "$certfile" -noout -subject 2>/dev/null \
+       | sed 's/.*CN[[:space:]]*=[[:space:]]*//' | sed 's/[,\/].*//')
+  expiry=$(openssl x509 -in "$certfile" -noout -enddate 2>/dev/null \
+           | sed 's/notAfter=//')
+  sans=$(openssl x509 -in "$certfile" -noout -ext subjectAltName 2>/dev/null \
+         | grep -o 'DNS:[^,]*' | tr '\n' ' ')
+  echo "   Dominio (CN): ${cn:-(no CN)}"
+  [ -n "$sans" ] && echo "   SANs: ${sans}"
+  echo "   Válido hasta: ${expiry:-(desconocido)}"
 }
 
 # ── is_key_encrypted <keyfile> ────────────────────────────────────────────────
@@ -101,13 +118,23 @@ try_find_certs() {
 
     echo "   Passphrase: $([ -n "$passphrase" ] && echo 'desde password.txt' || echo 'sin passphrase')"
 
-    if openssl pkcs12 -in "$pfx" -nocerts -nodes \
-         -passin "pass:${passphrase}" -out "$tmp_key" 2>/dev/null && \
-       openssl pkcs12 -in "$pfx" -clcerts -nokeys \
-         -passin "pass:${passphrase}" -out "$tmp_cert" 2>/dev/null; then
+    pfx_ok=false
+    # Intentar primero sin -legacy, luego con -legacy (OpenSSL 3.x con PFX legacy)
+    for legacy_flag in "" "-legacy"; do
+      if openssl pkcs12 $legacy_flag -in "$pfx" -nocerts -nodes \
+           -passin "pass:${passphrase}" -out "$tmp_key" 2>/dev/null && \
+         openssl pkcs12 $legacy_flag -in "$pfx" -clcerts -nokeys \
+           -passin "pass:${passphrase}" -out "$tmp_cert" 2>/dev/null; then
+        pfx_ok=true
+        break
+      fi
+    done
+
+    if [ "$pfx_ok" = "true" ]; then
       SSL_KEY="$tmp_key"
       SSL_CERT="$tmp_cert"
       echo "   ✔ ${dir}  (PFX/P12)"
+      log_cert_info "$tmp_cert"
       return 0
     fi
 
@@ -129,11 +156,20 @@ try_find_certs() {
         return 1
       fi
       # Descifrar la clave — nginx no acepta claves cifradas directamente
+      # Intentar rsa, pkey, y con -legacy (OpenSSL 3.x)
       tmp_key="/tmp/ssl_nginx.key"
-      if openssl rsa  -in "$key" -passin "pass:${passphrase}" -out "$tmp_key" 2>/dev/null || \
-         openssl pkey -in "$key" -passin "pass:${passphrase}" -out "$tmp_key" 2>/dev/null; then
+      key_ok=false
+      for cmd in "openssl rsa" "openssl pkey" "openssl rsa -legacy" "openssl pkey -legacy"; do
+        # shellcheck disable=SC2086
+        if $cmd -in "$key" -passin "pass:${passphrase}" -out "$tmp_key" 2>/dev/null; then
+          key_ok=true
+          break
+        fi
+      done
+      if [ "$key_ok" = "true" ]; then
         SSL_KEY="$tmp_key"
         echo "   ✔ ${dir}  (.key cifrada — descifrada OK)"
+        log_cert_info "$cert"
       else
         echo "   ✘ ${dir}  (.key cifrada — passphrase incorrecta)"
         return 1
@@ -144,6 +180,7 @@ try_find_certs() {
 
     SSL_CERT="$cert"
     echo "   ✔ ${dir}  (.key + .crt)"
+    log_cert_info "$cert"
     return 0
   fi
 
