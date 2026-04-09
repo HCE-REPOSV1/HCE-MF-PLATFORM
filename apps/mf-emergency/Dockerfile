@@ -25,7 +25,6 @@ RUN npm run build -w apps/mf-emergency
 
 # ── Stage 2: Serve ───────────────────────────────────────────
 FROM nginx:alpine
-COPY --from=builder /usr/bin/openssl /usr/bin/openssl
 COPY --from=builder /app/apps/mf-emergency/dist /usr/share/nginx/html
 COPY docker/nginx-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh

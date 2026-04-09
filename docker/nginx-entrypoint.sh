@@ -9,19 +9,15 @@
 #   USE_SSL     true|false   (default: false)
 #   CERT_PATH   Ruta a certs (default: /etc/nginx/certs)
 #   NGINX_TYPE  spa|remote   (default: remote)
-#               spa    → fallback a index.html (mf-shell)
-#               remote → fallback 404 + CORS * (microfronts remotos)
 #
-# Formatos de certificado soportados (igual que el AG):
-#   Prioridad 1: .pfx / .p12  (con password.txt opcional)
-#                Si el PFX no puede descifrarse → fallback a .key/.crt
-#   Prioridad 2: *.key + *.crt / *.cer  (clave cifrada → se descifra con password.txt)
+# Formatos de certificado soportados:
+#   Prioridad 1: .pfx / .p12  → requiere openssl CLI (opcional)
+#                Si no hay openssl o falla → fallback a .key/.crt
+#   Prioridad 2: *.key + *.crt / *.cer
+#                Clave cifrada → nginx la carga nativamente via ssl_password_file
 #
-# password.txt acepta cualquiera de estos formatos (case-insensitive, igual que el AG):
-#   password: mipassphrase
-#   Password: mipassphrase
-#   passphrase: mipassphrase
-#   mipassphrase          ← línea simple sin prefijo
+# password.txt acepta (case-insensitive, igual que el AG):
+#   password: mipassphrase  |  passphrase: mipassphrase  |  mipassphrase
 # ─────────────────────────────────────────────────────────────────────────────
 set -e
 
@@ -34,21 +30,17 @@ NGINX_CONF="/etc/nginx/conf.d/default.conf"
 
 SSL_KEY=""
 SSL_CERT=""
+SSL_PASSWORD_FILE=""
 
 # ── read_passphrase <dir> ─────────────────────────────────────────────────────
-# Equivalente exacto de readPassphrase() del AG:
-#   1. Busca password.txt (case-insensitive en nombre de archivo)
-#   2. Intenta match /^(?:password|passphrase)\s*:\s*(.+)$/i  → usa el valor
-#   3. Si no hay match → usa la línea cruda (passphrase directa)
+# Equivalente exacto de readPassphrase() del AG
 read_passphrase() {
   dir="$1"
   pw_file=$(find "$dir" -maxdepth 1 -iname "password.txt" 2>/dev/null | head -1)
   [ -n "$pw_file" ] || { echo ""; return 0; }
 
-  # Leer todo el archivo, quitar \r y \n al final (igual que JS .trim())
   raw=$(cat "$pw_file" | tr -d '\r' | sed '/^[[:space:]]*$/d' | head -1 | sed 's/[[:space:]]*$//')
 
-  # Intentar match ^(password|passphrase)\s*:\s*(.+)$ case-insensitive — igual que AG
   matched=$(echo "$raw" | grep -i '^password[[:space:]]*:' \
             | sed 's/^[^:]*:[[:space:]]*//' | sed 's/[[:space:]]*$//')
   [ -z "$matched" ] && matched=$(echo "$raw" | grep -i '^passphrase[[:space:]]*:' \
@@ -57,31 +49,12 @@ read_passphrase() {
   if [ -n "$matched" ]; then
     echo "$matched"
   else
-    # Sin prefijo password:/passphrase: → usar línea cruda como passphrase
     echo "$raw"
   fi
 }
 
-# ── log_cert_info <certfile> ─────────────────────────────────────────────────
-# Equivalente de logCertInfo() del AG — muestra CN, SANs y fecha de expiración
-log_cert_info() {
-  certfile="$1"
-  [ -f "$certfile" ] || return 0
-  cn=$(openssl x509 -in "$certfile" -noout -subject 2>/dev/null \
-       | sed 's/.*CN[[:space:]]*=[[:space:]]*//' | sed 's/[,\/].*//')
-  expiry=$(openssl x509 -in "$certfile" -noout -enddate 2>/dev/null \
-           | sed 's/notAfter=//')
-  sans=$(openssl x509 -in "$certfile" -noout -ext subjectAltName 2>/dev/null \
-         | grep -o 'DNS:[^,]*' | tr '\n' ' ')
-  echo "   Dominio (CN): ${cn:-(no CN)}"
-  [ -n "$sans" ] && echo "   SANs: ${sans}"
-  echo "   Válido hasta: ${expiry:-(desconocido)}"
-}
-
 # ── is_key_encrypted <keyfile> ────────────────────────────────────────────────
-# Equivalente exacto de isKeyEncrypted() del AG:
-#   Detecta PKCS#8 cifrado  → "BEGIN ENCRYPTED PRIVATE KEY"
-#   Detecta PEM tradicional → "Proc-Type:" + "ENCRYPTED"
+# Equivalente exacto de isKeyEncrypted() del AG
 is_key_encrypted() {
   keyfile="$1"
   [ -f "$keyfile" ] || { echo "unknown"; return; }
@@ -95,10 +68,29 @@ is_key_encrypted() {
   fi
 }
 
+# ── log_cert_info <certfile> ──────────────────────────────────────────────────
+# Muestra CN, SANs y expiración (requiere openssl CLI — opcional)
+log_cert_info() {
+  certfile="$1"
+  [ -f "$certfile" ] || return 0
+  if ! command -v openssl >/dev/null 2>&1; then
+    echo "   (openssl CLI no disponible — info del certificado omitida)"
+    return 0
+  fi
+  cn=$(openssl x509 -in "$certfile" -noout -subject 2>/dev/null \
+       | sed 's/.*CN[[:space:]]*=[[:space:]]*//' | sed 's/[,\/].*//')
+  expiry=$(openssl x509 -in "$certfile" -noout -enddate 2>/dev/null \
+           | sed 's/notAfter=//')
+  sans=$(openssl x509 -in "$certfile" -noout -ext subjectAltName 2>/dev/null \
+         | grep -o 'DNS:[^,]*' | tr '\n' ' ')
+  echo "   Dominio (CN): ${cn:-(no CN)}"
+  [ -n "$sans" ] && echo "   SANs: ${sans}"
+  echo "   Válido hasta: ${expiry:-(desconocido)}"
+}
+
 # ── try_find_certs <dir> ──────────────────────────────────────────────────────
-# Equivalente de detectCertFormat() + buildHttpsOptions() del AG.
-# Prioridad: PFX/P12 → fallback .key/.crt
-# Resultado: sets SSL_KEY y SSL_CERT, returns 0 si OK
+# Prioridad: PFX (si hay openssl) → .key/.crt
+# Para claves cifradas usa ssl_password_file — NO necesita descifrar con openssl
 try_find_certs() {
   dir="$1"
 
@@ -108,24 +100,22 @@ try_find_certs() {
   fi
 
   passphrase=$(read_passphrase "$dir")
+  pass_len=$(printf '%s' "$passphrase" | wc -c)
+  echo "   Passphrase: $([ -n "$passphrase" ] && echo "desde password.txt (${pass_len} chars)" || echo 'sin passphrase')"
 
-  # ── Prioridad 1: PFX / P12 ──────────────────────────────────────────────
+  # ── Prioridad 1: PFX/P12 (solo si openssl CLI disponible) ───────────────
   pfx=$(find "$dir" -maxdepth 1 \( -iname "*.pfx" -o -iname "*.p12" \) 2>/dev/null | head -1)
 
-  if [ -n "$pfx" ]; then
+  if [ -n "$pfx" ] && command -v openssl >/dev/null 2>&1; then
     tmp_key="/tmp/ssl_nginx.key"
     tmp_cert="/tmp/ssl_nginx.crt"
-
-    pass_len=$(printf '%s' "$passphrase" | wc -c)
-    echo "   Passphrase: $([ -n "$passphrase" ] && echo "desde password.txt (${pass_len} chars)" || echo 'sin passphrase')"
-
     pfx_ok=false
-    # Intentar primero sin -legacy, luego con -legacy (OpenSSL 3.x con PFX legacy)
+
     for legacy_flag in "" "-legacy"; do
       err=$(openssl pkcs12 $legacy_flag -in "$pfx" -nocerts -nodes \
               -passin "pass:${passphrase}" -out "$tmp_key" 2>&1) && \
-      err2=$(openssl pkcs12 $legacy_flag -in "$pfx" -clcerts -nokeys \
-               -passin "pass:${passphrase}" -out "$tmp_cert" 2>&1) && \
+      openssl pkcs12 $legacy_flag -in "$pfx" -clcerts -nokeys \
+              -passin "pass:${passphrase}" -out "$tmp_cert" 2>/dev/null && \
       pfx_ok=true && break
       echo "   ⚠️  PFX${legacy_flag:+ (legacy)} error: $(echo "$err" | tail -1)"
     done
@@ -137,9 +127,9 @@ try_find_certs() {
       log_cert_info "$tmp_cert"
       return 0
     fi
-
-    # PFX no se pudo descifrar → fallback a .key/.crt igual que el AG
-    echo "   ⚠️  PFX cifrado — buscando .key/.crt como fallback..."
+    echo "   ⚠️  PFX no se pudo procesar — usando .key/.crt como fallback..."
+  elif [ -n "$pfx" ]; then
+    echo "   ℹ️  PFX encontrado pero openssl CLI no disponible — usando .key/.crt..."
   fi
 
   # ── Prioridad 2: .key + .crt/.cer ───────────────────────────────────────
@@ -148,43 +138,30 @@ try_find_certs() {
 
   if [ -n "$key" ] && [ -n "$cert" ]; then
     encrypted=$(is_key_encrypted "$key")
-    pass_len=$(printf '%s' "$passphrase" | wc -c)
-    echo "   Clave cifrada: ${encrypted}$([ -n "$passphrase" ] && echo " (passphrase desde password.txt, ${pass_len} chars)" || echo '')"
+    echo "   Clave cifrada: ${encrypted}"
 
     if [ "$encrypted" = "yes" ]; then
       if [ -z "$passphrase" ]; then
         echo "   ✘ ${dir}  (.key cifrada pero sin password.txt)"
         return 1
       fi
-      # Descifrar la clave — nginx no acepta claves cifradas directamente
-      # Intentar rsa, pkey, y con -legacy (OpenSSL 3.x)
-      tmp_key="/tmp/ssl_nginx.key"
-      key_ok=false
-      for cmd in "openssl rsa" "openssl pkey" "openssl rsa -legacy" "openssl pkey -legacy"; do
-        # shellcheck disable=SC2086
-        key_err=$($cmd -in "$key" -passin "pass:${passphrase}" -out "$tmp_key" 2>&1) && \
-        key_ok=true && break
-        echo "   ⚠️  ${cmd} error: $(echo "$key_err" | tail -1)"
-      done
-      if [ "$key_ok" = "true" ]; then
-        SSL_KEY="$tmp_key"
-        echo "   ✔ ${dir}  (.key cifrada — descifrada OK)"
-        log_cert_info "$cert"
-      else
-        echo "   ✘ ${dir}  (.key cifrada — passphrase incorrecta)"
-        return 1
-      fi
+      # nginx carga claves cifradas nativamente con ssl_password_file
+      # NO necesitamos descifrar con openssl
+      SSL_PASSWORD_FILE="/tmp/nginx_ssl_password"
+      printf '%s' "$passphrase" > "$SSL_PASSWORD_FILE"
+      chmod 600 "$SSL_PASSWORD_FILE"
+      echo "   ✔ ${dir}  (.key cifrada — nginx usará ssl_password_file)"
     else
-      SSL_KEY="$key"
+      echo "   ✔ ${dir}  (.key sin cifrar)"
     fi
 
+    SSL_KEY="$key"
     SSL_CERT="$cert"
-    echo "   ✔ ${dir}  (.key + .crt)"
     log_cert_info "$cert"
     return 0
   fi
 
-  echo "   ✘ ${dir}  (sin certificados)"
+  echo "   ✘ ${dir}  (sin certificados: se necesita .key + .crt o .pfx/.p12)"
   return 1
 }
 
@@ -235,7 +212,7 @@ write_http_conf() {
 
 write_ssl_conf() {
   {
-    # HTTP activo en paralelo (igual que el AG — no redirige, sirve ambos)
+    # HTTP activo en paralelo (igual que el AG)
     printf 'server {\n'
     printf '    listen %s;\n' "$PORT"
     printf '    server_name _;\n'
@@ -250,6 +227,8 @@ write_ssl_conf() {
     printf '    server_name _;\n\n'
     printf '    ssl_certificate     %s;\n' "$SSL_CERT"
     printf '    ssl_certificate_key %s;\n' "$SSL_KEY"
+    [ -n "$SSL_PASSWORD_FILE" ] && \
+    printf '    ssl_password_file   %s;\n' "$SSL_PASSWORD_FILE"
     printf '    ssl_protocols       TLSv1.2 TLSv1.3;\n'
     printf '    ssl_ciphers         HIGH:!aNULL:!MD5;\n\n'
     printf '    root /usr/share/nginx/html;\n'

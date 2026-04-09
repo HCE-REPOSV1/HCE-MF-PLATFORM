@@ -7,7 +7,19 @@
       "Bash(done)",
       "Bash(DS=\"/c/Users/fpinedo/Documents/TEMPLATE JARVIS/V2 10032026/jarvis-mf-platform/packages/design-system\"\n\nrm -rf \"$DS/data-grid\"\nrm -rf \"$DS/layout\"\nrm -rf \"$DS/navigation\"\nrm -rf \"$DS/molecules/Card\"\nrm -rf \"$DS/molecules/IconButton\"\nrm -rf \"$DS/molecules/PatientTable\"\n\necho \"Carpetas eliminadas\")",
       "Bash(cd:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(grep:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)",
+      "Bash(cmd /c \"taskkill /F /PID 2100\" 2>&1\nsleep 5\necho \"port check:\"\nnetstat -ano 2>/dev/null | grep \":6006 \" | head -3)",
+      "Bash(cmd /c \"taskkill /F /IM node.exe\" 2>&1)",
+      "Bash(cmd /c \"taskkill /F /PID 2100\" 2>&1\nsleep 3\nnetstat -ano 2>/dev/null | grep \":6006 \" | head -3)",
+      "Bash(powershell -Command \"Stop-Process -Id 2100 -Force\" 2>&1\nsleep 3\nnetstat -ano 2>/dev/null | grep \":6006 \" | head -2)",
+      "Bash(powershell -Command \"Get-Process node | Stop-Process -Force\" 2>&1\nsleep 3\nnetstat -ano 2>/dev/null | grep \":6006 \" | head -2)",
+      "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 6006 -State Listen | Select-Object -ExpandProperty OwningProcess\" 2>&1)",
+      "Bash(powershell -Command \"Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue\" 2>&1\nsleep 4\nnetstat -ano 2>/dev/null | grep \":6006 \" | grep LISTEN | head -2\necho \"port_check_done\")",
+      "Bash(powershell -Command \"Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue\" 2>&1\nsleep 4\necho \"killed\")",
+      "Bash(powershell -Command \"Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue\" 2>&1)"
     ]
   }
 }

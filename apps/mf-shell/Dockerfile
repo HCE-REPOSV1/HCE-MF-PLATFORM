@@ -28,9 +28,6 @@ RUN npm run build -w apps/mf-shell
 
 # ── Stage 2: Serve ───────────────────────────────────────────
 FROM nginx:alpine
-# Sin acceso a internet → copiamos el binario openssl desde el builder (node:alpine ya lo incluye)
-# nginx:alpine ya tiene libssl/libcrypto, solo falta el CLI
-COPY --from=builder /usr/bin/openssl /usr/bin/openssl
 COPY --from=builder /app/apps/mf-shell/dist /usr/share/nginx/html
 COPY docker/nginx-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
