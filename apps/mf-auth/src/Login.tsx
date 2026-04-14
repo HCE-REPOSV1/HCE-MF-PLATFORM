@@ -3,7 +3,9 @@ import { useNavigate }    from "react-router-dom"
 import {
   Box, Typography,
   TextInput, PasswordInput, SelectField, Button, LoadingOverlay,
+  HceModal,
   hceColors,
+  UiWarningIcon,
   DoctorIcon, ForgotPasswordIcon, UiIsotipoClinicaIcon,
 } from "@hce/design-system"
 import { ENDPOINTS } from "./config/endpoints"
@@ -28,11 +30,13 @@ interface LoginProps {
 export default function Login({ onSuccess }: LoginProps) {
   const navigate = useNavigate()
 
-  const [usuario,  setUsuario]  = useState("")
-  const [password, setPassword] = useState("")
-  const [error,    setError]    = useState("")
-  const [loading,  setLoading]  = useState(false)
-  const [hasError, setHasError] = useState(false)
+  const [usuario,         setUsuario]         = useState("")
+  const [password,        setPassword]        = useState("")
+  const [error,           setError]           = useState("")
+  const [loading,         setLoading]         = useState(false)
+  const [hasError,        setHasError]        = useState(false)
+  const [blockedModal,    setBlockedModal]    = useState(false)
+  const [blockedMessage,  setBlockedMessage]  = useState("")
 
   const handleLogin = async () => {
     if (!usuario || !password) {
@@ -44,8 +48,6 @@ export default function Login({ onSuccess }: LoginProps) {
     setHasError(false)
     setLoading(true)
     try {
-      // TODO: quitar el await de espera forzada cuando se confirme que el overlay funciona
-      await new Promise(resolve => setTimeout(resolve, 3000))
       const res  = await fetch(ENDPOINTS.auth.login, {
         method:      "POST",
         headers:     { "Content-Type": "application/json" },
@@ -53,20 +55,31 @@ export default function Login({ onSuccess }: LoginProps) {
         body:        JSON.stringify({ username: usuario, password }),
       })
       const data = await res.json()
+
       if (!res.ok) {
-        const msg = (() => {
+        const codigo  = data?.codigo  as number | undefined
+        const mensaje = data?.mensaje as string | undefined
+
+        // codigo 7 — cuenta bloqueada en AD: mostrar modal
+        if (codigo === 7) {
+          setBlockedMessage(mensaje ?? "Estimado usuario, se ha excedido el número máximo de intentos de ingreso, por favor contactar con mesa de ayuda.")
+          setBlockedModal(true)
+          return
+        }
+
+        // Todos los demás errores: texto rojo bajo el formulario
+        const errorMsg = mensaje ?? (() => {
           switch (res.status) {
-            case 401: return "Usuario o contraseña incorrectos"
-            case 403: return "Tu cuenta está bloqueada. Contacta con soporte."
-            case 503: return "Servicio no disponible. Intenta en unos momentos."
+            case 503: return "Servicio de autenticación no disponible. Intenta en unos momentos."
             case 504: return "El servidor tardó demasiado en responder. Intenta nuevamente."
-            default:  return data?.message ?? "Ocurrió un error inesperado"
+            default:  return "Ocurrió un error inesperado."
           }
         })()
-        setError(msg)
+        setError(errorMsg)
         setHasError(true)
         return
       }
+
       // La selección de sede se realiza desde el Header
       const sedes       = data?.data?.user?.sucursales ?? []
       const primerasede = sedes[0]?.descripcion ?? ""
@@ -76,7 +89,8 @@ export default function Login({ onSuccess }: LoginProps) {
         navigate("/home")
       }
     } catch {
-      setError("No se pudo conectar con el servidor")
+      // API Gateway no disponible o sin red
+      setError("No se pudo conectar con el servidor. Verifica tu conexión e intenta nuevamente.")
       setHasError(true)
     } finally {
       setLoading(false)
@@ -100,23 +114,36 @@ export default function Login({ onSuccess }: LoginProps) {
       {/* ── Loading overlay — cubre la pantalla mientras espera la API ── */}
       <LoadingOverlay open={loading} message="Verificando credenciales..." />
 
+      {/* ── Modal: cuenta bloqueada (codigo 7) ── */}
+      <HceModal
+        open={blockedModal}
+        title="Su cuenta ha sido bloqueada"
+        description={blockedMessage}
+        icon={<UiWarningIcon size={28} />}
+        iconBgColor={hceColors.primary.blue[600]}
+        confirmButton={{
+          label:   "Aceptar",
+          onClick: () => setBlockedModal(false),
+        }}
+      />
+
       {/* ── Tarjeta de login ── */}
       <Box sx={{ position: "relative", zIndex: 1, width: { xs: "calc(100vw - 32px)", sm: "auto" } }}>
 
         {/* Logo verde con cruz */}
         <Box sx={{
           position:        "absolute",
-          top:             -44,
-          left:            "50%",
-          transform:       "translateX(-50%)",
-          width:           88,
-          height:          88,
-          borderRadius:    "50%",
+          top:             -69,
+          left:            146,
+          width:           138,
+          height:          138,
+          borderRadius:    "69px",
           backgroundColor: hceColors.primary.green[600],
           display:         "flex",
-          alignItems:      "center",
-          justifyContent:  "center",
-          boxShadow:       "0 4px 20px rgba(111,178,63,0.45)",
+          flexDirection:   "column",
+          alignItems:      "flex-start",
+          padding:         "23px 23px 14px 11px",
+          gap:             "10px",
           zIndex:          2,
         }}>
           <UiIsotipoClinicaIcon size={44} color="white" />

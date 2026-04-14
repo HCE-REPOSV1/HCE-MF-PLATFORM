@@ -73,8 +73,8 @@ is_key_encrypted() {
 log_cert_info() {
   certfile="$1"
   [ -f "$certfile" ] || return 0
+  echo "   Certificado: $(basename "$certfile")"
   if ! command -v openssl >/dev/null 2>&1; then
-    echo "   (openssl CLI no disponible — info del certificado omitida)"
     return 0
   fi
   cn=$(openssl x509 -in "$certfile" -noout -subject 2>/dev/null \
