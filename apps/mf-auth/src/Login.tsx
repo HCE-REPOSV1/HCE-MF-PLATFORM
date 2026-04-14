@@ -2,7 +2,7 @@ import { useState }       from "react"
 import { useNavigate }    from "react-router-dom"
 import {
   Box, Typography,
-  TextInput, PasswordInput, SelectField, Button, LoadingOverlay,
+  TextInput, PasswordInput, SelectField, Button, CSFLoading,
   HceModal,
   hceColors,
   UiWarningIcon,
@@ -112,7 +112,7 @@ export default function Login({ onSuccess }: LoginProps) {
     }}>
 
       {/* ── Loading overlay — cubre la pantalla mientras espera la API ── */}
-      <LoadingOverlay open={loading} message="Verificando credenciales..." />
+      <CSFLoading open={loading} overlay message="Verificando credenciales..." frameDuration={100} />
 
       {/* ── Modal: cuenta bloqueada (codigo 7) ── */}
       <HceModal
