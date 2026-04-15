@@ -4,9 +4,9 @@ import { Routes, Route, Navigate, useNavigate } from "react-router-dom"
 import HomeLayout from "./HomeLayout"
 import AppLayout  from "./Layout"
 import { useUser } from "./context/UserContext"
-import { LoadingOverlay } from "@hce/design-system"
+import { CSFLoading } from "@hce/design-system"
 
-const AppLoader = () => <LoadingOverlay open />
+const AppLoader = () => <CSFLoading open overlay message="Cargando pantallas ..." frameDuration={100} />
 
 const Login       = lazy(() => import("auth/Login"))
 const Home        = lazy(() => import("home/Home"))

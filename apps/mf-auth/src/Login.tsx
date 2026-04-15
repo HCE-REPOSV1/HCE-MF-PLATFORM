@@ -48,6 +48,8 @@ export default function Login({ onSuccess }: LoginProps) {
     setHasError(false)
     setLoading(true)
     try {
+      // TODO: quitar delay de prueba
+      await new Promise(resolve => setTimeout(resolve, 5000)) //solo es para poder ver el spinner
       const res  = await fetch(ENDPOINTS.auth.login, {
         method:      "POST",
         headers:     { "Content-Type": "application/json" },
@@ -62,7 +64,8 @@ export default function Login({ onSuccess }: LoginProps) {
 
         // codigo 7 — cuenta bloqueada en AD: mostrar modal
         if (codigo === 7) {
-          setBlockedMessage(mensaje ?? "Estimado usuario, se ha excedido el número máximo de intentos de ingreso, por favor contactar con mesa de ayuda.")
+          //setBlockedMessage(mensaje ?? "Estimado usuario, se ha excedido el número máximo de intentos de ingreso, por favor contactar con mesa de ayuda.")
+          setBlockedMessage("Estimado usuario, se ha excedido el número máximo de intentos de ingreso, por favor contactar con mesa de ayuda.")
           setBlockedModal(true)
           return
         }
@@ -128,13 +131,14 @@ export default function Login({ onSuccess }: LoginProps) {
       />
 
       {/* ── Tarjeta de login ── */}
-      <Box sx={{ position: "relative", zIndex: 1, width: { xs: "calc(100vw - 32px)", sm: "auto" } }}>
+      <Box sx={{ position: "relative", zIndex: 1, width: { xs: "calc(100vw - 32px)", sm: "auto" } ,justifyContent:"center"}}>
 
         {/* Logo verde con cruz */}
         <Box sx={{
           position:        "absolute",
-          top:             -69,
-          left:            146,
+          top:             -75,
+          left:            "50%",
+          transform:       "translateX(-50%)",
           width:           138,
           height:          138,
           borderRadius:    "69px",
@@ -146,7 +150,7 @@ export default function Login({ onSuccess }: LoginProps) {
           gap:             "10px",
           zIndex:          2,
         }}>
-          <UiIsotipoClinicaIcon size={44} color="white" />
+          <UiIsotipoClinicaIcon size={106} color="white" />
         </Box>
 
         {/* ── Tarjeta ── */}

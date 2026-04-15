@@ -72,13 +72,27 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [sede,     setSede]     = useState<string>('')
   const [loading,  setLoading]  = useState(true)
 
+  // ── Cierra sesión: invalida la cookie en el servidor y limpia estado local ──
+  // También es llamado automáticamente cuando el token MAC expira (401 en /auth/accesos)
+  const logout = async () => {
+    try {
+      await fetch(ENDPOINTS.auth.logout, { method: "POST", credentials: "include" })
+    } finally {
+      setUser(null)
+      setPermisos([])
+      setSede('')
+    }
+  }
+
   const fetchMe = async () => {
+    // 1. Validar sesión activa
     try {
       const res = await fetch(ENDPOINTS.auth.me, { credentials: "include" })
       if (res.ok) {
         const json = await res.json()
         setUser(json.data)
       } else {
+        // 401 sin sesión previa: no hay cookie que invalidar, solo limpiar estado
         setUser(null)
         setPermisos([])
         setLoading(false)
@@ -91,13 +105,18 @@ export function UserProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    // Obtener permisos solo si el usuario autenticó correctamente
+    // 2. Obtener permisos MAC (solo si /auth/me fue exitoso)
     try {
       const res = await fetch(ENDPOINTS.auth.accesos, { credentials: "include" })
       if (res.ok) {
         const json = await res.json()
         setPermisos(json.data?.permisos ?? [])
+      } else if (res.status === 401) {
+        // Token MAC inválido o expirado — cerrar sesión completa
+        await logout()
+        return
       }
+      // Otros errores (503, 504, etc.): continuar sin permisos, no cerrar sesión
     } catch {
       setPermisos([])
     } finally {
@@ -108,16 +127,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
   // E = activo, L = lectura (tratar como activo), O = inactivo
   const hasPermission = (codigo: string): boolean =>
     permisos.some(p => p.codigo === codigo && (p.indicador === 'E' || p.indicador === 'L'))
-
-  const logout = async () => {
-    try {
-      await fetch(ENDPOINTS.auth.logout, { method: "POST", credentials: "include" })
-    } finally {
-      setUser(null)
-      setPermisos([])
-      setSede('')
-    }
-  }
 
   useEffect(() => { fetchMe() }, [])
 
