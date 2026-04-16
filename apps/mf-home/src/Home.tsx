@@ -37,40 +37,40 @@ const MODULES: Module[] = [
     label:       "HCE Emergencia",
     description: "Sección que abarca las funciones fundamentales del monitor de emergencia y los relatos de los pacientes.",
     path:        "/emergencia",
-    permission:  "01/01",
+    permission:  "01/02",
   },
   {
     Icon:        Stethoscope,
     label:       "HCE Ambulatorio",
     description: "Gestión de citas, consultorios y atenciones ambulatorias del sistema de salud.",
     path:        "/ambulatorio",
-    permission:  "01/02",
+    permission:  "01/01",
   },
   {
     Icon:        Building2,
     label:       "HCE Hospital",
     description: "Control de hospitalización, camas disponibles, ingresos y altas médicas.",
     path:        "/hospital",
-    permission:  "01/04",
+    permission:  "01/03",
   },
   {
     Icon:        ClipboardList,
     label:       "Auditoría",
     description: "Reportes, trazabilidad de eventos y configuración de parámetros del sistema.",
     path:        "/auditoria",
-    permission:  "01/03",
+    permission:  "01/04",
   },
 ]
 
 // ─────────────────────────────────────────────────────────
 export default function Home() {
-  const navigate      = useNavigate()
-  const { permisos }  = useUser()
+  const navigate                    = useNavigate()
+  const { permisos, hasPermission } = useUser()
 
-  const canAccess = (codigo: string): boolean => {
-    const ind = permisos.find(p => p.codigo === codigo)?.indicador ?? ""
-    return ind === "E" || ind === "L"
-  }
+  // DEBUG temporal — abre DevTools > Console para ver los códigos reales de MAC
+  console.log('[Home] permisos MAC →', permisos)
+
+  const canAccess = (codigo: string): boolean => hasPermission(codigo)
 
   return (
     <Box sx={{
