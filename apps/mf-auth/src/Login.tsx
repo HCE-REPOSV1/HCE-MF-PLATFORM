@@ -38,6 +38,17 @@ export default function Login({ onSuccess }: LoginProps) {
   const [blockedModal,    setBlockedModal]    = useState(false)
   const [blockedMessage,  setBlockedMessage]  = useState("")
 
+  // Solo letras (con acentos y ñ), sin espacios ni caracteres especiales
+  const handleUsuarioChange = (value: string) => {
+    const limpio = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]/g, "")
+    setUsuario(limpio)
+  }
+
+  // Sin espacios ni saltos de línea
+  const handlePasswordChange = (value: string) => {
+    setPassword(value.replace(/\s/g, ""))
+  }
+
   const handleLogin = async () => {
     if (!usuario || !password) {
       setError("Ingresa usuario y contraseña")
@@ -212,7 +223,7 @@ export default function Login({ onSuccess }: LoginProps) {
             <TextInput
               label="Usuario"
               value={usuario}
-              onChange={setUsuario}
+              onChange={handleUsuarioChange}
               placeholder="Ingrese Usuario"
               startIcon={<DoctorIcon size={18} />}
               error={hasError}
@@ -222,7 +233,7 @@ export default function Login({ onSuccess }: LoginProps) {
             <PasswordInput
               label="Contraseña"
               value={password}
-              onChange={setPassword}
+              onChange={handlePasswordChange}
               placeholder="Ingrese contraseña"
               startIcon={<ForgotPasswordIcon size={18} />}
               error={hasError}
