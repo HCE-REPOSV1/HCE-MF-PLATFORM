@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from "react-router-dom"
 
 import AppLayout from "./Layout"
 import { useUser } from "./context/UserContext"
+import { UpdateNotification } from "./components/UpdateNotification"
 import { CSFLoading } from "@hce/design-system"
 
 const AppLoader = () => <CSFLoading open overlay message="Cargando pantallas ..." frameDuration={100} />
@@ -53,7 +54,9 @@ export default function App() {
   if (loading) return <AppLoader />
 
   return (
-    <Suspense fallback={<AppLoader />}>
+    <>
+      <UpdateNotification />
+      <Suspense fallback={<AppLoader />}>
       <Routes>
 
         {/* Pública — redirige al home si ya hay sesión */}
@@ -75,5 +78,6 @@ export default function App() {
 
       </Routes>
     </Suspense>
+    </>
   )
 }
