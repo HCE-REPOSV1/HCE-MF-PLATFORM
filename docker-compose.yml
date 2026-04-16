@@ -43,6 +43,7 @@ services:
       dockerfile: apps/mf-home/Dockerfile
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
+        MF_HOME_BASE_URL: http://192.168.42.44:10502
     restart: unless-stopped
     ports:
       - "10502:80"

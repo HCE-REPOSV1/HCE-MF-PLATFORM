@@ -85,7 +85,7 @@ export default function Login({ onSuccess }: LoginProps) {
 
       // La selección de sede se realiza desde el Header
       const sedes       = data?.data?.user?.sucursales ?? []
-      const primerasede = sedes[0]?.descripcion ?? ""
+      const primerasede = sedes[0]?.idSede ?? ""
       if (onSuccess) {
         await onSuccess(primerasede)
       } else {
@@ -244,7 +244,7 @@ export default function Login({ onSuccess }: LoginProps) {
                 label="Iniciar sesión"
                 onClick={handleLogin}
                 fullWidth
-                color="secondary"
+                color={hceColors.primary.green[600]}
               />
             </Box>
 

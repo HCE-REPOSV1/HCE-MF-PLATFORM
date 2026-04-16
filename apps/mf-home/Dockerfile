@@ -2,6 +2,7 @@
 # ── Stage 1: Build ──────────────────────────────────────────
 FROM node:20-alpine AS builder
 ARG VERDACCIO_URL=http://host.docker.internal:10100
+ARG MF_HOME_BASE_URL=http://localhost:10502
 WORKDIR /app
 
 COPY package*.json .npmrc ./
@@ -21,7 +22,7 @@ RUN --mount=type=cache,target=/root/.npm \
  && npm install --install-strategy=nested
 
 COPY apps/mf-home ./apps/mf-home
-RUN npm run build -w apps/mf-home
+RUN VITE_BASE_URL=${MF_HOME_BASE_URL} npm run build -w apps/mf-home
 
 # ── Stage 2: Serve ───────────────────────────────────────────
 FROM nginx:alpine

@@ -2,133 +2,197 @@ import { useNavigate }        from "react-router-dom"
 import { useUser }            from "shell/UserContext"
 import {
   Box, Typography,
+  Button,
   Stethoscope, FileText, Building2, ClipboardList,
+  HceConfigIcon,HceStarIcon,
+  CarruselHome, HCEQuickAccess,
+  hceColors, hceTypography,
 } from "@hce/design-system"
 import type { LucideIcon } from "@hce/design-system"
-import { baseColors }        from "@hce/design-system"
-import clinicBg              from "./assets/clinic-bg.jpg"
 
-// ─── Definición de módulos ────────────────────────────────
+// ─── Imágenes del carrusel ────────────────────────────────
+// Agrega imágenes JPG/PNG/WebP en src/assets/carousel/ y se cargan automáticamente
+const carouselModules = import.meta.glob<{ default: string }>(
+  "./assets/carousel/*.{jpg,jpeg,png,webp}",
+  { eager: true }
+)
+const CAROUSEL_IMAGES: string[] = Object.values(carouselModules).map(m => m.default)
+
+// Fallback: si no hay imágenes en la carpeta, usa la imagen original
+import clinicBg from "./assets/clinic-bg.jpg"
+const IMAGES = CAROUSEL_IMAGES.length > 0 ? CAROUSEL_IMAGES : [clinicBg]
+
+// ─── Módulos disponibles ──────────────────────────────────
 type Module = {
-  Icon:       LucideIcon
-  label:      string
-  path:       string
-  permission: string
+  Icon:        LucideIcon
+  label:       string
+  description: string
+  path:        string
+  permission:  string
 }
 
 const MODULES: Module[] = [
-  { Icon: FileText,      label: "HCE Emergencia",  path: "/emergency",   permission: "01" },
-  { Icon: Stethoscope,   label: "HCE Ambulatorio", path: "/ambulatorio", permission: "02" },
-  { Icon: Building2,     label: "HCE Hospital",    path: "/hospital",    permission: "04" },
-  { Icon: ClipboardList, label: "Auditoría",        path: "/auditoria",   permission: "03" },
+  {
+    Icon:        FileText,
+    label:       "HCE Emergencia",
+    description: "Sección que abarca las funciones fundamentales del monitor de emergencia y los relatos de los pacientes.",
+    path:        "/emergencia",
+    permission:  "01/01",
+  },
+  {
+    Icon:        Stethoscope,
+    label:       "HCE Ambulatorio",
+    description: "Gestión de citas, consultorios y atenciones ambulatorias del sistema de salud.",
+    path:        "/ambulatorio",
+    permission:  "01/02",
+  },
+  {
+    Icon:        Building2,
+    label:       "HCE Hospital",
+    description: "Control de hospitalización, camas disponibles, ingresos y altas médicas.",
+    path:        "/hospital",
+    permission:  "01/04",
+  },
+  {
+    Icon:        ClipboardList,
+    label:       "Auditoría",
+    description: "Reportes, trazabilidad de eventos y configuración de parámetros del sistema.",
+    path:        "/auditoria",
+    permission:  "01/03",
+  },
 ]
 
 // ─────────────────────────────────────────────────────────
 export default function Home() {
-  const navigate         = useNavigate()
-  const { permisos }     = useUser()
+  const navigate      = useNavigate()
+  const { permisos }  = useUser()
 
-  // Devuelve el indicador del permiso raíz del módulo ('E', 'L', 'O', o '' si no existe)
-  const getIndicador = (codigo: string): string =>
-    permisos.find(p => p.codigo === codigo)?.indicador ?? ''
-
-  // E = activo, L = lectura (tratar como activo), O = inactivo / sin permiso = deshabilitado
   const canAccess = (codigo: string): boolean => {
-    const ind = getIndicador(codigo)
-    return ind === 'E' || ind === 'L'
+    const ind = permisos.find(p => p.codigo === codigo)?.indicador ?? ""
+    return ind === "E" || ind === "L"
   }
 
   return (
-    <Box
-      sx={{
-        minHeight:          "100%",
-        backgroundImage:    `url(${clinicBg})`,
-        backgroundSize:     "cover",
-        backgroundPosition: "center",
-        display:            "flex",
-        alignItems:         "center",
-        justifyContent:     "center",
-        position:           "relative",
-        px:                 3,
-        py:                 6,
-      }}
-    >
-      {/* Overlay blanco para atenuar la imagen */}
-      <Box sx={{
-        position:        "absolute",
-        inset:           0,
-        backgroundColor: "rgba(255,255,255,0.72)",
-      }} />
+    <Box sx={{
+      p:             { xs: 2, sm: 3 },
+      display:       "flex",
+      flexDirection: "column",
+      gap:           2.5,
+      minHeight:     "100%",
+    }}>
 
-      {/* Grid de módulos */}
-      <Box
-        sx={{
-          position:            "relative",
-          zIndex:              1,
-          display:             "grid",
-          gridTemplateColumns: {
-            xs: "repeat(2, 1fr)",
-            md: `repeat(${MODULES.length}, 1fr)`,
-          },
-          gap:      { xs: 2, md: 3 },
-          width:    "100%",
-          maxWidth: 900,
-        }}
-      >
-        {MODULES.map(({ Icon, label, path, permission }) => {
-          const enabled = canAccess(permission)
-          return (
-          <Box
-            key={label}
-            onClick={() => enabled && navigate(path)}
+      {/* ── Bienvenida ────────────────────────────────────── */}
+      <Typography sx={{
+        fontFamily: hceTypography.fontFamily,
+        fontSize:   "0.85rem",
+        fontWeight: 600,
+        color:      hceColors.primary.blue[500],
+      }}>
+        Bienvenido a las Historias Clínicas
+      </Typography>
+
+      {/* ── Carrusel ──────────────────────────────────────── */}
+      <CarruselHome
+        images={IMAGES}
+        height={300}
+        autoPlaySeconds={6}
+      />
+
+      {/* ── Cabecera Accesos Rápidos ───────────────────────── */}
+      <Box sx={{
+        display:        "flex",
+        alignItems:     "flex-start",
+        justifyContent: "space-between",
+        flexWrap:       "wrap",
+        gap:            1,
+        mt:             0.5,
+      }}>
+        {/* Izquierda */}
+        <Box>
+          <Typography sx={{
+            fontFamily: hceTypography.fontFamily,
+            fontWeight: 700,
+            fontSize:   "1.35rem",
+            color:      hceColors.primary.green[600],
+            lineHeight: 1.2,
+          }}>
+            Accesos Rápidos
+          </Typography>
+          <Typography sx={{
+            fontFamily: hceTypography.fontFamily,
+            fontSize:   "0.82rem",
+            color:      hceColors.primary.blue[600],
+            mt:         "2px",
+          }}>
+            Secciones más utilizadas del sistema
+          </Typography>
+        </Box>
+
+        {/* Derecha — botones */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, pt: "2px" }}>
+          <Button
+            size="sm"
+            label="Reordenar"
+            startIcon={<HceConfigIcon size={14}color={hceColors.neutro.white[50]}/>}
+            color={hceColors.primary.blue[600]}
+          />
+          <Button
+            variant="outlined"
+            size="sm"
+            label="Personalizar"
+            startIcon={<HceStarIcon size={14}color={hceColors.primary.blue[600]}/>}
+            color={hceColors.primary.blue[600]}
+          />
+          {/* <Button
+            variant="outlined"
+            size="sm"
+            startIcon={<HceStarIcon size={14} />}
             sx={{
-              backgroundColor: enabled ? baseColors.secondary : "#c8c8c8",
-              borderRadius:    "14px",
-              display:         "flex",
-              flexDirection:   "column",
-              alignItems:      "center",
-              justifyContent:  "center",
-              gap:             { xs: 1.5, md: 2.5 },
-              py:              { xs: 3.5, md: 5 },
-              px:              2,
-              cursor:          enabled ? "pointer" : "not-allowed",
-              opacity:         enabled ? 1 : 0.55,
-              transition:      "transform 0.15s ease, box-shadow 0.15s ease",
-              boxShadow:       enabled ? "0 4px 16px rgba(111,178,63,0.3)" : "none",
-              "&:hover": enabled ? {
-                backgroundColor: baseColors.secondaryDark,
-                transform:       "translateY(-4px)",
-                boxShadow:       "0 8px 24px rgba(111,178,63,0.4)",
-              } : {},
-              "&:active": enabled ? { transform: "translateY(0)" } : {},
+              fontFamily:  hceTypography.fontFamily,
+              fontWeight:  500,
+              fontSize:    "0.8rem",
+              borderColor: hceColors.primary.blue[300],
+              color:       hceColors.primary.blue[600],
+              borderRadius: "8px",
+              px:          1.5,
+              "&:hover": {
+                backgroundColor: hceColors.primary.blue[50],
+                borderColor:     hceColors.primary.blue[500],
+              },
             }}
           >
-            {/* Círculo con ícono */}
-            <Box sx={{
-              width:           72,
-              height:          72,
-              borderRadius:    "50%",
-              backgroundColor: "rgba(255,255,255,0.25)",
-              display:         "flex",
-              alignItems:      "center",
-              justifyContent:  "center",
-            }}>
-              <Icon size={36} color="white" strokeWidth={1.5} />
-            </Box>
-
-            {/* Etiqueta */}
-            <Typography sx={{
-              color:      "white",
-              fontWeight: 600,
-              fontSize:   "0.95rem",
-              textAlign:  "center",
-              lineHeight: 1.3,
-            }}>
-              {label}
-            </Typography>
-          </Box>
-        )})}
+            Personalizar
+          </Button> */}
+        </Box>
       </Box>
+
+      {/* ── Grid de cards ─────────────────────────────────── */}
+      <Box sx={{
+        display:             "grid",
+        gridTemplateColumns: {
+          xs: "1fr",
+          sm: "repeat(2, 1fr)",
+          md: "repeat(3, 1fr)",
+          lg: "repeat(4, 1fr)",
+        },
+        gap:       2,
+        alignItems: "stretch",
+      }}>
+        {MODULES.map(({ Icon, label, description, path, permission }) => {
+          const enabled = canAccess(permission)
+          return (
+            <HCEQuickAccess
+              key={path}
+              icon={<Icon size={24} />}
+              title={label}
+              description={description}
+              disabled={!enabled}
+              onAcceder={() => navigate(path)}
+            />
+          )
+        })}
+      </Box>
+
     </Box>
   )
 }

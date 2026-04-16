@@ -1,8 +1,7 @@
 import { lazy, Suspense, type ReactNode } from "react"
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom"
 
-import HomeLayout from "./HomeLayout"
-import AppLayout  from "./Layout"
+import AppLayout from "./Layout"
 import { useUser } from "./context/UserContext"
 import { CSFLoading } from "@hce/design-system"
 
@@ -62,14 +61,10 @@ export default function App() {
           <PublicRoute><LoginPage /></PublicRoute>
         } />
 
-        {/* Hub — header sin sidebar */}
-        <Route element={<ProtectedRoute><HomeLayout /></ProtectedRoute>}>
-          <Route path="/home" element={<Home />} />
-        </Route>
-
-        {/* Módulos — header + sidebar dinámico */}
+        {/* Rutas protegidas — layout único con sidebar flotante */}
         <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-          <Route path="/emergency/*"   element={<Emergency />} />
+          <Route path="/home"          element={<Home />} />
+          <Route path="/emergencia/*"   element={<Emergency />} />
           <Route path="/hospital/*"    element={<Hospital />} />
           <Route path="/ambulatorio/*" element={<Ambulatorio />} />
           <Route path="/auditoria/*"   element={<Auditoria />} />

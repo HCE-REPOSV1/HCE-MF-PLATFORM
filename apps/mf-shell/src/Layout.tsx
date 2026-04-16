@@ -1,90 +1,50 @@
 import "./layout.css"
+import { useState, useEffect }               from "react"
+import { Outlet, useNavigate, useLocation }  from "react-router-dom"
+import { useMediaQuery }                     from "@mui/material"
+import { HceHeader, HceSidebar, Footer, HceModal, UiWarningIcon, hceColors } from "@hce/design-system"
+import { useUser }                           from "./context/UserContext"
 
-import { createElement, useEffect, useState } from "react"
-import { Outlet, useNavigate, useLocation }   from "react-router-dom"
-
-import { useIsMobile }                           from "./hooks/useIsMobile"
-import { getFormattedDateTime, getShortDateTime } from "./utils/date"
-import { Header, SideNav, SidebarMenu, Footer }   from "@hce/design-system"
-import { useUser } from "./context/UserContext"
-
-// Imports estáticos de menuConfig — la federación los inicializa correctamente
-import { menuConfig as emergencyMenu }   from "emergency/menuConfig"
-import { menuConfig as hospitalMenu }    from "hospital/menuConfig"
-import { menuConfig as ambulatorioMenu } from "ambulatorio/menuConfig"
-import { menuConfig as auditoriaMenu }   from "auditoria/menuConfig"
-
-import type { MenuItem } from "@hce/design-system"
-
-// ─── Tipos ────────────────────────────────────────────────
-type MenuConfigItem = {
-  label:      string
-  path:       string
-  icon:       React.ComponentType<{ size?: number }>
-  permission: string
-}
-
-// ─── Mapa estático de menuConfigs por módulo ──────────────
-const MODULE_MENUS: Record<string, MenuConfigItem[]> = {
-  emergency:   emergencyMenu,
-  hospital:    hospitalMenu,
-  ambulatorio: ambulatorioMenu,
-  auditoria:   auditoriaMenu,
-}
-
-function getActiveModule(pathname: string): string | null {
-  if (pathname.startsWith("/emergency"))   return "emergency"
-  if (pathname.startsWith("/hospital"))    return "hospital"
-  if (pathname.startsWith("/ambulatorio")) return "ambulatorio"
-  if (pathname.startsWith("/auditoria"))   return "auditoria"
-  return null
-}
-
-function buildMenuItems(configs: MenuConfigItem[], hasPermission: (codigo: string) => boolean): MenuItem[] {
-  return configs
-    .filter(item => !item.permission || hasPermission(item.permission))
-    .map((item): MenuItem => ({
-      label: item.label,
-      path:  item.path,
-      icon:  createElement(item.icon, { size: 18 }),
-    }))
-}
+const SIDEBAR_LEFT  = 12   // padding izquierdo de la fila central (desktop)
+const SIDEBAR_TOP   = 12   // padding superior de la fila central
+const CONTENT_GAP   = 8    // gap entre sidebar y columna de contenido (desktop)
 
 // ─────────────────────────────────────────────────────────
 export default function AppLayout() {
   const navigate = useNavigate()
   const location = useLocation()
-  const isMobile = useIsMobile()
 
-  const [date, setDate]               = useState(isMobile ? getShortDateTime() : getFormattedDateTime())
-  const [collapsed, setCollapsed]     = useState(false)
-  const [mobileMenuOpen, setMenuOpen] = useState(false)
-  const [menuItems, setMenuItems]     = useState<MenuItem[]>([])
+  // En pantallas < 900px el sidebar se oculta y abre como overlay
+  const isMobile = useMediaQuery("(max-width: 899px)")
 
-  const { user, sede, logout, hasPermission } = useUser()
+  const [collapsed,     setCollapsed]     = useState(false)
+  const [mobileOpen,    setMobileOpen]    = useState(false)
+  const [sinSedesModal, setSinSedesModal] = useState(false)
 
-  // Actualizar reloj
+  // Al pasar a desktop, cierra el overlay móvil
+  useEffect(() => { if (!isMobile) setMobileOpen(false) }, [isMobile])
+
+  const { user, opciones, sede, setSede, logout } = useUser()
+
   useEffect(() => {
-    const update = () => setDate(isMobile ? getShortDateTime() : getFormattedDateTime())
-    update()
-    const id = setInterval(update, 60000)
-    return () => clearInterval(id)
-  }, [isMobile])
+    if (!user) return
 
-  // Actualizar sidebar al cambiar de módulo
-  useEffect(() => {
-    const module = getActiveModule(location.pathname)
-    if (!module) return
+    // Sin sedes asignadas → modal de aviso + cierre de sesión
+    if (user.sucursales.length === 0) {
+      setSinSedesModal(true)
+      return
+    }
 
-    const configs = MODULE_MENUS[module]
-    if (!configs) return
+    // Belt-and-suspenders: si sede sigue vacío, selecciona la primera
+    if (!sede) {
+      setSede(user.sucursales[0].idSede)
+    }
+  }, [user, sede, setSede])
 
-    setMenuItems(buildMenuItems(configs, hasPermission))
-  }, [location.pathname, user])
-
-  const handleNavigate = (path: string) => {
-    navigate(path)
-    setMenuOpen(false)
+  const handleSinSedesAceptar = async () => {
+    setSinSedesModal(false)
+    await logout()
+    window.location.replace("/")
   }
 
   const handleLogout = async () => {
@@ -92,47 +52,143 @@ export default function AppLayout() {
     window.location.replace("/")
   }
 
+  const closeMobileSidebar = () => setMobileOpen(false)
+
+  const copyright = `© ${new Date().getFullYear()} Clínica San Felipe · Todos los derechos reservados · Sistema HCE v2.0`
+
+  const sucursales = (user?.sucursales ?? []).map(s => ({
+    id:     s.idSede,
+    nombre: s.descripcion,
+  }))
+
   return (
-    <div className={`app-layout ${collapsed ? "collapsed" : ""}`}>
+    /*
+     * Desktop (≥ 900px):
+     *  ┌────────────────────────────────────────────────┐
+     *  │ [sidebar flotante] │ [header flotante]          │
+     *  │                    │────────────────────────────│
+     *  │                    │ contenido (Outlet)          │
+     *  ├─────────────────────────────────────────────────┤
+     *  │ Footer — ancho completo                         │
+     *  └─────────────────────────────────────────────────┘
+     *
+     * Mobile (< 900px):
+     *  ┌────────────────────────────────────────────────┐
+     *  │ [☰] [header flotante]                          │
+     *  │────────────────────────────────────────────────│
+     *  │ contenido (Outlet)                              │
+     *  ├─────────────────────────────────────────────────┤
+     *  │ Footer — ancho completo                         │
+     *  └─────────────────────────────────────────────────┘
+     *  Al tocar ☰ → sidebar flota sobre el contenido con backdrop
+     */
+    <div style={{ height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden", backgroundColor: "#f0f4f8" }}>
 
-      {/* HEADER */}
-      <header className="app-header">
-        <Header
-          date={date}
-          site={sede || "—"}
-          userName={user?.nombreCompleto}
-          userRole={user?.nombrePerfil}
-          onToggleSidebar={() => setMenuOpen(!mobileMenuOpen)}
-          onLogout={handleLogout}
-        />
-      </header>
+      {/* ── Modal: usuario sin sedes asignadas ──────────────────────── */}
+      <HceModal
+        open={sinSedesModal}
+        title="Sin sedes asignadas"
+        description="Tu usuario no tiene sedes asignadas en el sistema. Por favor contacta con el administrador para que te asignen acceso a una sede."
+        icon={<UiWarningIcon size={28} />}
+        iconBgColor="#b91c1c"
+        confirmButton={{
+          label:   "Aceptar",
+          onClick: handleSinSedesAceptar,
+        }}
+      />
 
-      {/* OVERLAY — cierra sidebar al tocar fuera en mobile */}
-      {mobileMenuOpen && (
-        <div className="app-sidebar-overlay" onClick={() => setMenuOpen(false)} />
+      {/* ── SIDEBAR MÓVIL: backdrop + overlay ───────────────────────── */}
+      {isMobile && mobileOpen && (
+        <>
+          {/* Backdrop — click cierra el sidebar */}
+          <div
+            onClick={closeMobileSidebar}
+            style={{
+              position:        "fixed",
+              inset:           0,
+              backgroundColor: "rgba(0,0,0,0.45)",
+              zIndex:          1299,
+            }}
+          />
+          {/* Sidebar flotante sobre el contenido */}
+          <div style={{
+            position: "fixed",
+            left:     SIDEBAR_LEFT,
+            top:      SIDEBAR_TOP,
+            bottom:   SIDEBAR_TOP,
+            zIndex:   1300,
+            display:  "flex",
+          }}>
+            <HceSidebar
+              floating
+              collapsed={false}
+              onToggle={closeMobileSidebar}
+              opciones={opciones}
+              currentPath={location.pathname}
+              onNavigate={vista => { closeMobileSidebar(); if (vista) navigate(vista) }}
+              onHome={() => { closeMobileSidebar(); navigate("/home") }}
+            />
+          </div>
+        </>
       )}
 
-      {/* SIDEBAR */}
-      <aside className={`app-sidebar ${mobileMenuOpen ? "open" : ""}`}>
-        <SideNav collapsed={collapsed} isMobile={isMobile} onToggle={() => setCollapsed(!collapsed)}>
-          <SidebarMenu
-            items={menuItems}
+      {/* ── FILA CENTRAL: sidebar (desktop) + columna derecha ───────── */}
+      <div style={{
+        flex:          1,
+        display:       "flex",
+        flexDirection: "row",
+        overflow:      "hidden",
+        padding:       isMobile
+          ? `${SIDEBAR_TOP}px 12px 0 12px`
+          : `${SIDEBAR_TOP}px 12px 0 ${SIDEBAR_LEFT}px`,
+        gap:           isMobile ? 0 : CONTENT_GAP,
+      }}>
+
+        {/* SIDEBAR DESKTOP — en flujo normal, oculto en mobile */}
+        {!isMobile && (
+          <HceSidebar
+            floating
             collapsed={collapsed}
-            onNavigate={handleNavigate}
+            onToggle={() => setCollapsed(prev => !prev)}
+            opciones={opciones}
             currentPath={location.pathname}
+            onNavigate={vista => { if (vista) navigate(vista) }}
+            onHome={() => navigate("/home")}
           />
-        </SideNav>
-      </aside>
+        )}
 
-      {/* CONTENT */}
-      <main className="app-content">
-        <Outlet />
-      </main>
+        {/* COLUMNA DERECHA: header + contenido */}
+        <div style={{
+          flex:          1,
+          display:       "flex",
+          flexDirection: "column",
+          overflow:      "hidden",
+          minWidth:      0,
+        }}>
 
-      {/* FOOTER */}
-      <div className="app-footer">
-        <Footer />
+          {/* HEADER — flotante visual: borderRadius + sombra */}
+          <HceHeader
+            floating
+            sede={sede}
+            sucursales={sucursales}
+            onSedeCambiada={id => setSede(String(id))}
+            userName={user?.nombreCompleto}
+            userRole={user?.nombrePerfil}
+            onLogout={handleLogout}
+            onMenuClick={isMobile ? () => setMobileOpen(prev => !prev) : undefined}
+          />
+
+          {/* CONTENIDO */}
+          <main style={{ flex: 1, overflow: "auto", padding: "20px 0 0" }}>
+            <Outlet />
+          </main>
+
+        </div>
+
       </div>
+
+      {/* ── FOOTER — ancho completo fuera de la fila ────────────────── */}
+      <Footer copyright={copyright} color={hceColors.primary.blue[600]} />
 
     </div>
   )

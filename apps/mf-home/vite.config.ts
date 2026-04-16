@@ -6,6 +6,10 @@ import federation from "@originjs/vite-plugin-federation"
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, "")
   return {
+  // Las URLs de assets deben ser absolutas para que el shell (otro origen)
+  // pueda resolverlas correctamente (Module Federation cross-origin asset fix).
+  // VITE_BASE_URL se setea en .env — por defecto localhost para dev/docker local.
+  base: env.VITE_BASE_URL || "http://localhost:10502",
   plugins: [
     react(),
     federation({
@@ -31,8 +35,8 @@ export default defineConfig(({ mode }) => {
   ],
   resolve: {
     alias: {
-      react: path.resolve("./node_modules/react"),
-      "react-dom": path.resolve("./node_modules/react-dom")
+      react:       path.resolve(__dirname, "../../node_modules/react"),
+      "react-dom": path.resolve(__dirname, "../../node_modules/react-dom"),
     }
   },
   server:  { port: 10502 },

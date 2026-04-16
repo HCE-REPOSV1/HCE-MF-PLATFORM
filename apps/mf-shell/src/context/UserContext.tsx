@@ -14,6 +14,7 @@
  * ---------------------------------------------------------
  */
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import type { OpcionMAC } from "@hce/design-system"
 import { ENDPOINTS } from "../config/endpoints"
 
 export interface Sucursal {
@@ -44,9 +45,14 @@ export interface Permiso {
   indicador: string  // ej: "E"
 }
 
+// OpcionMAC se importa de @hce/design-system — incluye vista, idMenu, idMenuPadre
+export type { OpcionMAC } from "@hce/design-system"
+
 interface UserContextValue {
   user:           UserProfile | null
   permisos:       Permiso[]
+  /** Árbol original de opciones MAC (para renderizar el sidebar) */
+  opciones:       OpcionMAC[]
   sede:           string
   loading:        boolean
   hasPermission:  (codigo: string) => boolean
@@ -58,6 +64,7 @@ interface UserContextValue {
 const UserContext = createContext<UserContextValue>({
   user:          null,
   permisos:      [],
+  opciones:      [],
   sede:          '',
   loading:       true,
   hasPermission: () => false,
@@ -69,6 +76,7 @@ const UserContext = createContext<UserContextValue>({
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user,     setUser]     = useState<UserProfile | null>(null)
   const [permisos, setPermisos] = useState<Permiso[]>([])
+  const [opciones, setOpciones] = useState<OpcionMAC[]>([])
   const [sede,     setSede]     = useState<string>('')
   const [loading,  setLoading]  = useState(true)
 
@@ -80,6 +88,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     } finally {
       setUser(null)
       setPermisos([])
+      setOpciones([])
       setSede('')
     }
   }
@@ -90,7 +99,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
       const res = await fetch(ENDPOINTS.auth.me, { credentials: "include" })
       if (res.ok) {
         const json = await res.json()
-        setUser(json.data)
+        const userData = json.data as UserProfile
+        setUser(userData)
+        // Auto-selecciona la primera sede si aún no hay una seleccionada
+        if (userData.sucursales?.length > 0) {
+          setSede(prev => prev || userData.sucursales[0].idSede)
+        }
       } else {
         // 401 sin sesión previa: no hay cookie que invalidar, solo limpiar estado
         setUser(null)
@@ -110,6 +124,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       const res = await fetch(ENDPOINTS.auth.accesos, { credentials: "include" })
       if (res.ok) {
         const json = await res.json()
+        setOpciones(json.data?.opciones ?? [])
         setPermisos(json.data?.permisos ?? [])
       } else if (res.status === 401) {
         // Token MAC inválido o expirado — cerrar sesión completa
@@ -118,6 +133,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }
       // Otros errores (503, 504, etc.): continuar sin permisos, no cerrar sesión
     } catch {
+      setOpciones([])
       setPermisos([])
     } finally {
       setLoading(false)
@@ -131,7 +147,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   useEffect(() => { fetchMe() }, [])
 
   return (
-    <UserContext.Provider value={{ user, permisos, sede, loading, hasPermission, refetch: fetchMe, logout, setSede }}>
+    <UserContext.Provider value={{ user, permisos, opciones, sede, loading, hasPermission, refetch: fetchMe, logout, setSede }}>
       {children}
     </UserContext.Provider>
   )
