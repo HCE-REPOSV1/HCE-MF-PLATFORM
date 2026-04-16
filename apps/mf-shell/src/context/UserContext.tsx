@@ -48,6 +48,21 @@ export interface Permiso {
 // OpcionMAC se importa de @hce/design-system — incluye vista, idMenu, idMenuPadre
 export type { OpcionMAC } from "@hce/design-system"
 
+/**
+ * Filtra recursivamente las opciones MAC:
+ * - Mantiene solo las que tienen indicador "E" (activo) o "L" (lectura)
+ * - Descarta las que tienen indicador "O" (deshabilitado)
+ * - Si un padre no tiene hijos visibles tras el filtro, también se descarta
+ */
+function filtrarOpciones(opciones: OpcionMAC[]): OpcionMAC[] {
+  return opciones
+    .filter(op => op.indicador === "E" || op.indicador === "L")
+    .map(op => ({
+      ...op,
+      opciones: op.opciones ? filtrarOpciones(op.opciones) : undefined,
+    }))
+}
+
 interface UserContextValue {
   user:           UserProfile | null
   permisos:       Permiso[]
@@ -124,7 +139,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       const res = await fetch(ENDPOINTS.auth.accesos, { credentials: "include" })
       if (res.ok) {
         const json = await res.json()
-        setOpciones(json.data?.opciones ?? [])
+        setOpciones(filtrarOpciones(json.data?.opciones ?? []))
         setPermisos(json.data?.permisos ?? [])
       } else if (res.status === 401) {
         // Token MAC inválido o expirado — cerrar sesión completa

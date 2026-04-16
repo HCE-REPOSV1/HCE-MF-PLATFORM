@@ -17,21 +17,28 @@ export default function AppLayout() {
   // En pantallas < 900px el sidebar se oculta y abre como overlay
   const isMobile = useMediaQuery("(max-width: 899px)")
 
-  const [collapsed,     setCollapsed]     = useState(false)
-  const [mobileOpen,    setMobileOpen]    = useState(false)
-  const [sinSedesModal, setSinSedesModal] = useState(false)
+  const [collapsed,        setCollapsed]        = useState(false)
+  const [mobileOpen,       setMobileOpen]       = useState(false)
+  const [sinSedesModal,    setSinSedesModal]    = useState(false)
+  const [sinPermisosModal, setSinPermisosModal] = useState(false)
 
   // Al pasar a desktop, cierra el overlay móvil
   useEffect(() => { if (!isMobile) setMobileOpen(false) }, [isMobile])
 
-  const { user, opciones, sede, setSede, logout } = useUser()
+  const { user, opciones, sede, setSede, logout, loading } = useUser()
 
   useEffect(() => {
-    if (!user) return
+    if (!user || loading) return
 
-    // Sin sedes asignadas → modal de aviso + cierre de sesión
+    // Sin sedes asignadas → modal + logout
     if (user.sucursales.length === 0) {
       setSinSedesModal(true)
+      return
+    }
+
+    // Sin opciones de menú visibles (todas en estado "O") → modal + logout
+    if (opciones.length === 0) {
+      setSinPermisosModal(true)
       return
     }
 
@@ -39,10 +46,16 @@ export default function AppLayout() {
     if (!sede) {
       setSede(user.sucursales[0].idSede)
     }
-  }, [user, sede, setSede])
+  }, [user, loading, opciones, sede, setSede])
 
   const handleSinSedesAceptar = async () => {
     setSinSedesModal(false)
+    await logout()
+    window.location.replace("/")
+  }
+
+  const handleSinPermisosAceptar = async () => {
+    setSinPermisosModal(false)
     await logout()
     window.location.replace("/")
   }
@@ -97,6 +110,19 @@ export default function AppLayout() {
         }}
       />
 
+      {/* ── Modal: usuario sin permisos de acceso ────────────────────── */}
+      <HceModal
+        open={sinPermisosModal}
+        title="Sin permisos de acceso"
+        description="Tu usuario no tiene módulos habilitados en el sistema. Por favor contacta con el administrador para que te asignen los permisos correspondientes."
+        icon={<UiWarningIcon size={28} />}
+        iconBgColor="#b91c1c"
+        confirmButton={{
+          label:   "Aceptar",
+          onClick: handleSinPermisosAceptar,
+        }}
+      />
+
       {/* ── SIDEBAR MÓVIL: backdrop + overlay ───────────────────────── */}
       {isMobile && mobileOpen && (
         <>
@@ -121,6 +147,7 @@ export default function AppLayout() {
           }}>
             <HceSidebar
               floating
+              multiLevel={false}
               collapsed={false}
               onToggle={closeMobileSidebar}
               opciones={opciones}
@@ -148,6 +175,7 @@ export default function AppLayout() {
         {!isMobile && (
           <HceSidebar
             floating
+            multiLevel={false}
             collapsed={collapsed}
             onToggle={() => setCollapsed(prev => !prev)}
             opciones={opciones}
