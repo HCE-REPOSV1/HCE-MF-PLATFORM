@@ -23,13 +23,13 @@ export default defineConfig(({ mode }) => {
   ],
   resolve: {
     dedupe: ["react", "react-dom"],
-    alias: {
-      "react":                path.resolve(__dirname, "../../node_modules/react/index.js"),
-      "react/jsx-runtime":    path.resolve(__dirname, "../../node_modules/react/jsx-runtime.js"),
-      "react/jsx-dev-runtime":path.resolve(__dirname, "../../node_modules/react/jsx-dev-runtime.js"),
-      "react-dom":            path.resolve(__dirname, "../../node_modules/react-dom/index.js"),
-      "react-dom/client":     path.resolve(__dirname, "../../node_modules/react-dom/client.js"),
-    },
+    alias: [
+      { find: "react/jsx-runtime",     replacement: path.resolve(__dirname, "../../node_modules/react/jsx-runtime.js") },
+      { find: "react/jsx-dev-runtime", replacement: path.resolve(__dirname, "../../node_modules/react/jsx-dev-runtime.js") },
+      { find: "react-dom/client",      replacement: path.resolve(__dirname, "../../node_modules/react-dom/client.js") },
+      { find: "react-dom",             replacement: path.resolve(__dirname, "../../node_modules/react-dom") },
+      { find: "react",                 replacement: path.resolve(__dirname, "../../node_modules/react") },
+    ],
   },
   server:  { port: 10503 },
   preview: { port: 10503 },
