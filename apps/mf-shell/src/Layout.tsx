@@ -41,6 +41,8 @@ export default function AppLayout() {
       setSinPermisosModal(true)
       return
     }
+    // Si llegaron opciones, asegurarse de que el modal no quede abierto por un render intermedio
+    setSinPermisosModal(false)
 
     // Belt-and-suspenders: si sede sigue vacío, selecciona la primera
     if (!sede) {

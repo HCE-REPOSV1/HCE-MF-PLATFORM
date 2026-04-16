@@ -109,6 +109,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }
 
   const fetchMe = async () => {
+    setLoading(true)   // Evita renders intermedios con user!=null pero opciones vacías
     // 1. Validar sesión activa
     try {
       const res = await fetch(ENDPOINTS.auth.me, { credentials: "include" })
