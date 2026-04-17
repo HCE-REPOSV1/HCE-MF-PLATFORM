@@ -2,6 +2,7 @@
 # ── Stage 1: Build ──────────────────────────────────────────
 FROM node:20-alpine AS builder
 ARG VERDACCIO_URL=http://host.docker.internal:10100
+ARG VITE_AUTH_URL=http://localhost:10401
 WORKDIR /app
 
 COPY package*.json .npmrc ./
@@ -21,7 +22,7 @@ RUN --mount=type=cache,target=/root/.npm \
  && npm install --install-strategy=nested
 
 COPY apps/mf-auth ./apps/mf-auth
-RUN npm run build -w apps/mf-auth
+RUN VITE_AUTH_URL=${VITE_AUTH_URL} npm run build -w apps/mf-auth
 
 # ── Stage 2: Serve ───────────────────────────────────────────
 FROM nginx:alpine

@@ -2,6 +2,7 @@
 # ── Stage 1: Build ──────────────────────────────────────────
 FROM node:20-alpine AS builder
 ARG VERDACCIO_URL=http://host.docker.internal:10100
+ARG VITE_REMOTE_SHELL=http://localhost:10500/remoteEntry.js
 WORKDIR /app
 
 COPY package*.json .npmrc ./
@@ -21,7 +22,7 @@ RUN --mount=type=cache,target=/root/.npm \
  && npm install --install-strategy=nested
 
 COPY apps/mf-hospital ./apps/mf-hospital
-RUN npm run build -w apps/mf-hospital
+RUN VITE_REMOTE_SHELL=${VITE_REMOTE_SHELL} npm run build -w apps/mf-hospital
 
 # ── Stage 2: Serve ───────────────────────────────────────────
 FROM nginx:alpine

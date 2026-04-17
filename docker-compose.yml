@@ -5,6 +5,14 @@ services:
       dockerfile: apps/mf-shell/Dockerfile
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
+        # URLs de producción — se hornean en el bundle al compilar
+        VITE_AUTH_URL: https://servicios.dev.sanfelipe.com:20401
+        VITE_REMOTE_AUTH:        https://servicios.dev.sanfelipe.com:20501/assets/remoteEntry.js
+        VITE_REMOTE_HOME:        https://servicios.dev.sanfelipe.com:20502/assets/remoteEntry.js
+        VITE_REMOTE_EMERGENCY:   https://servicios.dev.sanfelipe.com:20503/assets/remoteEntry.js
+        VITE_REMOTE_HOSPITAL:    https://servicios.dev.sanfelipe.com:20504/assets/remoteEntry.js
+        VITE_REMOTE_AMBULATORIO: https://servicios.dev.sanfelipe.com:20505/assets/remoteEntry.js
+        VITE_REMOTE_AUDITORIA:   https://servicios.dev.sanfelipe.com:20506/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10500:80"
@@ -24,6 +32,7 @@ services:
       dockerfile: apps/mf-auth/Dockerfile
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
+        VITE_AUTH_URL: https://servicios.dev.sanfelipe.com:20401
     restart: unless-stopped
     ports:
       - "10501:80"
@@ -43,7 +52,8 @@ services:
       dockerfile: apps/mf-home/Dockerfile
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
-        MF_HOME_BASE_URL: http://192.168.42.44:10502
+        MF_HOME_BASE_URL:  https://servicios.dev.sanfelipe.com:20502
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10502:80"
@@ -63,6 +73,7 @@ services:
       dockerfile: apps/mf-emergency/Dockerfile
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10503:80"
@@ -82,6 +93,7 @@ services:
       dockerfile: apps/mf-hospital/Dockerfile
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10504:80"
@@ -101,6 +113,7 @@ services:
       dockerfile: apps/mf-ambulatorio/Dockerfile
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10505:80"
@@ -120,6 +133,7 @@ services:
       dockerfile: apps/mf-auditoria/Dockerfile
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10506:80"
