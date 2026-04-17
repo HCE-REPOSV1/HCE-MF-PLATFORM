@@ -1,6 +1,10 @@
 import { defineConfig, loadEnv } from "vite"
 import react from "@vitejs/plugin-react"
 import federation from "@originjs/vite-plugin-federation"
+import fs from "fs"
+import path from "path"
+
+const BUILD_TIME = new Date().toISOString()
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, "")
@@ -11,6 +15,16 @@ export default defineConfig(({ mode }) => {
   base: env.VITE_BASE_URL || "http://localhost:10502",
   plugins: [
     react(),
+    {
+      name: "version-json",
+      closeBundle() {
+        const outDir = path.resolve(__dirname, "dist")
+        fs.writeFileSync(
+          path.join(outDir, "version.json"),
+          JSON.stringify({ buildTime: BUILD_TIME }),
+        )
+      },
+    },
     federation({
       name:"mf-home",
       filename:"remoteEntry.js",
