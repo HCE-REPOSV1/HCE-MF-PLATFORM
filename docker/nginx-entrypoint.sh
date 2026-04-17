@@ -169,6 +169,19 @@ try_find_certs() {
 location_block() {
   if [ "$NGINX_TYPE" = "spa" ]; then
     cat << 'EOF'
+    # index.html y version.json nunca se cachean
+    location = /index.html {
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        add_header Pragma "no-cache";
+        expires 0;
+    }
+
+    location = /version.json {
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        add_header Pragma "no-cache";
+        expires 0;
+    }
+
     location / {
         try_files $uri $uri/ /index.html;
     }
@@ -183,6 +196,16 @@ EOF
     cat << 'EOF'
     add_header Access-Control-Allow-Origin *;
     add_header Access-Control-Allow-Methods "GET, OPTIONS";
+
+    # version.json nunca se cachea — el shell lo pollea para detectar nuevas versiones
+    # add_header explícito porque los location blocks no heredan los del bloque padre
+    location = /version.json {
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Access-Control-Allow-Origin *;
+        add_header Access-Control-Allow-Methods "GET, OPTIONS";
+        expires 0;
+    }
 
     location / {
         try_files $uri $uri/ =404;

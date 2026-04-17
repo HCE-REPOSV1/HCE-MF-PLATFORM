@@ -6,13 +6,18 @@ declare const __BUILD_TIME__: string
 const POLL_INTERVAL_MS = 1 * 60 * 1000
 
 /**
- * Extrae la URL base del remote a partir de su remoteEntry URL.
- * "http://host:port/remoteEntry.js" → "http://host:port"
+ * Extrae el origen (protocol+host+port) del remote a partir de su remoteEntry URL.
+ * Funciona independientemente de si remoteEntry.js está en la raíz o en /assets/:
+ *   "http://host:port/remoteEntry.js"        → "http://host:port"
+ *   "http://host:port/assets/remoteEntry.js" → "http://host:port"
  */
 function remoteBase(envVal: string | undefined): string | null {
   if (!envVal) return null
-  const base = envVal.replace(/\/remoteEntry\.js$/, "").trim()
-  return base || null
+  try {
+    return new URL(envVal).origin
+  } catch {
+    return null
+  }
 }
 
 /**
