@@ -60,7 +60,7 @@ export default function Login({ onSuccess }: LoginProps) {
     setLoading(true)
     try {
       // TODO: quitar delay de prueba
-      //await new Promise(resolve => setTimeout(resolve, 5000)) //solo es para poder ver el spinner
+      await new Promise(resolve => setTimeout(resolve, 5000)) //solo es para poder ver el spinner
       const res  = await fetch(ENDPOINTS.auth.login, {
         method:      "POST",
         headers:     { "Content-Type": "application/json" },
