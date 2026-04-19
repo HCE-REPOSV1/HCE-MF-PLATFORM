@@ -96,6 +96,7 @@ export default function Home() {
         images={IMAGES}
         height={300}
         autoPlaySeconds={6}
+        objectFit="cover" 
       />
 
       {/* ── Cabecera Accesos Rápidos ───────────────────────── */}
