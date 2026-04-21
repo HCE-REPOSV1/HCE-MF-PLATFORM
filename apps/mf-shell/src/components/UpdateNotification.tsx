@@ -21,7 +21,9 @@ export function UpdateNotification() {
       setSeconds(prev => {
         if (prev <= 1) {
           clearInterval(id)
-          window.location.reload()
+          window.location.replace(
+            window.location.origin + window.location.pathname + "?_v=" + Date.now()
+          )
           return 0
         }
         return prev - 1
@@ -35,7 +37,11 @@ export function UpdateNotification() {
     <HceUpdateBanner
       open={updateAvailable}
       seconds={seconds}
-      onReloadNow={() => window.location.reload()}
+      onReloadNow={() =>
+        window.location.replace(
+          window.location.origin + window.location.pathname + "?_v=" + Date.now()
+        )
+      }
     />
   )
 }
