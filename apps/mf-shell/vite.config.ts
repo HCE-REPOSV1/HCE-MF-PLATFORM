@@ -44,12 +44,12 @@ export default defineConfig(({ mode }) => {
         "./UserContext": "./src/context/UserContext",
       },
       remotes: {
-        auth:        env.VITE_REMOTE_AUTH,
-        home:        env.VITE_REMOTE_HOME,
-        emergency:   env.VITE_REMOTE_EMERGENCY,
-        hospital:    env.VITE_REMOTE_HOSPITAL,
-        ambulatorio: env.VITE_REMOTE_AMBULATORIO,
-        auditoria:   env.VITE_REMOTE_AUDITORIA,
+        auth:        `${env.VITE_REMOTE_AUTH}?v=${encodeURIComponent(BUILD_TIME)}`,
+        home:        `${env.VITE_REMOTE_HOME}?v=${encodeURIComponent(BUILD_TIME)}`,
+        emergency:   `${env.VITE_REMOTE_EMERGENCY}?v=${encodeURIComponent(BUILD_TIME)}`,
+        hospital:    `${env.VITE_REMOTE_HOSPITAL}?v=${encodeURIComponent(BUILD_TIME)}`,
+        ambulatorio: `${env.VITE_REMOTE_AMBULATORIO}?v=${encodeURIComponent(BUILD_TIME)}`,
+        auditoria:   `${env.VITE_REMOTE_AUDITORIA}?v=${encodeURIComponent(BUILD_TIME)}`,
       },
       shared: [
         "react",
