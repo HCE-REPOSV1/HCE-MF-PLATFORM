@@ -155,7 +155,7 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
         id={id}
         type="checkbox"
         checked={checked}
-        onChange={e => onChange(e.target.checked)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.checked)}
         sx={{ display: "none" }}
       />
       <Box
@@ -204,7 +204,7 @@ function NumericField({ label, value, onChange, suffix, readOnly = false }: {
           inputMode="decimal"
           value={value}
           readOnly={readOnly}
-          onChange={e => onChange?.(e.target.value.replace(/[^\d.,]/g, ""))}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange?.(e.target.value.replace(/[^\d.,]/g, ""))}
           placeholder="—"
           sx={{
             flex:            1,
@@ -524,7 +524,7 @@ export function TriajeModal({ open, onClose, onGuardar }: TriajeModalProps) {
                 component="input"
                 type="checkbox"
                 checked={form.noIdentificado}
-                onChange={e => set("noIdentificado", e.target.checked)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => set("noIdentificado", e.target.checked)}
                 sx={{ accentColor: hceColors.primary.green[500] }}
               />
               <Typography sx={{ fontFamily: hceTypography.fontFamily, fontSize: "0.82rem", color: hceColors.primary.blue[600], fontWeight: 500 }}>
