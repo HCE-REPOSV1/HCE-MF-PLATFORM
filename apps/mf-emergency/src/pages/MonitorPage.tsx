@@ -3,6 +3,7 @@ import {
   Box,
   emergencyTokens,
   MonitoActionBar,
+  ActionBar,
   PatientTable,
   EmergencyPagination,
   BedAvailabilityDrawer,
@@ -89,6 +90,7 @@ export default function MonitorPage() {
           }}
         >
           {/* Barra de acciones de monitoreo — ancho completo, iconos a la izquierda */}
+          <ActionBar  />
           <Box sx={{ flexShrink: 0 }}>
             <MonitoActionBar
               tooltipPlacement="bottom"
