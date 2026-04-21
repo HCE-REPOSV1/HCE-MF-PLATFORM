@@ -4,6 +4,7 @@ import {
   emergencyTokens,
   MonitoActionBar,
   PatientTable,
+  ActionBar,
   EmergencyPagination,
   BedAvailabilityDrawer,
 } from "@hce/design-system"
@@ -90,6 +91,7 @@ export default function MonitorPage() {
         >
           {/* Barra de acciones de monitoreo — ancho completo, iconos a la izquierda */}
           <Box sx={{ flexShrink: 0 }}>
+            <ActionBar/>
             <MonitoActionBar
               tooltipPlacement="bottom"
               orientation="horizontal"
