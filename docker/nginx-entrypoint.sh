@@ -182,6 +182,14 @@ location_block() {
         expires 0;
     }
 
+    # remoteEntry.js nunca se cachea — URL fija sin hash, usada por Module Federation
+    location = /assets/remoteEntry.js {
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Cross-Origin-Resource-Policy cross-origin;
+        expires 0;
+    }
+
     location / {
         try_files $uri $uri/ /index.html;
     }
@@ -204,6 +212,16 @@ EOF
         add_header Pragma "no-cache";
         add_header Access-Control-Allow-Origin *;
         add_header Access-Control-Allow-Methods "GET, OPTIONS";
+        expires 0;
+    }
+
+    # remoteEntry.js nunca se cachea — URL fija sin hash, usada por Module Federation
+    location = /assets/remoteEntry.js {
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Access-Control-Allow-Origin *;
+        add_header Access-Control-Allow-Methods "GET, OPTIONS";
+        add_header Cross-Origin-Resource-Policy cross-origin;
         expires 0;
     }
 
