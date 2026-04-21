@@ -90,7 +90,6 @@ export default function MonitorPage() {
         >
           {/* Barra de acciones de monitoreo — ancho completo, iconos a la izquierda */}
           <Box sx={{ flexShrink: 0 }}>
-            prueba
             <MonitoActionBar
               tooltipPlacement="bottom"
               orientation="horizontal"
