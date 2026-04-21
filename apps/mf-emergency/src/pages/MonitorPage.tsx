@@ -2,13 +2,16 @@ import { useState, useCallback } from "react"
 import {
   Box,
   emergencyTokens,
-  ActionBar,
+  MonitoActionBar,
   PatientTable,
   EmergencyPagination,
   BedAvailabilityDrawer,
 } from "@hce/design-system"
 import { MOCK_PATIENTS, PAGE_SIZE } from "../mock/patients.mock"
-import type { PatientRowData }   from "@hce/design-system"
+import { TriajeModal }          from "../components/TriajeModal"
+import { AsignarMedicoModal }   from "../components/AsignarMedicoModal"
+import type { PatientRowData }  from "@hce/design-system"
+import type { Medico }          from "../mock/medicos.mock"
 
 interface HeaderColumn {
   label: string
@@ -35,6 +38,8 @@ const HEADER_COLUMNS: HeaderColumn[] = [
 export default function MonitorPage() {
   const [currentPage,       setCurrentPage]       = useState(1)
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null)
+  const [triajeOpen,        setTriajeOpen]         = useState(false)
+  const [medicoOpen,        setMedicoOpen]         = useState(false)
 
   const totalPages = Math.ceil(MOCK_PATIENTS.length / PAGE_SIZE)
 
@@ -56,13 +61,10 @@ export default function MonitorPage() {
 
   const handleInfo = useCallback((id: string) => {
     const patient = MOCK_PATIENTS.find((p) => p.id === id)
-    // TODO: abrir panel lateral de detalle del paciente
     console.info("[MonitorPage] Info del paciente:", patient)
   }, [])
 
-  const handleFilter  = () => console.info("[MonitorPage] Abrir filtros")
-  const handleRefresh = () => { setCurrentPage(1); setSelectedPatientId(null) }
-  const handlePrint   = () => window.print()
+  //const handleRefresh = () => { setCurrentPage(1); setSelectedPatientId(null) }
 
   return (
     <>
@@ -86,15 +88,31 @@ export default function MonitorPage() {
             gap:           emergencyTokens.spacing[3],
           }}
         >
-          <Box sx={{ borderRadius: emergencyTokens.borderRadius.lg, overflow: "hidden", boxShadow: emergencyTokens.shadows.card, flexShrink: 0 }}>
-            <ActionBar onFilter={handleFilter} onRefresh={handleRefresh} onPrint={handlePrint} />
+          {/* Barra de acciones de monitoreo — ancho completo, iconos a la izquierda */}
+          <Box sx={{ flexShrink: 0 }}>
+            <MonitoActionBar
+              tooltipPlacement="bottom"
+              orientation="horizontal"
+              onTriaje={() => setTriajeOpen(true)}
+              onAsignarMedicos={() => setMedicoOpen(true)}
+              onReportes={() => console.info("[MonitorPage] Reportes")}
+              onDisponibilidad={() => console.info("[MonitorPage] Disponibilidad de camas")}
+            />
           </Box>
 
           <Box sx={{ flex: 1, overflow: "hidden", minHeight: 0 }}>
             <PatientTable rows={paginatedRows} header={HEADER_COLUMNS} />
           </Box>
 
-          <Box sx={{ flexShrink: 0, backgroundColor: emergencyTokens.colors.surfaceBg, borderRadius: emergencyTokens.borderRadius.lg, boxShadow: emergencyTokens.shadows.card, border: `1px solid ${emergencyTokens.colors.border}` }}>
+          <Box
+            sx={{
+              flexShrink:      0,
+              backgroundColor: emergencyTokens.colors.surfaceBg,
+              borderRadius:    emergencyTokens.borderRadius.lg,
+              boxShadow:       emergencyTokens.shadows.card,
+              border:          `1px solid ${emergencyTokens.colors.border}`,
+            }}
+          >
             <EmergencyPagination
               totalItems={MOCK_PATIENTS.length}
               currentPage={currentPage}
@@ -106,6 +124,29 @@ export default function MonitorPage() {
       </Box>
 
       <BedAvailabilityDrawer />
+
+      {/* Modal de Triaje */}
+      <TriajeModal
+        open={triajeOpen}
+        onClose={() => setTriajeOpen(false)}
+        onGuardar={(form) => {
+          console.info("[MonitorPage] Triaje guardado:", form)
+          // TODO: llamar a POST /api/triaje con los datos del form
+        }}
+      />
+
+      {/* Modal de Asignar Médico */}
+      <AsignarMedicoModal
+        open={medicoOpen}
+        onClose={() => setMedicoOpen(false)}
+        paciente={selectedPatientId
+          ? MOCK_PATIENTS.find(p => p.id === selectedPatientId)?.patient.name
+          : undefined}
+        onAsignar={(medico: Medico) => {
+          console.info("[MonitorPage] Médico asignado:", medico)
+          // TODO: llamar a POST /api/pacientes/{selectedPatientId}/medico con medico.id
+        }}
+      />
     </>
   )
 }
