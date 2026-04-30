@@ -18,7 +18,7 @@
     "storybook":       "npm --workspace packages/design-system run storybook"
   },
   "dependencies": {
-    "@hce/design-system": "^1.1.2",
+    "@hce/design-system": "^1.1.3",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.9",

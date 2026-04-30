@@ -24,4 +24,10 @@ export const ENDPOINTS = {
     validateToken:   `${AG}/auth/validate`,
   },
 
+  /** Datos del practitioner autenticado */
+  practitioners: {
+    byUsername: (username: string) => `${AG}/practitioners/by-username/${username}`,
+    photo:      (practitionerUuid: string) => `${AG}/files/practitioner/${practitionerUuid}/photo`,
+  },
+
 } as const

@@ -4,6 +4,7 @@ import { Outlet, useNavigate, useLocation }  from "react-router-dom"
 import { useMediaQuery }                     from "@mui/material"
 import { HceHeader, HceSidebar, Footer, HceModal, UiWarningIcon, hceColors } from "@hce/design-system"
 import { useUser }                           from "./context/UserContext"
+import { usePractitioner }                   from "./hooks/usePractitioner"
 
 const SIDEBAR_LEFT  = 12   // padding izquierdo de la fila central (desktop)
 const SIDEBAR_TOP   = 12   // padding superior de la fila central
@@ -26,6 +27,15 @@ export default function AppLayout() {
   useEffect(() => { if (!isMobile) setMobileOpen(false) }, [isMobile])
 
   const { user, opciones, sede, setSede, logout, loading } = useUser()
+
+  // Datos reales del practitioner: nombre con prefijo, especialidad y foto
+  // Se carga solo cuando el username está disponible tras el login
+  const { data: practitioner, photoUrl: practitionerPhotoUrl, subtitle: practitionerSubtitle } = usePractitioner(user?.username)
+
+  // Nombre a mostrar: name_text del practitioner si ya cargó, fallback al nombreCompleto del AD
+  const displayName = practitioner?.name_text ?? user?.nombreCompleto
+  // Subtítulo: especialidad o rol del practitioner, fallback al perfil del AD
+  const displayRole = practitionerSubtitle ?? user?.nombrePerfil
 
   useEffect(() => {
     if (!user || loading) return
@@ -202,8 +212,9 @@ export default function AppLayout() {
             sede={sede}
             sucursales={sucursales}
             onSedeCambiada={id => setSede(String(id))}
-            userName={user?.nombreCompleto}
-            userRole={user?.nombrePerfil}
+            userName={displayName}
+            userRole={displayRole}
+            userPhotoUrl={practitionerPhotoUrl ?? undefined}
             onLogout={handleLogout}
             onMenuClick={isMobile ? () => setMobileOpen(prev => !prev) : undefined}
           />
