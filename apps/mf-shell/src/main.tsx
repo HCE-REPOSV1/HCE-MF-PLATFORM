@@ -37,13 +37,14 @@
  */
 import ReactDOM from "react-dom/client"
 import { BrowserRouter } from "react-router-dom"
-import { injectBaseTokens } from "@hce/design-system"
+import { injectHceTokens, injectHceFonts } from "@hce/design-system"
 import { DSProvider } from "@hce/design-system"
 import { UserProvider } from "./context/UserContext"
 import App from "./App"
 
 // Inyecta los CSS custom properties del Design System base en :root
-injectBaseTokens()
+injectHceTokens()
+injectHceFonts()
 
 // Suppress known Emotion + React 18.3 key prop warning.
 // Emotion's Styled factory renders React.Fragment(null, Insertion, FinalTag)
