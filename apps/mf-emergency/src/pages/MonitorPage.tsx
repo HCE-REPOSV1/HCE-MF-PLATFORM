@@ -1,9 +1,12 @@
 import { useState, useCallback, lazy } from "react";
 import {
   Box,
-  emergencyTokens,
+  hceClinicalColors,
+  hceSpacing,
+  hceBorderRadius,
+  hceShadows,
   MonitoActionBar,
-  PatientTable,
+  EmergencyPatientTable,
   EmergencyPagination,
   BedAvailabilityDrawer,
 } from "@hce/design-system";
@@ -142,7 +145,7 @@ export default function MonitorPage() {
           inset: 0,
           display: "flex",
           flexDirection: "column",
-          backgroundColor: emergencyTokens.colors.rowAlternate,
+          backgroundColor: hceClinicalColors.rowAlternate,
           overflow: "hidden",
           zIndex: 1,
         }}
@@ -153,8 +156,8 @@ export default function MonitorPage() {
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
-            padding: `${emergencyTokens.spacing[3]} 52px ${emergencyTokens.spacing[3]} ${emergencyTokens.spacing[4]}`,
-            gap: emergencyTokens.spacing[3],
+            padding: `${hceSpacing[3]} 52px ${hceSpacing[3]} ${hceSpacing[4]}`,
+            gap: hceSpacing[3],
           }}
         >
           {/* Barra de acciones de monitoreo — ancho completo, iconos a la izquierda */}
@@ -173,16 +176,16 @@ export default function MonitorPage() {
           </Box>
 
           <Box sx={{ flex: 1, overflow: "hidden", minHeight: 0 }}>
-            <PatientTable rows={paginatedRows} header={HEADER_COLUMNS} />
+            <EmergencyPatientTable rows={paginatedRows} header={HEADER_COLUMNS} />
           </Box>
 
           <Box
             sx={{
               flexShrink: 0,
-              backgroundColor: emergencyTokens.colors.surfaceBg,
-              borderRadius: emergencyTokens.borderRadius.lg,
-              boxShadow: emergencyTokens.shadows.card,
-              border: `1px solid ${emergencyTokens.colors.border}`,
+              backgroundColor: hceClinicalColors.surfaceBg,
+              borderRadius: hceBorderRadius.lg,
+              boxShadow: hceShadows.card,
+              border: `1px solid ${hceClinicalColors.border}`,
             }}
           >
             <EmergencyPagination
