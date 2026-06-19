@@ -26,6 +26,7 @@ export default defineConfig(({ mode }) => {
       filename: "remoteEntry.js",
       remotes: {
         shell: env.VITE_REMOTE_SHELL,
+        triage: env.VITE_REMOTE_TRIAGE
       },
       exposes: {
         "./Emergency":   "./src/Emergency.tsx",

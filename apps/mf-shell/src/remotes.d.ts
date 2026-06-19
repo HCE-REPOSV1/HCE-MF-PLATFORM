@@ -69,3 +69,27 @@ declare module "auditoria/Auditoria" {
 declare module "auditoria/menuConfig" {
   export const menuConfig: MenuConfigItem[]
 }
+
+//─── Header ──────────────────────────────────────────
+declare module "header/Header" {
+  import type { componentType } from "react"
+  const Header: ComponentType<Record<string, never>>
+  export default Header
+}
+declare module "header/menuConfig" {
+  export const menuConfig: MenuConfigItem[]
+}
+
+//─── Sidebar ──────────────────────────────────────────
+declare module "sidebar/Sidebar" {
+  import type { componentType } from "react"
+  const Sidebar: ComponentType<Record<string, never>>
+  export default Sidebar
+}
+
+//─── Footer ──────────────────────────────────────────
+declare module "footer/Footer" {
+  import type { componentType } from "react"
+  const Footer: ComponentType<Record<string, never>>
+  export default Footer
+}

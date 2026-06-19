@@ -13,6 +13,8 @@ services:
         VITE_REMOTE_HOSPITAL:    https://servicios.dev.sanfelipe.com:20504/assets/remoteEntry.js
         VITE_REMOTE_AMBULATORIO: https://servicios.dev.sanfelipe.com:20505/assets/remoteEntry.js
         VITE_REMOTE_AUDITORIA:   https://servicios.dev.sanfelipe.com:20506/assets/remoteEntry.js
+        VITE_REMOTE_HEADER:      https://servicios.dev.sanfelipe.com:20507/assets/remoteEntry.js
+        VITE_REMOTE_SIDEBAR:     https://servicios.dev.sanfelipe.com:20508/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10500:80"

@@ -304,6 +304,13 @@ npm install
 
 ---
 
+## Crear proyecto microfrontend
+
+```bash
+npm create vite@latest mf-nombre -- --template react-ts
+```
+---
+
 ## Levantar la plataforma
 
 ### Desarrollo local

@@ -10,6 +10,8 @@ ARG VITE_REMOTE_EMERGENCY=http://localhost:10503/remoteEntry.js
 ARG VITE_REMOTE_HOSPITAL=http://localhost:10504/remoteEntry.js
 ARG VITE_REMOTE_AMBULATORIO=http://localhost:10505/remoteEntry.js
 ARG VITE_REMOTE_AUDITORIA=http://localhost:10506/remoteEntry.js
+ARG VITE_REMOTE_HEADER=http://localhost:10507/remoteEntry.js
+ARG VITE_REMOTE_SIDEBAR=http://localhost:10508/remoteEntry.js
 WORKDIR /app
 
 # Manifests raíz + todos los workspaces (necesario para npm install en monorepo)
@@ -21,6 +23,8 @@ COPY apps/mf-emergency/package.json   apps/mf-emergency/
 COPY apps/mf-hospital/package.json    apps/mf-hospital/
 COPY apps/mf-ambulatorio/package.json apps/mf-ambulatorio/
 COPY apps/mf-auditoria/package.json   apps/mf-auditoria/
+COPY apps/mf-header/package.json      apps/mf-header/
+COPY apps/mf-sidebar/package.json      apps/mf-sidebar/
 
 # Cache mount: reutiliza paquetes descargados entre builds aunque se invalide la capa
 RUN --mount=type=cache,target=/root/.npm \
@@ -39,6 +43,8 @@ RUN VITE_AUTH_URL=${VITE_AUTH_URL} \
     VITE_REMOTE_HOSPITAL=${VITE_REMOTE_HOSPITAL} \
     VITE_REMOTE_AMBULATORIO=${VITE_REMOTE_AMBULATORIO} \
     VITE_REMOTE_AUDITORIA=${VITE_REMOTE_AUDITORIA} \
+    VITE_REMOTE_HEADER=${VITE_REMOTE_HEADER} \
+    VITE_REMOTE_SIDEBAR=${VITE_REMOTE_SIDEBAR} \
     npm run build -w apps/mf-shell
 
 # ── Stage 2: Serve ───────────────────────────────────────────

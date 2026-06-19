@@ -32,6 +32,10 @@ function getRemoteVersionUrls(): string[] {
     import.meta.env.VITE_REMOTE_HOSPITAL,
     import.meta.env.VITE_REMOTE_AMBULATORIO,
     import.meta.env.VITE_REMOTE_AUDITORIA,
+    import.meta.env.VITE_REMOTE_HEADER,
+    import.meta.env.VITE_REMOTE_SIDEBAR,
+    import.meta.env.VITE_REMOTE_FOOTER,
+    import.meta.env.VITE_REMOTE_TRIAGE
   ] as (string | undefined)[]
 
   return remoteEntryUrls

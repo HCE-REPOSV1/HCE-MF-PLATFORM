@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
   const required = [
     "VITE_REMOTE_AUTH", "VITE_REMOTE_HOME", "VITE_REMOTE_EMERGENCY",
     "VITE_REMOTE_HOSPITAL", "VITE_REMOTE_AMBULATORIO", "VITE_REMOTE_AUDITORIA",
-    "VITE_AUTH_URL",
+    "VITE_AUTH_URL","VITE_REMOTE_TRIAGE"
   ]
   for (const key of required) {
     if (!env[key]) throw new Error(`[mf-shell] Falta variable de entorno: ${key}`)
@@ -50,6 +50,10 @@ export default defineConfig(({ mode }) => {
         hospital:    `${env.VITE_REMOTE_HOSPITAL}?v=${encodeURIComponent(BUILD_TIME)}`,
         ambulatorio: `${env.VITE_REMOTE_AMBULATORIO}?v=${encodeURIComponent(BUILD_TIME)}`,
         auditoria:   `${env.VITE_REMOTE_AUDITORIA}?v=${encodeURIComponent(BUILD_TIME)}`,
+        header:      `${env.VITE_REMOTE_HEADER}?v=${encodeURIComponent(BUILD_TIME)}`,
+        sidebar:     `${env.VITE_REMOTE_SIDEBAR}?v=${encodeURIComponent(BUILD_TIME)}`,
+        footer:      `${env.VITE_REMOTE_FOOTER}?v=${encodeURIComponent(BUILD_TIME)}`,
+        triage:      `${env.VITE_REMOTE_TRIAGE}?v=${encodeURIComponent(BUILD_TIME)}`,
       },
       shared: [
         "react",

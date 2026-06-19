@@ -6,12 +6,15 @@ import {
   EvaScale, TriagePriorityDisplay, SearchComboInput, // SearchComboInput: motivo de ingreso
   hceColors, hceTypography,
   UiDisketteIcon, CloseIcon,
+  UiSearchIcon,
+  Checkbox
 } from "@hce/design-system"
 import type { TriagePriority, SearchOption, SearchMode } from "@hce/design-system"
 import {
   buscarPacienteMock,
   buscarDiagnosticoMock,
 } from "../mock/triaje.mock"
+import { IconButton } from "@mui/material"
 
 // ─── Opciones de principio activo (antihistamínicos) ─────────────────────────
 
@@ -356,6 +359,8 @@ export function TriajeModal({ open, onClose, onGuardar }: TriajeModalProps) {
   const [buscandoPaciente, setBuscandoPaciente] = useState(false)
   const [pacienteNoEncontrado, setPacienteNoEncontrado] = useState(false)
 
+  const [CheckNoIdentificado, setCheckNoIdentificado] = useState(false)
+
   // Secciones expandibles
   const [expDatosClinicos,    setExpDatosClinicos]    = useState(true)
   const [expSignosVitales,    setExpSignosVitales]     = useState(true)
@@ -470,7 +475,7 @@ export function TriajeModal({ open, onClose, onGuardar }: TriajeModalProps) {
                   { value: "ce",        label: "Carné de extranjería" },
                   { value: "pasaporte", label: "Pasaporte" },
                 ]}
-                placeholder="-Seleccionar-"
+                placeholder="-Seleccionar opción-"
               />
             </Box>
             <Box sx={{ flex: 1, minWidth: 140 }}>
@@ -481,15 +486,17 @@ export function TriajeModal({ open, onClose, onGuardar }: TriajeModalProps) {
                 placeholder="Ingrese documento"
               />
             </Box>
+            {/* Botón buscar  */}
+           
+            
             <Box
               component="button"
               type="button"
               onClick={handleBuscarPaciente}
               disabled={buscandoPaciente || !form.tipoDoc || !form.numeroDoc}
               sx={{
-                px:              2.5,
-                py:              1,
-                height:          40,
+                width:           45,
+                height:          36,
                 borderRadius:    "8px",
                 backgroundColor: hceColors.primary.green[500],
                 color:           "#ffffff",
@@ -503,7 +510,17 @@ export function TriajeModal({ open, onClose, onGuardar }: TriajeModalProps) {
                 whiteSpace:      "nowrap",
               }}
             >
-              {buscandoPaciente ? "Buscando…" : "Buscar"}
+              <IconButton    
+                sx={{
+                  color:             hceColors.neutro.white[50],
+                  "&:hover": {
+                    backgroundColor: 'transparent',
+                  },
+                }}>
+                  <UiSearchIcon
+                  size={14}>
+                  </UiSearchIcon>
+                </IconButton>
             </Box>
             <Box
               component="label"
@@ -520,13 +537,19 @@ export function TriajeModal({ open, onClose, onGuardar }: TriajeModalProps) {
                 flexShrink:      0,
               }}
             >
-              <Box
+              {/* <Box
                 component="input"
                 type="checkbox"
                 checked={form.noIdentificado}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => set("noIdentificado", e.target.checked)}
                 sx={{ accentColor: hceColors.primary.green[500] }}
-              />
+              /> */}
+              <Checkbox
+              label=""
+              checked = {CheckNoIdentificado}
+              onChange={(v) => setCheckNoIdentificado(v)}>
+
+              </Checkbox>
               <Typography sx={{ fontFamily: hceTypography.fontFamily, fontSize: "0.82rem", color: hceColors.primary.blue[600], fontWeight: 500 }}>
                 No identificado
               </Typography>
