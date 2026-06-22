@@ -14,20 +14,20 @@ export const ENDPOINTS = {
 
   /** Autenticación y sesión (API Gateway → auth-service) */
   auth: {
-    login:           `${AG}/auth/login`,
-    logout:          `${AG}/auth/logout`,
-    refresh:         `${AG}/auth/refresh`,
-    me:              `${AG}/auth/me`,
-    accesos:         `${AG}/auth/accesos`,
-    cambiarClave:    `${AG}/auth/cambiar-contrasena`,
-    cerrarSesion:    `${AG}/auth/cerrar-sesion`,
-    validateToken:   `${AG}/auth/validate`,
+    login:           `${AG}/api/v1/auth/login`,
+    logout:          `${AG}/api/v1/auth/logout`,
+    refresh:         `${AG}/api/v1/auth/refresh`,
+    me:              `${AG}/api/v1/auth/me`,
+    accesos:         `${AG}/api/v1/auth/accesos`,
+    cambiarClave:    `${AG}/api/v1/auth/cambiar-contrasena`,
+    cerrarSesion:    `${AG}/api/v1/auth/cerrar-sesion`,
+    validateToken:   `${AG}/api/v1/auth/validate`,
   },
 
   /** Datos del practitioner autenticado */
   practitioners: {
-    byUsername: (username: string) => `${AG}/practitioners/by-username/${username}`,
-    photo:      (practitionerUuid: string) => `${AG}/files/practitioner/${practitionerUuid}/photo`,
+    byUsername: (username: string) => `${AG}/api/v1/practitioner/by-username/${username}`,
+    photo:      (practitionerUuid: string) => `${AG}/api/v1/media/practitioner/${practitionerUuid}/photo`,
   },
 
 } as const
