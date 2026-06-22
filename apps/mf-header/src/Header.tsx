@@ -29,7 +29,7 @@ export default function Header({
 }: HeaderProps) {
   return (
     <div>
-      {/* HEADER — flotante visual: borderRadius + sombra */}
+      {/* HEADER — flotante visual: borderRadius + sombra prueba de pr*/}
       <HceHeader
         floating
         sede={sede}
