@@ -13,7 +13,8 @@ export default defineConfig(({ mode }) => {
   const required = [
     "VITE_REMOTE_AUTH", "VITE_REMOTE_HOME", "VITE_REMOTE_EMERGENCY",
     "VITE_REMOTE_HOSPITAL", "VITE_REMOTE_AMBULATORIO", "VITE_REMOTE_AUDITORIA",
-    "VITE_AUTH_URL","VITE_REMOTE_TRIAGE"
+    "VITE_REMOTE_HEADER", "VITE_REMOTE_SIDEBAR", "VITE_REMOTE_FOOTER", "VITE_REMOTE_TRIAGE",
+    "VITE_APIGE_CNL_CROSS",
   ]
   for (const key of required) {
     if (!env[key]) throw new Error(`[mf-shell] Falta variable de entorno: ${key}`)
@@ -42,6 +43,8 @@ export default defineConfig(({ mode }) => {
       name: "mf-shell",
       exposes: {
         "./UserContext": "./src/context/UserContext",
+        "./AuthService": "./src/services/auth.service",
+        "./ApiClient": "./src/services/api.service",
       },
       remotes: {
         auth:        `${env.VITE_REMOTE_AUTH}?v=${encodeURIComponent(BUILD_TIME)}`,

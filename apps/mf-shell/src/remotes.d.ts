@@ -72,8 +72,20 @@ declare module "auditoria/menuConfig" {
 
 //─── Header ──────────────────────────────────────────
 declare module "header/Header" {
-  import type { componentType } from "react"
-  const Header: ComponentType<Record<string, never>>
+  import type { ComponentType } from "react"
+  interface Sucursal {
+    id:     string | number
+    nombre: string
+  }
+  interface HeaderProps {
+    sede?:           string
+    sucursales?:     Sucursal[]
+    onSedeCambiada?: (id: string | number) => void
+    onLogout?:       () => void
+    onMenuClick?:    () => void
+    floating?:       boolean
+  }
+  const Header: ComponentType<HeaderProps>
   export default Header
 }
 declare module "header/menuConfig" {
@@ -82,14 +94,24 @@ declare module "header/menuConfig" {
 
 //─── Sidebar ──────────────────────────────────────────
 declare module "sidebar/Sidebar" {
-  import type { componentType } from "react"
-  const Sidebar: ComponentType<Record<string, never>>
+  import type { ComponentType } from "react"
+  import type { OpcionMAC } from "@hce/design-system"
+  interface SidebarProps {
+    multiLevel?:  boolean
+    collapsed?:   boolean
+    onToggle?:    () => void
+    opciones?:    OpcionMAC[]
+    currentPath?: string
+    onNavigate?:  (vista: string) => void
+    onHome?:      () => void
+  }
+  const Sidebar: ComponentType<SidebarProps>
   export default Sidebar
 }
 
 //─── Footer ──────────────────────────────────────────
 declare module "footer/Footer" {
-  import type { componentType } from "react"
+  import type { ComponentType } from "react"
   const Footer: ComponentType<Record<string, never>>
   export default Footer
 }

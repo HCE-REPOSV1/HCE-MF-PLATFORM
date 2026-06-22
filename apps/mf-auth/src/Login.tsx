@@ -8,7 +8,7 @@ import {
   UiWarningIcon,
   DoctorIcon, ForgotPasswordIcon, UiIsotipoClinicaIcon,
 } from "@hce/design-system"
-import { ENDPOINTS } from "./config/endpoints"
+import { login } from "shell/AuthService"
 
 // ─── Wallpaper ────────────────────────────────────────────
 // Se importa como ?raw para inlinarlo como data URL.
@@ -59,17 +59,9 @@ export default function Login({ onSuccess }: LoginProps) {
     setHasError(false)
     setLoading(true)
     try {
-      // TODO: quitar delay de prueba
-      await new Promise(resolve => setTimeout(resolve, 5000)) //solo es para poder ver el spinner
-      const res  = await fetch(ENDPOINTS.auth.login, {
-        method:      "POST",
-        headers:     { "Content-Type": "application/json" },
-        credentials: "include",
-        body:        JSON.stringify({ username: usuario, password }),
-      })
-      const data = await res.json()
+      const { ok, status, data } = await login(usuario, password)
 
-      if (!res.ok) {
+      if (!ok) {
         const codigo  = data?.codigo  as number | undefined
         const mensaje = data?.mensaje as string | undefined
 
@@ -83,7 +75,7 @@ export default function Login({ onSuccess }: LoginProps) {
 
         // Todos los demás errores: texto rojo bajo el formulario
         const errorMsg = mensaje ?? (() => {
-          switch (res.status) {
+          switch (status) {
             case 503: return "Servicio de autenticación no disponible. Intenta en unos momentos."
             case 504: return "El servidor tardó demasiado en responder. Intenta nuevamente."
             default:  return "Ocurrió un error inesperado."

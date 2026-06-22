@@ -3,6 +3,7 @@
 FROM node:20-alpine AS builder
 ARG VERDACCIO_URL=http://host.docker.internal:10100
 ARG VITE_REMOTE_SHELL=http://localhost:10500/remoteEntry.js
+ARG VITE_REMOTE_TRIAGE=http://localhost:10510/remoteEntry.js
 WORKDIR /app
 
 COPY package*.json .npmrc ./
@@ -13,6 +14,10 @@ COPY apps/mf-emergency/package.json   apps/mf-emergency/
 COPY apps/mf-hospital/package.json    apps/mf-hospital/
 COPY apps/mf-ambulatorio/package.json apps/mf-ambulatorio/
 COPY apps/mf-auditoria/package.json   apps/mf-auditoria/
+COPY apps/mf-header/package.json      apps/mf-header/
+COPY apps/mf-sidebar/package.json      apps/mf-sidebar/
+COPY apps/mf-footer/package.json      apps/mf-footer/
+COPY apps/mf-triage/package.json      apps/mf-triage/
 
 RUN --mount=type=cache,target=/root/.npm \
     sed -i "s|http://localhost:10100|${VERDACCIO_URL}|g" .npmrc 2>/dev/null || true \
@@ -22,7 +27,9 @@ RUN --mount=type=cache,target=/root/.npm \
  && npm install --install-strategy=nested
 
 COPY apps/mf-emergency ./apps/mf-emergency
-RUN VITE_REMOTE_SHELL=${VITE_REMOTE_SHELL} npm run build -w apps/mf-emergency
+RUN VITE_REMOTE_SHELL=${VITE_REMOTE_SHELL} \
+    VITE_REMOTE_TRIAGE=${VITE_REMOTE_TRIAGE} \
+    npm run build -w apps/mf-emergency
 
 # ── Stage 2: Serve ───────────────────────────────────────────
 FROM nginx:alpine

@@ -13,6 +13,10 @@ COPY apps/mf-emergency/package.json   apps/mf-emergency/
 COPY apps/mf-hospital/package.json    apps/mf-hospital/
 COPY apps/mf-ambulatorio/package.json apps/mf-ambulatorio/
 COPY apps/mf-auditoria/package.json   apps/mf-auditoria/
+COPY apps/mf-header/package.json      apps/mf-header/
+COPY apps/mf-sidebar/package.json      apps/mf-sidebar/
+COPY apps/mf-footer/package.json      apps/mf-footer/
+COPY apps/mf-triage/package.json      apps/mf-triage/
 
 RUN --mount=type=cache,target=/root/.npm \
     sed -i "s|http://localhost:10100|${VERDACCIO_URL}|g" .npmrc 2>/dev/null || true \

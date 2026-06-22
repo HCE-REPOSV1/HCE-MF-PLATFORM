@@ -6,6 +6,7 @@
  * ---------------------------------------------------------
  */
 import { ENDPOINTS } from "../config/endpoints"
+import { apiFetch } from "shell/ApiClient"
 
 export interface PractitionerProfile {
   practitioner_uuid:        string
@@ -54,9 +55,7 @@ interface PractitionerResponse {
 export async function getPractitionerByUsername(
   username: string,
 ): Promise<PractitionerProfile | null> {
-  const res = await fetch(ENDPOINTS.practitioners.byUsername(username), {
-    credentials: "include",
-  })
+  const res = await apiFetch(ENDPOINTS.practitioners.byUsername(username))
 
   if (res.status === 404) return null
   if (!res.ok) throw new Error(`Error ${res.status} al obtener datos del practitioner`)

@@ -16,6 +16,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import type { OpcionMAC } from "@hce/design-system"
 import { ENDPOINTS } from "../config/endpoints"
+import { apiFetch, SessionExpiredError, SESSION_EXPIRED_EVENT } from "../services/api.service"
 
 export interface Sucursal {
   idSede:      string
@@ -95,24 +96,29 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [sede,     setSede]     = useState<string>('')
   const [loading,  setLoading]  = useState(true)
 
+  // Limpia el estado local sin llamar al backend — se usa cuando el backend
+  // ya invalidó la sesión por su cuenta (refresh fallido en apiFetch)
+  const clearSession = () => {
+    setUser(null)
+    setPermisos([])
+    setOpciones([])
+    setSede('')
+  }
+
   // ── Cierra sesión: invalida la cookie en el servidor y limpia estado local ──
-  // También es llamado automáticamente cuando el token MAC expira (401 en /auth/accesos)
   const logout = async () => {
     try {
       await fetch(ENDPOINTS.auth.logout, { method: "POST", credentials: "include" })
     } finally {
-      setUser(null)
-      setPermisos([])
-      setOpciones([])
-      setSede('')
+      clearSession()
     }
   }
 
   const fetchMe = async () => {
     setLoading(true)   // Evita renders intermedios con user!=null pero opciones vacías
-    // 1. Validar sesión activa
+    // 1. Validar sesión activa (apiFetch ya intenta /auth/refresh si el access_token expiró)
     try {
-      const res = await fetch(ENDPOINTS.auth.me, { credentials: "include" })
+      const res = await apiFetch(ENDPOINTS.auth.me)
       if (res.ok) {
         const json = await res.json()
         const userData = json.data as UserProfile
@@ -122,33 +128,37 @@ export function UserProvider({ children }: { children: ReactNode }) {
           setSede(prev => prev || userData.sucursales[0].idSede)
         }
       } else {
-        // 401 sin sesión previa: no hay cookie que invalidar, solo limpiar estado
-        setUser(null)
-        setPermisos([])
+        // Sin sesión previa: no hay cookie que invalidar, solo limpiar estado
+        clearSession()
         setLoading(false)
         return
       }
     } catch {
-      setUser(null)
-      setPermisos([])
+      // SessionExpiredError (refresh también falló) o error de red: sin sesión válida
+      clearSession()
       setLoading(false)
       return
     }
 
     // 2. Obtener permisos MAC (solo si /auth/me fue exitoso)
     try {
-      const res = await fetch(ENDPOINTS.auth.accesos, { credentials: "include" })
+      const res = await apiFetch(ENDPOINTS.auth.accesos)
       if (res.ok) {
         const json = await res.json()
         setOpciones(filtrarOpciones(json.data?.opciones ?? []))
         setPermisos(json.data?.permisos ?? [])
-      } else if (res.status === 401) {
-        // Token MAC inválido o expirado — cerrar sesión completa
-        await logout()
+      } else {
+        // !ok que no sea 401 (apiFetch ya reintentó el 401 internamente): sin permisos, no cerrar sesión
+        setOpciones([])
+        setPermisos([])
+      }
+    } catch (err) {
+      if (err instanceof SessionExpiredError) {
+        // Refresh también falló — el backend ya limpió las cookies
+        clearSession()
         return
       }
-      // Otros errores (503, 504, etc.): continuar sin permisos, no cerrar sesión
-    } catch {
+      // Error de red (503, 504, etc.): continuar sin permisos, no cerrar sesión
       setOpciones([])
       setPermisos([])
     } finally {
@@ -161,6 +171,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
     permisos.some(p => p.codigo === codigo && (p.indicador === 'E' || p.indicador === 'L'))
 
   useEffect(() => { fetchMe() }, [])
+
+  // Cualquier microfrontend (no solo mf-shell) puede disparar este evento si su
+  // propio apiFetch agota el refresh — la sesión debe cerrarse igual en todos lados
+  useEffect(() => {
+    const onSessionExpired = () => clearSession()
+    window.addEventListener(SESSION_EXPIRED_EVENT, onSessionExpired)
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, onSessionExpired)
+  }, [])
 
   return (
     <UserContext.Provider value={{ user, permisos, opciones, sede, loading, hasPermission, refetch: fetchMe, logout, setSede }}>

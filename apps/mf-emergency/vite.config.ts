@@ -8,6 +8,12 @@ const BUILD_TIME = new Date().toISOString()
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, "")
+
+  const required = ["VITE_REMOTE_SHELL", "VITE_REMOTE_TRIAGE"]
+  for (const key of required) {
+    if (!env[key]) throw new Error(`[mf-emergency] Falta variable de entorno: ${key}`)
+  }
+
   return {
   plugins: [
     react(),
@@ -32,7 +38,10 @@ export default defineConfig(({ mode }) => {
         "./Emergency":   "./src/Emergency.tsx",
         "./menuConfig":  "./src/menuConfig.ts",
       },
-      shared: ["react", "react-dom", "react-router-dom", "lucide-react"],
+      shared: [
+        "react", "react-dom", "react-router-dom", "lucide-react",
+        "@mui/material", "@emotion/react", "@emotion/styled", "@hce/design-system",
+      ],
     }),
   ],
   resolve: {

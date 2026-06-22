@@ -13,6 +13,7 @@
  * ---------------------------------------------------------
  */
 import { useState, useEffect } from "react"
+import { apiFetch } from "shell/ApiClient"
 import {
   getPractitionerByUsername,
   getPractitionerPhotoUrl,
@@ -60,9 +61,7 @@ export function usePractitioner(username: string | null | undefined): UsePractit
         // credentials y convertir a blob URL evita esa restricción.
         if (profile?.practitioner_uuid) {
           try {
-            const res = await fetch(getPractitionerPhotoUrl(profile.practitioner_uuid), {
-              credentials: "include",
-            })
+            const res = await apiFetch(getPractitionerPhotoUrl(profile.practitioner_uuid))
             if (!cancelled && res.ok) {
               const blob = await res.blob()
               if (!cancelled) {

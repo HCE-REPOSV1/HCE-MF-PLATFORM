@@ -1,5 +1,5 @@
 import "./layout.css";
-import React, { useState, useEffect, lazy, useMemo } from "react";
+import { useState, useEffect, lazy, useMemo } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useMediaQuery } from "@mui/material";
 import {
@@ -7,47 +7,14 @@ import {
   UiWarningIcon,
 } from "@hce/design-system";
 import { useUser } from "./context/UserContext";
-import { usePractitioner } from "./hooks/usePractitioner";
 
 const SIDEBAR_LEFT = 12; // padding izquierdo de la fila central (desktop)
 const SIDEBAR_TOP = 12; // padding superior de la fila central
 const CONTENT_GAP = 8; // gap entre sidebar y columna de contenido (desktop)
 
-interface Sucursal {
-  id: string | number;
-  nombre: string;
-}
-
-interface RemoteHeaderProps {
-  sede: string;
-  sucursales: Sucursal[];
-  onSedeCambiada: (id: string | number) => void;
-  userName: string | undefined;
-  userRole: string | undefined;
-  userPhotoUrl?: string | undefined;
-  onLogout: () => void;
-  onMenuClick: (() => void) | undefined;
-  floating: boolean;
-}
-
-const Header = lazy(
-  () =>
-    import("header/Header") as Promise<{
-      default: React.ComponentType<RemoteHeaderProps>;
-    }>,
-);
-const Sidebar = lazy(
-  () =>
-    import("sidebar/Sidebar") as Promise<{
-      default: React.ComponentType<any>;
-    }>,
-);
-const Footer = lazy(
-  () =>
-    import("footer/Footer") as Promise<{
-      default: React.ComponentType<any>;
-    }>,
-);
+const Header  = lazy(() => import("header/Header"));
+const Sidebar = lazy(() => import("sidebar/Sidebar"));
+const Footer  = lazy(() => import("footer/Footer"));
 // ─────────────────────────────────────────────────────────
 export default function AppLayout() {
   const navigate = useNavigate();
@@ -67,19 +34,6 @@ export default function AppLayout() {
   }, [isMobile]);
 
   const { user, opciones, sede, setSede, logout, loading } = useUser();
-
-  // Datos reales del practitioner: nombre con prefijo, especialidad y foto
-  // Se carga solo cuando el username está disponible tras el login
-  const {
-    data: practitioner,
-    photoUrl: practitionerPhotoUrl,
-    subtitle: practitionerSubtitle,
-  } = usePractitioner(user?.username);
-
-  // Nombre a mostrar: name_text del practitioner si ya cargó, fallback al nombreCompleto del AD
-  const displayName = practitioner?.name_text ?? user?.nombreCompleto;
-  // Subtítulo: especialidad o rol del practitioner, fallback al perfil del AD
-  const displayRole = practitionerSubtitle ?? user?.nombrePerfil;
 
   useEffect(() => {
     if (!user || loading) return;
@@ -210,30 +164,13 @@ export default function AppLayout() {
               display: "flex",
             }}
           >
-            {/* <HceSidebar
-              floating
+            <Sidebar
               multiLevel={false}
               collapsed={false}
               onToggle={closeMobileSidebar}
               opciones={opciones}
               currentPath={location.pathname}
               onNavigate={(vista) => {
-                closeMobileSidebar();
-                if (vista) navigate(vista);
-              }}
-              onHome={() => {
-                closeMobileSidebar();
-                navigate("/home");
-              }}
-            /> */}
-            <Sidebar
-              floating
-              multiLevel={false}
-              collapsed={false}
-              onToggle={closeMobileSidebar}
-              opciones={opciones}
-              currentPath={location.pathname}
-              onNavigate={(vista:any) => {
                 closeMobileSidebar();
                 if (vista) navigate(vista);
               }}
@@ -261,26 +198,13 @@ export default function AppLayout() {
       >
         {/* SIDEBAR DESKTOP — en flujo normal, oculto en mobile */}
         {!isMobile && (
-          // <HceSidebar
-          //   floating
-          //   multiLevel={false}
-          //   collapsed={collapsed}
-          //   onToggle={() => setCollapsed((prev) => !prev)}
-          //   opciones={opciones}
-          //   currentPath={location.pathname}
-          //   onNavigate={(vista) => {
-          //     if (vista) navigate(vista);
-          //   }}
-          //   onHome={() => navigate("/home")}
-          // />
           <Sidebar
-              floating
               multiLevel={false}
               collapsed={collapsed}
               onToggle={() => setCollapsed((prev) => !prev)}
               opciones={opciones}
               currentPath={location.pathname}
-              onNavigate={(vista:any) => {
+              onNavigate={(vista) => {
                 closeMobileSidebar();
                 if (vista) navigate(vista);
               }}
@@ -306,10 +230,7 @@ export default function AppLayout() {
             floating
             sede={sede}
             sucursales={sucursales}
-            onSedeCambiada={(id: any) => setSede(String(id))}
-            userName={displayName}
-            userRole={displayRole}
-            userPhotoUrl={practitionerPhotoUrl ?? undefined}
+            onSedeCambiada={(id) => setSede(String(id))}
             onLogout={handleLogout}
             onMenuClick={
               isMobile ? () => setMobileOpen((prev) => !prev) : undefined
@@ -324,7 +245,6 @@ export default function AppLayout() {
       </div>
 
       {/* ── FOOTER — ancho completo fuera de la fila ────────────────── */}
-      {/* <Footer copyright={copyright} color={hceColors.primary.blue[600]} /> */}
       <Footer/>
     </div>
   );

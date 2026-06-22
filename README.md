@@ -4,554 +4,381 @@
 ![vite](https://img.shields.io/badge/vite-7-purple?logo=vite)
 ![typescript](https://img.shields.io/badge/typescript-5-blue?logo=typescript)
 ![module federation](https://img.shields.io/badge/module--federation-microfrontend-orange)
-![design system](https://img.shields.io/badge/design--system-material--ui-blue)
+![design system](https://img.shields.io/badge/design--system-%40hce%2Fdesign--system-blue)
 ![architecture](https://img.shields.io/badge/architecture-microfrontend-success)
 ![monorepo](https://img.shields.io/badge/monorepo-npm--workspaces-blue)
 ![license](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ---
 
-## Descripcion
+## Descripción
 
-**Jarvis MF Platform** es una arquitectura de referencia para aplicaciones frontend empresariales basada en **Microfrontends**, utilizando **React, Vite y Module Federation**.
-
-El objetivo es demostrar como construir una plataforma frontend **escalable, desacoplada y mantenible**, donde multiples equipos pueden desarrollar microaplicaciones independientes integradas dinamicamente a traves de un **Shell central** y un **Design System compartido**.
-
----
-
-## Objetivos del Proyecto
-
-- Demostrar una arquitectura **Microfrontend moderna**
-- Implementar **orquestacion dinamica de aplicaciones frontend**
-- Compartir un **Design System centralizado**
-- Permitir **despliegue independiente de microfrontends**
-- Mantener **consistencia visual y tecnologica**
-- Servir como **referencia arquitectonica empresarial**
+**Jarvis MF Platform** es la plataforma frontend de HCE (Historia Clínica Electrónica),
+construida con **React, Vite y Module Federation** sobre una arquitectura de
+**Microfrontends**. Un **Shell central** (`mf-shell`) orquesta en runtime 10
+microfrontends remotos, todos consumiendo un **Design System compartido**
+(`@hce/design-system`, repo separado, publicado vía Verdaccio).
 
 ---
 
-## Estilo Arquitectonico
-
-| Estilo | Descripcion |
-|--------|-------------|
-| Microfrontend Architecture | Divide el frontend en aplicaciones independientes por dominio funcional |
-| Runtime Composition | El Shell carga microfrontends dinamicamente mediante Module Federation |
-| Domain Driven Frontend | Cada microfrontend representa un dominio funcional |
-| Design System Driven UI | Los componentes UI provienen de un sistema de diseno compartido |
-| Monorepo Architecture | Todos los proyectos se gestionan dentro de un repositorio unico |
-
----
-
-## Arquitectura C4
-
-### Nivel 1 - Contexto del Sistema
-
-```mermaid
-graph TD
-
-User[Usuario]
-System[Jarvis MF Platform]
-
-User -->|Utiliza| System
-```
-
----
-
-### Nivel 2 - Contenedores
-
-```mermaid
-graph TD
-
-User[Usuario]
-
-Shell[mf-shell<br>Orquestador]
-
-Header[mf-header]
-Nav[mf-navigation]
-Home[mf-home]
-Patient[mf-patient]
-Emergency[mf-emergency]
-
-DesignSystem[Design System]
-
-User --> Shell
-
-Shell --> Header
-Shell --> Nav
-Shell --> Home
-Shell --> Patient
-Shell --> Emergency
-
-Header --> DesignSystem
-Nav --> DesignSystem
-Home --> DesignSystem
-Patient --> DesignSystem
-Emergency --> DesignSystem
-```
-
----
-
-## Arquitectura de Microfrontends
-
-```mermaid
-graph TD
-
-Shell[mf-shell Orchestrator]
-
-Header[mf-header]
-Navigation[mf-navigation]
-Home[mf-home]
-Patient[mf-patient]
-Emergency[mf-emergency]
-
-DesignSystem[Design System]
-
-Shell --> Header
-Shell --> Navigation
-Shell --> Home
-Shell --> Patient
-Shell --> Emergency
-
-Header --> DesignSystem
-Navigation --> DesignSystem
-Home --> DesignSystem
-Patient --> DesignSystem
-Emergency --> DesignSystem
-```
-
----
-
-## Estructura del Repositorio
+## Estructura del repositorio
 
 ```
 jarvis-mf-platform
 ├── apps
-│   ├── mf-shell
-│   ├── mf-header
-│   ├── mf-navigation
-│   ├── mf-home
-│   ├── mf-patient
-│   └── mf-emergency
-├── packages
-│   └── design-system
-├── package.json
-├── tsconfig.json
+│   ├── mf-shell          # Orquestador — login, sesión, routing, layout
+│   ├── mf-auth           # Pantalla de login
+│   ├── mf-home           # Dashboard / accesos rápidos
+│   ├── mf-emergency      # Monitor de Emergencia
+│   ├── mf-hospital       # Hospitalización
+│   ├── mf-ambulatorio    # Citas y consultorios
+│   ├── mf-auditoria      # Reportes y trazabilidad
+│   ├── mf-header         # Cabecera (avatar, sede, logout)
+│   ├── mf-sidebar        # Menú lateral
+│   ├── mf-footer         # Pie de página
+│   └── mf-triage         # Triaje (consumido dentro de mf-emergency)
+├── docker
+│   └── nginx-entrypoint.sh   # Genera config nginx (SSL opcional) al arrancar cada imagen
+├── docker-compose.yml         # Build con Vault — build-args vía ${VAR}
+├── docker-compose.dev.yml     # Build sin Vault — build-args hardcodeados
+├── package.json                # Workspaces npm + scripts raíz
 └── README.md
 ```
+
+`@hce/design-system` **no vive en este repo** — es un paquete externo (repo
+`HCE-design-system`) publicado en un registry Verdaccio interno y consumido como
+cualquier dependencia npm.
 
 ---
 
 ## Microfrontends
 
-### mf-shell - Puerto 5000
+| App | Puerto dev/preview | Expone (Module Federation) | Consume de `shell` | Dockerfile |
+|---|---|---|---|---|
+| `mf-shell` | 10500 | `UserContext`, `AuthService`, `ApiClient` | — (es el host) | ✅ |
+| `mf-auth` | 10501 | `Login` | `AuthService` (login sin tocar el gateway) | ✅ |
+| `mf-home` | 10502 | `Home` | `UserContext` (permisos) | ✅ |
+| `mf-emergency` | 10503 | `Emergency`, `menuConfig` | — (también consume `triage`) | ✅ |
+| `mf-hospital` | 10504 | `Hospital`, `menuConfig` | — | ✅ |
+| `mf-ambulatorio` | 10505 | `Ambulatorio`, `menuConfig` | — | ✅ |
+| `mf-auditoria` | 10506 | `Auditoria`, `menuConfig` | — | ✅ |
+| `mf-header` | 10507 | `Header`, `menuConfig` | `UserContext`, `ApiClient` (nombre/foto del practitioner) | ✅ |
+| `mf-sidebar` | 10508 | `Sidebar` | — (recibe opciones por props) | ✅ |
+| `mf-footer` | 10509 | `Footer` | — | ✅ |
+| `mf-triage` | 10510 | `Triage` | — (lo consume `mf-emergency`) | ✅ |
 
-Aplicacion contenedora responsable de:
+### Rutas que sirve `mf-shell`
 
-- Orquestacion de microfrontends
-- Routing global
-- Layout principal
-- Autenticacion
+| Ruta | Remote | Protegida |
+|---|---|---|
+| `/` | `auth/Login` | No (redirige a `/home` si ya hay sesión) |
+| `/home` | `home/Home` | Sí |
+| `/emergencia/*` | `emergency/Emergency` | Sí |
+| `/hospital/*` | `hospital/Hospital` | Sí |
+| `/ambulatorio/*` | `ambulatorio/Ambulatorio` | Sí |
+| `/auditoria/*` | `auditoria/Auditoria` | Sí |
 
-### mf-header - Puerto 5101
-
-Responsable del encabezado global.
-
-Incluye:
-
-- Identidad visual
-- Informacion del usuario
-- Branding de la plataforma
-
-### mf-navigation - Puerto 5102
-
-Responsable del menu lateral.
-
-Incluye:
-
-- Menu principal
-- Submenus
-- Navegacion entre dominios
-
-### mf-home - Puerto 5103
-
-Pantalla principal de la plataforma.
-
-Incluye:
-
-- Dashboard
-- Widgets
-- Acceso rapido
-
-### mf-patient - Puerto 5104
-
-Dominio funcional de pacientes.
-
-Incluye:
-
-- Gestion de pacientes
-- Formularios
-- Informacion clinica
-
-### mf-emergency - Puerto 5106
-
-Monitor de Emergencia hospitalario. Ruta de pantalla completa (oculta header y nav del shell).
-
-Incluye:
-
-- Tabla de pacientes en tiempo real
-- Prioridades clinicas (1-4)
-- Estados de boxes
-- Paginacion
-- Panel de camas disponibles
+`mf-header`, `mf-sidebar` y `mf-footer` no son rutas — `Layout.tsx` los renderiza
+siempre alrededor del `<Outlet />` en las rutas protegidas.
 
 ---
 
-## Design System
+## Autenticación y sesión
 
-Ubicacion:
+La autenticación está **centralizada en `mf-shell`** — ningún otro microfrontend
+guarda tokens, llama al login, o conoce la URL del API Gateway salvo `mf-header`
+(que necesita resolver el practitioner).
 
 ```
-packages/design-system
+mf-auth (Login.tsx)
+   │  import { login } from "shell/AuthService"
+   ▼
+mf-shell (auth.service.ts) ── POST /auth/login ──▶ API Gateway
+   │
+   ▼ Set-Cookie: access_token, refresh_token (httpOnly)
+   │
+mf-shell (UserContext.tsx) ── GET /auth/me, /auth/accesos
+   │  apiFetch() — ver api.service.ts
+   ▼
+useUser() → { user, permisos, opciones, sede, hasPermission, logout }
+   │
+   ├─ mf-home          import { useUser } from "shell/UserContext"
+   ├─ mf-header        import { useUser } from "shell/UserContext" (+ ApiClient)
+   └─ mf-header/mf-sidebar (via props desde Layout.tsx)
 ```
 
-Responsabilidades:
+**Refresh automático (`apps/mf-shell/src/services/api.service.ts`)** — `apiFetch()`
+envuelve `fetch` con `credentials: "include"`. Si una llamada protegida responde
+`401`:
+1. Dispara `POST /auth/refresh` (la cookie `refresh_token` va sola).
+2. **Lock compartido** — varios `401` en paralelo solo disparan un refresh.
+3. Si funciona, reintenta la request original una vez.
+4. Si también falla, el backend ya limpió ambas cookies — se emite el evento
+   global `hce:session-expired` (cualquier mf puede escucharlo) y se lanza
+   `SessionExpiredError`. `mf-shell` lo escucha y limpia la sesión local.
 
-- Consistencia visual
-- Componentes reutilizables
-- Centralizacion de estilos
-- Control de theming
+`mf-header` usa este mismo `apiFetch` (vía `shell/ApiClient`) para sus propias
+llamadas protegidas (datos y foto del practitioner) — ningún microfrontend hace
+`fetch` crudo a un endpoint protegido.
 
 ---
 
-## Estructura del Design System
+## Variables de entorno y Vault
 
-```
-design-system
-├── tokens
-│   └── emergency.tokens.ts
-├── theme
-│   ├── theme.ts
-│   └── emergencyTheme.ts
-├── atoms
-│   ├── Button
-│   ├── PriorityBadge
-│   ├── BoxBadge
-│   ├── ClinicalStatusIcon
-│   ├── AttentionCode
-│   ├── InfoButton
-│   └── ActionIconButton
-├── molecules
-│   ├── EmergencyHeader
-│   ├── ActionBar
-│   ├── PatientRow
-│   ├── PatientTable
-│   ├── EmergencyPagination
-│   └── BedsAvailabilityTab
-└── provider
-    └── ThemeProvider.tsx
-```
+Cada app tiene su propio `.env` (ver `.env.example` en cada `apps/<nombre>`).
+Todas requieren `VITE_REMOTE_SHELL`; `mf-shell` y `mf-header` además requieren
+las URLs del API Gateway (`VITE_APIGE_CNL_CROSS` / `VITE_APIGW_CNL_WEB_EMERGENCY`).
+
+En producción estas URLs **no se hardcodean** — viven en HashiCorp Vault
+(proyecto `kv-hce-platform-dev`, paths `secret/hce/mf/<app>`) y se inyectan como
+build-args al momento de compilar. Ver la sección **Producción (Docker)** abajo.
 
 ---
 
-## Atomic Design
+## Tecnologías
 
-| Nivel | Descripcion |
-|-------|-------------|
-| Atoms | Componentes basicos como Button, Badge, Icon |
-| Molecules | Composicion de varios atoms |
-| Organisms | Componentes complejos como menus o tablas |
-| Layout | Estructura de paginas |
-| Pages | Composicion final de UI |
-
----
-
-## Tecnologias
-
-| Tecnologia | Uso |
-|------------|-----|
-| React | Framework UI |
-| Vite | Build tool |
-| TypeScript | Tipado estatico |
-| Module Federation | Integracion de microfrontends en runtime |
-| Material UI | Componentes visuales |
-| Emotion | CSS in JS |
+| Tecnología | Uso |
+|---|---|
+| React 18 | Framework UI |
+| Vite 7 | Build tool |
+| TypeScript | Tipado estático |
+| `@originjs/vite-plugin-federation` | Module Federation |
+| Material UI / Emotion | Componentes visuales y CSS-in-JS |
+| `@hce/design-system` | Design system compartido (repo externo) |
 | npm workspaces | Monorepo |
-| concurrently | Ejecucion paralela de procesos |
+| concurrently | Ejecución paralela de procesos |
+| nginx | Server de cada imagen Docker en producción |
+| HashiCorp Vault | Gestión de secretos / URLs de producción (`kv-hce-platform-dev`) |
 
 ---
 
-## Instalacion
+## Instalación
 
-> **Requisito:** Verdaccio debe estar activo en `http://localhost:10100` con `@hce/design-system` publicado antes de ejecutar `npm install`.
-
-Clonar el repositorio:
-
-```bash
-git clone https://github.com/usuario/jarvis-mf-platform.git
-```
-
-Entrar al proyecto:
+> **Requisito:** Verdaccio debe estar activo en `http://localhost:10100` con
+> `@hce/design-system` publicado antes de ejecutar `npm install`.
 
 ```bash
+git clone <repo-url> jarvis-mf-platform
 cd jarvis-mf-platform
+npm install   # instala todas las apps y packages del monorepo
 ```
 
-Instalar dependencias (instala todas las apps y packages del monorepo):
-
-```bash
-npm install
-```
-
----
-
-## Crear proyecto microfrontend
-
-```bash
-npm create vite@latest mf-nombre -- --template react-ts
-```
 ---
 
 ## Levantar la plataforma
 
-### Desarrollo local
+### Desarrollo local (sin Docker)
 
 ```bash
 npm start
 ```
 
 Esto ejecuta en orden:
-1. `build:remotes` - compila los 5 microfrontends remotos
-2. `preview:remotes` - sirve los remotes compilados en puertos 10301-10306
-3. `dev:shell` - levanta el shell en modo dev en el puerto 10300
+1. `clean` — borra `dist/` de todas las apps
+2. `build:remotes` — compila los 10 microfrontends remotos
+3. `build:shell` — compila el shell
+4. `preview:remotes` + `dev:shell` en paralelo
 
 Luego abrir:
 
-| URL | Descripcion |
-|-----|-------------|
-| http://localhost:10300 | Shell principal |
-| http://localhost:10300/emergency | Monitor de Emergencia (pantalla completa) |
+| URL | Descripción |
+|---|---|
+| http://localhost:10500 | Shell (login) |
+| http://localhost:10500/home | Dashboard |
+| http://localhost:10500/emergencia | Monitor de Emergencia |
 
-> **Nota importante:** Module Federation con `@originjs/vite-plugin-federation` v1.x requiere que los remotes esten **compilados y servidos via `preview`**. El servidor `dev` de los remotes no genera `remoteEntry.js`. Por eso el flujo correcto es siempre `build` + `preview` para los remotes.
+> **Nota importante:** Module Federation con `@originjs/vite-plugin-federation` v1.x
+> requiere que los remotos estén **compilados y servidos vía `preview`** — `dev`
+> no genera `remoteEntry.js`. Por eso `npm start` usa `build` + `preview` para los
+> remotos, y solo el shell corre en modo `dev`.
 
-### Produccion (Docker)
-
-> **Requisito:** Verdaccio debe estar activo en `http://localhost:10100` con `@hce/design-system` publicado antes de hacer el build.
-
-> **Verdaccio solo se necesita en build time.** Una vez que las imágenes están construidas, Verdaccio puede detenerse sin afectar los contenedores en ejecución. El paquete `@hce/design-system` queda compilado dentro del bundle JS de cada imagen — no hay ninguna conexión a Verdaccio en runtime.
-
-Cada microfrontend tiene su propio `Dockerfile` y genera su propia imagen nginx independiente. Esto permite desplegarlo de forma aislada y reutilizarlo desde otros proyectos apuntando a su URL.
-
-No se necesita red Docker interna entre los microfrontends. La integración ocurre en el browser: el shell le pide al browser que cargue cada `remoteEntry.js` desde su puerto correspondiente.
-
-| Servicio | Puerto | URL del remote (para consumir desde otro proyecto) |
-|----------|--------|-----------------------------------------------------|
-| mf-shell | 10300 | — (orquestador, no es un remote) |
-| mf-auth | 10301 | `http://<host>:10301/assets/remoteEntry.js` |
-| mf-home | 10302 | `http://<host>:10302/assets/remoteEntry.js` |
-| mf-emergency | 10303 | `http://<host>:10303/assets/remoteEntry.js` |
-| mf-hospital | 10304 | `http://<host>:10304/assets/remoteEntry.js` |
-| mf-ambulatorio | 10305 | `http://<host>:10305/assets/remoteEntry.js` |
-| mf-auditoria | 10306 | `http://<host>:10306/assets/remoteEntry.js` |
-
-#### Levantar todos juntos
+#### Opción 2 — mismo resultado, en dos terminales
 
 ```bash
-docker compose down
-docker compose build
-docker compose up -d
+# Terminal 1
+npm run build:remotes
+npm run preview:remotes
+
+# Terminal 2
+npm run dev:shell
 ```
+
+#### Opción 3 — un solo microfrontend aislado
+
+```bash
+cd apps/mf-emergency
+npm run build && npm run preview   # http://localhost:10503
+
+# o en modo dev standalone (sin shell, para iterar rápido en la UI)
+npm run dev
+```
+
+#### Actualizar un solo microfrontend sin reiniciar todo
+
+El shell resuelve los remotos en runtime buscando `remoteEntry.js` — basta con
+reconstruir y re-servir el módulo modificado:
+
+```bash
+npm run build -w apps/mf-emergency && npm run preview -w apps/mf-emergency
+```
+
+El shell toma el cambio en el siguiente reload del navegador.
+
+> **⚠️ `npm link` y Docker no son compatibles.** Si tenés `npm link @hce/design-system`
+> activo, el build de Docker fallará porque el symlink apunta fuera del contexto de
+> build. Antes de `docker compose build`:
+> ```bash
+> npm unlink @hce/design-system && npm install
+> ```
+
+---
+
+### Producción (Docker)
+
+> **Requisito:** Verdaccio activo en `http://localhost:10100` con
+> `@hce/design-system` publicado. Solo se necesita en build-time — una vez
+> construidas las imágenes, Verdaccio puede detenerse sin afectar los contenedores.
+
+Cada microfrontend tiene su propio `Dockerfile` y genera una imagen nginx
+independiente, desplegable de forma aislada. No hay red Docker interna entre
+microfrontends — la integración ocurre en el browser, que carga cada
+`remoteEntry.js` desde su puerto/dominio.
+
+#### Dos archivos compose — con Vault o sin Vault
+
+| Archivo | Build-args | Necesita Vault | Cuándo usarlo |
+|---|---|---|---|
+| `docker-compose.dev.yml` | Hardcodeados en el archivo | No | Build/deploy rápido en local |
+| `docker-compose.yml` | `${VAR}` — se leen del entorno | Sí | Flujo normal — Vault es la única fuente de verdad para las URLs |
+
+**Sin Vault** — los valores (gateway, remotes) están hardcodeados en el archivo:
+
+```bash
+docker compose -f docker-compose.dev.yml down
+docker compose -f docker-compose.dev.yml build
+docker compose -f docker-compose.dev.yml up -d
+```
+
+**Con Vault (recomendado)** — `docker-compose.yml` no funciona ejecutado solo:
+sus `build.args` son `${VAR}`, sin esas variables exportadas el build queda con
+valores vacíos. Se levanta desde el proyecto `kv-hce-platform-dev`, que lee los
+11 paths `hce/mf/*` de Vault, exporta cada variable y recién ahí corre el build:
+
+```bash
+cd /proyectos/kv-hce-platform-dev   # o donde tengas ese proyecto
+bash scripts/deploy-mf.sh
+bash scripts/deploy-mf.sh --no-cache   # fuerza rebuild completo
+```
+
+Si cambia una URL de producción, se edita en Vault (`vault kv patch ...` o
+`secrets.sh` + `bash scripts/init.sh`) y se vuelve a correr `deploy-mf.sh` — no
+hay que tocar nada en este repo.
+
+> Los comandos de las secciones siguientes (`build`, `logs`, `rm`, etc.) usan
+> `docker compose` sin `-f` por brevedad — agregar `-f docker-compose.dev.yml`
+> si se está en modo sin Vault.
 
 #### Actualizar un solo microfrontend
 
-No es necesario bajar ni reconstruir los demás:
-
 ```bash
-# Reemplazar mf-emergency con el que cambió
 docker compose build mf-emergency
 docker compose up -d mf-emergency
-```
 
-También se pueden actualizar varios a la vez separando por espacio:
-
-```bash
+# varios a la vez
 docker compose build mf-emergency mf-home
 docker compose up -d mf-emergency mf-home
 ```
 
 #### Detener un solo microfrontend
 
-`docker compose down` no acepta servicio individual — usar `stop` + `rm`:
+`docker compose down` no acepta un servicio individual — usar `stop` + `rm`:
 
 ```bash
-# Detener y eliminar el contenedor (la imagen queda intacta)
-docker compose rm -f -s mf-emergency
-#  -s  detiene el contenedor antes de removerlo
-#  -f  sin pedir confirmación
-```
-
-Para volver a levantarlo sin reconstruir (usa la imagen existente):
-
-```bash
-docker compose up -d mf-emergency
-```
-
-Para reconstruir y levantar en un solo flujo:
-
-```bash
-docker compose rm -f -s mf-emergency
-docker compose build mf-emergency
-docker compose up -d mf-emergency
+docker compose rm -f -s mf-emergency   # -s detiene antes de remover, -f sin confirmar
+docker compose up -d mf-emergency      # volver a levantarlo sin reconstruir
 ```
 
 #### Ver estado de los servicios
 
 ```bash
-docker compose ps                    # estado de todos
-docker compose logs -f mf-emergency  # logs en tiempo real de uno
-docker compose logs -f mf-emergency mf-home  # logs de varios
+docker compose ps
+docker compose logs -f mf-emergency
+docker compose logs -f mf-emergency mf-home
 ```
 
 #### Consumir un remote desde otro proyecto
 
-Si `mf-emergency` está desplegado en `192.168.42.44:10303`, cualquier shell externo puede usarlo agregando en su `vite.config.ts`:
-
 ```ts
+// vite.config.ts de un shell externo
 federation({
   remotes: {
-    emergency: "http://192.168.42.44:10303/assets/remoteEntry.js",
+    emergency: "https://servicios.dev.sanfelipe.com:20503/assets/remoteEntry.js",
   }
 })
 ```
 
-El browser del usuario descarga el componente en runtime directamente desde ese servidor. El shell externo no necesita conocer el código fuente ni estar en la misma red Docker.
-
-> **⚠️ `npm link` y Docker no son compatibles.** Si tenés `npm link @hce/design-system` activo, el build de Docker fallará porque el symlink apunta a una carpeta fuera del contexto de build. Antes de hacer `docker compose build`, ejecutar en el proyecto afectado:
-> ```bash
-> npm unlink @hce/design-system
-> npm install
-> ```
-
----
-
-### Opcion 2 - Shell en dev con remotes en preview (mismo resultado)
-
-```bash
-# Terminal 1 - compilar y servir todos los remotes
-npm run build:remotes
-npm run preview:remotes
-
-# Terminal 2 - shell
-npm run dev:shell
-```
-
----
-
-### Opcion 3 - Levantar cada microfrontend individualmente
-
-Util para desarrollar o debuggear un microfrontend especifico de forma aislada.
-
-**Importante:** Los remotes necesitan `build` + `preview`, no solo `dev`, para que Module Federation funcione correctamente.
-
-#### mf-shell (Shell / Orquestador)
-
-```bash
-cd apps/mf-shell
-npm run dev
-# http://localhost:10300
-```
-
-#### mf-home
-
-```bash
-cd apps/mf-home
-npm run build
-npm run preview
-# http://localhost:10302
-```
-
-#### mf-emergency
-
-```bash
-cd apps/mf-emergency
-npm run build
-npm run preview
-# http://localhost:10303
-```
-
-Para desarrollo standalone de mf-emergency (sin shell):
-
-```bash
-cd apps/mf-emergency
-npm run dev
-# http://localhost:10303
-```
+El browser descarga el componente en runtime directamente desde ese servidor —
+el shell externo no necesita el código fuente ni estar en la misma red Docker.
 
 ---
 
 ## Mapa de puertos
 
-| Microfrontend | Dev | Preview |
-|---------------|-----|---------|
-| mf-shell | 10300 | 10300 |
-| mf-auth | 10301 | 10301 |
-| mf-home | 10302 | 10302 |
-| mf-emergency | 10303 | 10303 |
-| mf-hospital | 10304 | 10304 |
-| mf-ambulatorio | 10305 | 10305 |
-| mf-auditoria | 10306 | 10306 |
+| Microfrontend | Dev/Preview | Docker HTTP | Docker HTTPS |
+|---|---|---|---|
+| mf-shell | 10500 | 10500 | 20500 |
+| mf-auth | 10501 | 10501 | 20501 |
+| mf-home | 10502 | 10502 | 20502 |
+| mf-emergency | 10503 | 10503 | 20503 |
+| mf-hospital | 10504 | 10504 | 20504 |
+| mf-ambulatorio | 10505 | 10505 | 20505 |
+| mf-auditoria | 10506 | 10506 | 20506 |
+| mf-header | 10507 | 10507 | 20507 |
+| mf-sidebar | 10508 | 10508 | 20508 |
+| mf-footer | 10509 | 10509 | 20509 |
+| mf-triage | 10510 | 10510 | 20510 |
 
 ---
 
-## Scripts disponibles en la raiz
+## Scripts disponibles en la raíz
 
-| Script | Descripcion |
-|--------|-------------|
-| `npm start` | Build remotes + preview remotes + dev shell (todo en uno) |
-| `npm run build:remotes` | Compila todos los microfrontends remotos |
-| `npm run preview:remotes` | Sirve todos los remotes compilados en paralelo |
-| `npm run dev:shell` | Levanta solo el shell en modo dev |
-
-### Actualizar un solo microfrontend
-
-Cuando se realizan cambios en un único remote, no es necesario reconstruir todos. El shell resuelve los remotes en runtime buscando `remoteEntry.js`, por lo que basta con reconstruir y re-servir solo el módulo modificado:
-
-```bash
-# Reemplazar mf-emergency con el nombre del módulo que cambió
-npm run build -w apps/mf-emergency && npm run preview -w apps/mf-emergency
-```
-
-El shell tomará los cambios automáticamente en el siguiente reload del navegador, sin necesidad de reiniciarlo.
+| Script | Descripción |
+|---|---|
+| `npm start` | `clean` + `build:remotes` + `build:shell` + `preview:remotes` + `dev:shell` |
+| `npm run build:remotes` | Compila los 10 microfrontends remotos |
+| `npm run build:shell` | Compila el shell |
+| `npm run preview:remotes` | Sirve los 10 remotos compilados, en paralelo |
+| `npm run preview:shell` | Sirve el shell compilado |
+| `npm run dev:shell` | Levanta el shell en modo dev |
+| `npm run clean` | Borra `dist/` de todas las apps |
+| `npm run storybook` | Storybook del design system (si está linkeado como workspace local) |
 
 ---
 
-## Principios Arquitectonicos Aplicados
+## Principios arquitectónicos aplicados
 
-| Principio | Aplicacion |
-|-----------|------------|
-| Desacoplamiento | Cada microfrontend funciona como aplicacion independiente |
-| Reutilizacion | El Design System centraliza componentes UI |
-| Escalabilidad | Nuevos microfrontends pueden anadirse sin afectar el sistema |
-| Separacion de responsabilidades | Cada dominio tiene su propio microfrontend |
-| Consistencia UI | El Design System define estilos globales |
-| Composicion dinamica | Module Federation integra aplicaciones en runtime |
+| Principio | Aplicación |
+|---|---|
+| Desacoplamiento | Cada microfrontend es una app independiente, con su propio build y deploy |
+| Reutilización | El Design System centraliza componentes UI |
+| Auth centralizado | Login, sesión y refresh viven solo en `mf-shell`, expuestos vía Module Federation |
+| Endpoints por dominio | Cada mf que necesita su propia API tiene su `config/endpoints.ts` (ej. `mf-header` para el practitioner) — no todo vive en el shell |
+| Composición dinámica | Module Federation integra las apps en runtime, sin rebuild del shell |
+| Config externa | Las URLs de producción viven en Vault, no en el código ni en `.env` commiteados |
 
 ---
 
-## Mejoras Futuras
+## Mejoras futuras
 
-- Dynamic Module Federation
-- Registry de microfrontends
-- Shared State Management
-- Observabilidad frontend
+- Dynamic Module Federation (registry de remotes en runtime)
+- Shared State Management entre microfrontends
+- Observabilidad frontend (logs/métricas centralizadas)
 - CI/CD por microfrontend
-- Auth centralizado
 
 ---
 
 ## Autor
 
-**Author:**
-Gregorovichz Carlos Rossi
+**Author:** Fabrizzio Renzo Pinedo Espinoza
+**Project:** MF Platform
 
-**Project:**
-Jarvis MF Platform

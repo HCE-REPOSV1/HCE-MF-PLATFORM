@@ -9,6 +9,12 @@ const BUILD_TIME = new Date().toISOString();
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, "");
+
+  const required = ["VITE_REMOTE_SHELL", "VITE_APIGE_CNL_CROSS", "VITE_APIGW_CNL_WEB_EMERGENCY"];
+  for (const key of required) {
+    if (!env[key]) throw new Error(`[mf-header] Falta variable de entorno: ${key}`);
+  }
+
   return {
     plugins: [
       react(),
@@ -32,7 +38,10 @@ export default defineConfig(({ mode }) => {
           "./Header": "./src/Header.tsx",
           "./menuConfig": "./src/menuConfig.ts",
         },
-        shared: ["react", "react-dom", "react-router-dom", "lucide-react"],
+        shared: [
+          "react", "react-dom", "react-router-dom", "lucide-react",
+          "@mui/material", "@emotion/react", "@emotion/styled", "@hce/design-system",
+        ],
       }),
     ],
     resolve: {

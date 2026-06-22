@@ -1,13 +1,59 @@
 //─── Triage ──────────────────────────────────────────
 declare module "triage/Triage" {
   import type { ComponentType } from "react";
+  import type { SearchMode, SearchOption, TriagePriority } from "@hce/design-system";
 
-  interface TriageProps {
-    open: boolean = false;
-    onClose: () => void;
-    onGuardar: (form: TriajeForm) => void;
+  export interface TriajeForm {
+    // Datos del paciente
+    tipoDoc:          string
+    numeroDoc:        string
+    noIdentificado:   boolean
+    nombres:          string
+    apellidoPaterno:  string
+    apellidoMaterno:  string
+    fechaNacimiento:  string
+    sexo:             string
+    // Datos clínicos
+    modoMotivo:       SearchMode
+    motivoQuery:      string
+    motivoSelected:   SearchOption | null
+    aislamiento:      string
+    gestante:         string
+    furEnabled:       boolean
+    fur:              string
+    tiempoEnfermedad: string
+    tiempoUnidad:     string
+    comentarios:      string
+    // Signos vitales
+    traumaShock:      boolean
+    noSV:             boolean
+    peso:             string
+    talla:            string
+    frCardiaca:       string
+    frRespiratoria:   string
+    pSistolica:       string
+    pDiastolica:      string
+    temperatura:      string
+    saturacionO2:     string
+    glasgow:          { ocular: string; verbal: string; motora: string }
+    fast:             { cara: string; brazos: string; habla: string; tiempo: string }
+    // Alergias
+    tieneAlergia:     string
+    principioActivo:  string
+    alimentos:        string
+    otrosAlergias:    string
+    // EVA
+    dolEva:           number | null
+    // Triaje
+    prioridad:        TriagePriority | null
   }
 
-  const Triage: ComponentType<any>;
+  export interface TriageProps {
+    open:       boolean
+    onClose:    () => void
+    onGuardar?: (form: TriajeForm) => void
+  }
+
+  const Triage: ComponentType<TriageProps>;
   export default Triage;
 }

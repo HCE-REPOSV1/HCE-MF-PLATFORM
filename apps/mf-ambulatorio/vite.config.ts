@@ -31,7 +31,10 @@ export default defineConfig(({ mode }) => {
         "./Ambulatorio": "./src/Ambulatorio.tsx",
         "./menuConfig":  "./src/menuConfig.ts",
       },
-      shared: ["react", "react-dom", "react-router-dom", "lucide-react"],
+      shared: [
+        "react", "react-dom", "react-router-dom", "lucide-react",
+        "@mui/material", "@emotion/react", "@emotion/styled", "@hce/design-system",
+      ],
     }),
   ],
   resolve: {

@@ -1,4 +1,4 @@
-import { useState, useCallback, lazy } from "react";
+import { useState, useCallback, lazy, Suspense } from "react";
 import {
   Box,
   hceClinicalColors,
@@ -13,58 +13,14 @@ import {
 import { MOCK_PATIENTS, PAGE_SIZE } from "../mock/patients.mock";
 // import { TriajeModal } from "../components/TriajeModal";
 import { AsignarMedicoModal } from "../components/AsignarMedicoModal";
-import type { PatientRowData, SearchMode, SearchOption, TriagePriority } from "@hce/design-system";
+import type { PatientRowData } from "@hce/design-system";
 import type { Medico } from "../mock/medicos.mock";
+import type { TriajeForm } from "triage/Triage";
 
 interface HeaderColumn {
   label: string;
   width: number;
   align: "center" | "left";
-}
-
-interface TriajeForm {
-  // Datos del paciente
-  tipoDoc:         string
-  numeroDoc:       string
-  noIdentificado:  boolean
-  nombres:         string
-  apellidoPaterno: string
-  apellidoMaterno: string
-  fechaNacimiento: string
-  sexo:            string
-  // Datos clínicos
-  modoMotivo:      SearchMode
-  motivoQuery:     string
-  motivoSelected:  SearchOption | null
-  aislamiento:     string
-  gestante:        string
-  furEnabled:      boolean
-  fur:             string
-  tiempoEnfermedad: string
-  tiempoUnidad:    string
-  comentarios:     string
-  // Signos vitales
-  traumaShock:     boolean
-  noSV:            boolean
-  peso:            string
-  talla:           string
-  frCardiaca:      string
-  frRespiratoria:  string
-  pSistolica:      string
-  pDiastolica:     string
-  temperatura:     string
-  saturacionO2:    string
-  glasgow:         { ocular: string; verbal: string; motora: string }
-  fast:            { cara: string; brazos: string; habla: string; tiempo: string }
-  // Alergias
-  tieneAlergia:    string
-  principioActivo: string
-  alimentos:       string
-  otrosAlergias:   string
-  // EVA
-  dolEva:          number | null
-  // Triaje
-  prioridad:       TriagePriority | null
 }
 
 const HEADER_COLUMNS: HeaderColumn[] = [
@@ -84,27 +40,9 @@ const HEADER_COLUMNS: HeaderColumn[] = [
 ];
 
 
-// const Triage = lazy(() =>
-//   import("triage/Triage").then((m) => {
-//     console.log("REMOTE MODULE", m);
-//     return m;
-//   })
-// );
 const Triage = lazy(() => import("triage/Triage"));
 
 export default function MonitorPage() {
-  // const Triage = React.lazy(() => import("triage/Triage"));
-//   useEffect(() => {
-//   import("triage/Triage")
-//     .then((m) => {
-//       console.log("REMOTE OK", m);
-//     })
-//     .catch((e) => {
-//       console.error("REMOTE ERROR", e);
-//     });
-// }, []);
-
-
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
     null,
@@ -212,14 +150,18 @@ export default function MonitorPage() {
           // TODO: llamar a POST /api/triaje con los datos del form
         }}
       /> */}
-      <Triage
-        open={triajeOpen}
-        onClose={() => setTriajeOpen(false)}
-        onGuardar={(form:TriajeForm) => {
-          console.info("[MonitorPage] Triaje guardado:", form);
-          // TODO: llamar a POST /api/triaje con los datos del form
-        }}
-      />
+      {triajeOpen && (
+        <Suspense fallback={null}>
+          <Triage
+            open={triajeOpen}
+            onClose={() => setTriajeOpen(false)}
+            onGuardar={(form:TriajeForm) => {
+              console.info("[MonitorPage] Triaje guardado:", form);
+              // TODO: llamar a POST /api/triaje con los datos del form
+            }}
+          />
+        </Suspense>
+      )}
 
       {/* Modal de Asignar Médico */}
       <AsignarMedicoModal

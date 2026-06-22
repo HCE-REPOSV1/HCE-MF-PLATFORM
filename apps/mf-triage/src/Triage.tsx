@@ -359,8 +359,6 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
   const [buscandoPaciente, setBuscandoPaciente] = useState(false)
   const [pacienteNoEncontrado, setPacienteNoEncontrado] = useState(false)
 
-  const [CheckNoIdentificado, setCheckNoIdentificado] = useState(false)
-
   // Secciones expandibles
   const [expDatosClinicos,    setExpDatosClinicos]     = useState(true)
   const [expSignosVitales,    setExpSignosVitales]     = useState(true)
@@ -537,17 +535,10 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
                 flexShrink:      0,
               }}
             >
-              {/* <Box
-                component="input"
-                type="checkbox"
-                checked={form.noIdentificado}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => set("noIdentificado", e.target.checked)}
-                sx={{ accentColor: hceColors.primary.green[500] }}
-              /> */}
               <Checkbox
               label=""
-              checked = {CheckNoIdentificado}
-              onChange={(v) => setCheckNoIdentificado(v)}>
+              checked = {form.noIdentificado}
+              onChange={(v) => set("noIdentificado", v)}>
 
               </Checkbox>
               <Typography sx={{ fontFamily: hceTypography.fontFamily, fontSize: "0.82rem", color: hceColors.primary.blue[600], fontWeight: 500 }}>
@@ -819,3 +810,5 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
     </HceFormModal>
   )
 }
+
+export default Triage

@@ -9,6 +9,12 @@ const BUILD_TIME = new Date().toISOString();
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, "");
+
+  const required = ["VITE_REMOTE_SHELL"];
+  for (const key of required) {
+    if (!env[key]) throw new Error(`[mf-sidebar] Falta variable de entorno: ${key}`);
+  }
+
   return {
     plugins: [
       react(),
@@ -31,7 +37,10 @@ export default defineConfig(({ mode }) => {
         exposes: {
           "./Sidebar": "./src/Sidebar.tsx",
         },
-        shared: ["react", "react-dom", "react-router-dom", "lucide-react"],
+        shared: [
+          "react", "react-dom", "react-router-dom", "lucide-react",
+          "@mui/material", "@emotion/react", "@emotion/styled", "@hce/design-system",
+        ],
       }),
     ],
     resolve: {

@@ -1,29 +1,30 @@
-# docker-compose.yml — Build/deploy CON Vault
-# Los build-args se leen de variables de entorno, NO hardcodeadas. Deben estar
-# exportadas en el shell antes de "docker compose build" — kv-hce-platform-dev/
-# scripts/deploy-mf.sh las lee de Vault (paths hce/mf/<servicio>) y las exporta.
+# docker-compose.dev.yml — Build/deploy SIN Vault
+# Valores de producción hardcodeados directamente (snapshot del docker-compose.yml
+# previo a la integración con Vault). Uso:
+#   docker compose -f docker-compose.dev.yml build
+#   docker compose -f docker-compose.dev.yml up -d
 #
-# Sin Vault disponible (dev local rápido), usar docker-compose.dev.yml en su lugar:
-#   docker compose -f docker-compose.dev.yml build && docker compose -f docker-compose.dev.yml up -d
+# Para el flujo normal con Vault, usar docker-compose.yml via
+# kv-hce-platform-dev/scripts/deploy-mf.sh (lee los build-args desde Vault).
 services:
   mf-shell:
     build:
       context: .
       dockerfile: apps/mf-shell/Dockerfile
       args:
-        VERDACCIO_URL: ${VERDACCIO_URL}
-        # Build-args leídos desde Vault (secret/hce/mf/mf-shell) — ver deploy-mf.sh
-        VITE_APIGE_CNL_CROSS: ${VITE_APIGE_CNL_CROSS}
-        VITE_REMOTE_AUTH: ${VITE_REMOTE_AUTH}
-        VITE_REMOTE_HOME: ${VITE_REMOTE_HOME}
-        VITE_REMOTE_EMERGENCY: ${VITE_REMOTE_EMERGENCY}
-        VITE_REMOTE_HOSPITAL: ${VITE_REMOTE_HOSPITAL}
-        VITE_REMOTE_AMBULATORIO: ${VITE_REMOTE_AMBULATORIO}
-        VITE_REMOTE_AUDITORIA: ${VITE_REMOTE_AUDITORIA}
-        VITE_REMOTE_HEADER: ${VITE_REMOTE_HEADER}
-        VITE_REMOTE_SIDEBAR: ${VITE_REMOTE_SIDEBAR}
-        VITE_REMOTE_FOOTER: ${VITE_REMOTE_FOOTER}
-        VITE_REMOTE_TRIAGE: ${VITE_REMOTE_TRIAGE}
+        VERDACCIO_URL: http://192.168.42.44:10100
+        # URLs de producción — se hornean en el bundle al compilar
+        VITE_APIGE_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
+        VITE_REMOTE_AUTH:        https://servicios.dev.sanfelipe.com:20501/assets/remoteEntry.js
+        VITE_REMOTE_HOME:        https://servicios.dev.sanfelipe.com:20502/assets/remoteEntry.js
+        VITE_REMOTE_EMERGENCY:   https://servicios.dev.sanfelipe.com:20503/assets/remoteEntry.js
+        VITE_REMOTE_HOSPITAL:    https://servicios.dev.sanfelipe.com:20504/assets/remoteEntry.js
+        VITE_REMOTE_AMBULATORIO: https://servicios.dev.sanfelipe.com:20505/assets/remoteEntry.js
+        VITE_REMOTE_AUDITORIA:   https://servicios.dev.sanfelipe.com:20506/assets/remoteEntry.js
+        VITE_REMOTE_HEADER:      https://servicios.dev.sanfelipe.com:20507/assets/remoteEntry.js
+        VITE_REMOTE_SIDEBAR:     https://servicios.dev.sanfelipe.com:20508/assets/remoteEntry.js
+        VITE_REMOTE_FOOTER:      https://servicios.dev.sanfelipe.com:20509/assets/remoteEntry.js
+        VITE_REMOTE_TRIAGE:      https://servicios.dev.sanfelipe.com:20510/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10500:80"
@@ -42,9 +43,8 @@ services:
       context: .
       dockerfile: apps/mf-auth/Dockerfile
       args:
-        VERDACCIO_URL: ${VERDACCIO_URL}
-        # Build-args leídos desde Vault (secret/hce/mf/mf-auth)
-        VITE_REMOTE_SHELL: ${VITE_REMOTE_SHELL}
+        VERDACCIO_URL: http://192.168.42.44:10100
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10501:80"
@@ -63,10 +63,9 @@ services:
       context: .
       dockerfile: apps/mf-home/Dockerfile
       args:
-        VERDACCIO_URL: ${VERDACCIO_URL}
-        # Build-args leídos desde Vault (secret/hce/mf/mf-home)
-        MF_HOME_BASE_URL: ${MF_HOME_BASE_URL}
-        VITE_REMOTE_SHELL: ${VITE_REMOTE_SHELL}
+        VERDACCIO_URL: http://192.168.42.44:10100
+        MF_HOME_BASE_URL:  https://servicios.dev.sanfelipe.com:20502
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10502:80"
@@ -85,10 +84,9 @@ services:
       context: .
       dockerfile: apps/mf-emergency/Dockerfile
       args:
-        VERDACCIO_URL: ${VERDACCIO_URL}
-        # Build-args leídos desde Vault (secret/hce/mf/mf-emergency)
-        VITE_REMOTE_SHELL: ${VITE_REMOTE_SHELL}
-        VITE_REMOTE_TRIAGE: ${VITE_REMOTE_TRIAGE}
+        VERDACCIO_URL: http://192.168.42.44:10100
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_REMOTE_TRIAGE: https://servicios.dev.sanfelipe.com:20510/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10503:80"
@@ -107,9 +105,8 @@ services:
       context: .
       dockerfile: apps/mf-hospital/Dockerfile
       args:
-        VERDACCIO_URL: ${VERDACCIO_URL}
-        # Build-args leídos desde Vault (secret/hce/mf/mf-hospital)
-        VITE_REMOTE_SHELL: ${VITE_REMOTE_SHELL}
+        VERDACCIO_URL: http://192.168.42.44:10100
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10504:80"
@@ -128,9 +125,8 @@ services:
       context: .
       dockerfile: apps/mf-ambulatorio/Dockerfile
       args:
-        VERDACCIO_URL: ${VERDACCIO_URL}
-        # Build-args leídos desde Vault (secret/hce/mf/mf-ambulatorio)
-        VITE_REMOTE_SHELL: ${VITE_REMOTE_SHELL}
+        VERDACCIO_URL: http://192.168.42.44:10100
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10505:80"
@@ -149,11 +145,10 @@ services:
       context: .
       dockerfile: apps/mf-header/Dockerfile
       args:
-        VERDACCIO_URL: ${VERDACCIO_URL}
-        # Build-args leídos desde Vault (secret/hce/mf/mf-header)
-        VITE_REMOTE_SHELL: ${VITE_REMOTE_SHELL}
-        VITE_APIGE_CNL_CROSS: ${VITE_APIGE_CNL_CROSS}
-        VITE_APIGW_CNL_WEB_EMERGENCY: ${VITE_APIGW_CNL_WEB_EMERGENCY}
+        VERDACCIO_URL: http://192.168.42.44:10100
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_APIGE_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
+        VITE_APIGW_CNL_WEB_EMERGENCY: https://servicios.dev.sanfelipe.com:20602
     restart: unless-stopped
     ports:
       - "10507:80"
@@ -172,9 +167,8 @@ services:
       context: .
       dockerfile: apps/mf-sidebar/Dockerfile
       args:
-        VERDACCIO_URL: ${VERDACCIO_URL}
-        # Build-args leídos desde Vault (secret/hce/mf/mf-sidebar)
-        VITE_REMOTE_SHELL: ${VITE_REMOTE_SHELL}
+        VERDACCIO_URL: http://192.168.42.44:10100
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10508:80"
@@ -193,9 +187,8 @@ services:
       context: .
       dockerfile: apps/mf-footer/Dockerfile
       args:
-        VERDACCIO_URL: ${VERDACCIO_URL}
-        # Build-args leídos desde Vault (secret/hce/mf/mf-footer)
-        VITE_REMOTE_SHELL: ${VITE_REMOTE_SHELL}
+        VERDACCIO_URL: http://192.168.42.44:10100
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10509:80"
@@ -214,9 +207,8 @@ services:
       context: .
       dockerfile: apps/mf-triage/Dockerfile
       args:
-        VERDACCIO_URL: ${VERDACCIO_URL}
-        # Build-args leídos desde Vault (secret/hce/mf/mf-triage)
-        VITE_REMOTE_SHELL: ${VITE_REMOTE_SHELL}
+        VERDACCIO_URL: http://192.168.42.44:10100
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10510:80"
@@ -235,9 +227,8 @@ services:
       context: .
       dockerfile: apps/mf-auditoria/Dockerfile
       args:
-        VERDACCIO_URL: ${VERDACCIO_URL}
-        # Build-args leídos desde Vault (secret/hce/mf/mf-auditoria)
-        VITE_REMOTE_SHELL: ${VITE_REMOTE_SHELL}
+        VERDACCIO_URL: http://192.168.42.44:10100
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10506:80"
