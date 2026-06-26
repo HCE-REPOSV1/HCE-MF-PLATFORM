@@ -39,6 +39,10 @@ declare module "emergency/Emergency" {
 declare module "emergency/menuConfig" {
   export const menuConfig: MenuConfigItem[]
 }
+declare module "emergency/EmergencyTV" {
+  const EmergencyTV: React.ComponentType
+  export default EmergencyTV
+}
 
 // ─── Hospital ─────────────────────────────────────────────
 declare module "hospital/Hospital" {
@@ -115,3 +119,4 @@ declare module "footer/Footer" {
   const Footer: ComponentType<Record<string, never>>
   export default Footer
 }
+

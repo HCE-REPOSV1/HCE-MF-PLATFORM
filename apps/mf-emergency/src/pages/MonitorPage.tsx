@@ -6,39 +6,135 @@ import {
   hceBorderRadius,
   hceShadows,
   MonitoActionBar,
-  EmergencyPatientTable,
   EmergencyPagination,
   BedAvailabilityDrawer,
 } from "@hce/design-system";
 import { MOCK_PATIENTS, PAGE_SIZE } from "../mock/patients.mock";
 // import { TriajeModal } from "../components/TriajeModal";
 import { AsignarMedicoModal } from "../components/AsignarMedicoModal";
-import type { PatientRowData } from "@hce/design-system";
+import type { PatientRowData, GenericTableColumn } from "@hce/design-system";
 import type { Medico } from "../mock/medicos.mock";
 import type { TriajeForm } from "triage/Triage";
+import {GenericTable} from "@hce/design-system"
 
-interface HeaderColumn {
-  label: string;
-  width: number;
-  align: "center" | "left";
-}
 
-const HEADER_COLUMNS: HeaderColumn[] = [
-  { label: "Prioridad", width: 70, align: "center" },
-  { label: "Box", width: 80, align: "center" },
-  { label: "Paciente", width: 180, align: "left" },
-  { label: "Edad", width: 55, align: "center" },
-  { label: "Sexo", width: 55, align: "center" },
-  { label: "N.Documento", width: 100, align: "left" },
-  { label: "Médico", width: 160, align: "left" },
-  { label: "Lab", width: 50, align: "center" },
-  { label: "Img", width: 50, align: "center" },
-  { label: "Indc.Med", width: 50, align: "center" },
-  { label: "Interc.", width: 50, align: "center" },
-  { label: "Atención", width: 90, align: "left" },
-  { label: "Info", width: 50, align: "center" },
-];
 
+
+const MONITOR_DSK_COLUMNS: GenericTableColumn<PatientRowData>[]  = [
+  {
+    key: "priority",
+    header: "Prioridad",
+    type: "priority",
+    field: "priority",
+    width: 70,
+    align: "center",
+    clickable: true,
+  },
+  {
+    key: "box",
+    header: "Box",
+    type: "box",
+    field: "box",
+    width: 80,
+    align: "center",
+    clickable: true,
+  },
+  {
+    key: "document",
+    header: "N.Documento",
+    type: "text",
+    field: "document",
+    width: 100,
+    align: "left",
+  },
+  {
+    key: "patient",
+    header: "Paciente",
+    type: "patient-name",
+    field: "patient.name",
+    width: 180,
+    align: "left",
+    clickable: true,
+    cellSx: {
+      padding: "0 12px",
+    },
+  },
+  {
+    key: "age",
+    header: "Edad",
+    type: "text",
+    field: "age",
+    width: 55,
+    align: "center",
+  },
+  {
+    key: "sex",
+    header: "Sexo",
+    type: "text",
+    field: "sex",
+    width: 55,
+    align: "center",
+  },
+  {
+    key: "doctor",
+    header: "Médico",
+    type: "doctor",
+    field: "doctor",
+    width: 160,
+    align: "left",
+  },
+  {
+    key: "lab",
+    header: "Lab",
+    type: "clinical-status",
+    field: "lab",
+    clinicalIcon: "lab",
+    width: 50,
+    align: "center",
+  },
+  {
+    key: "img",
+    header: "Img",
+    type: "clinical-status",
+    field: "img",
+    clinicalIcon: "img",
+    width: 50,
+    align: "center",
+  },
+  {
+    key: "indication",
+    header: "Indc. Med.",
+    type: "clinical-status",
+    field: "indication",
+    clinicalIcon: "indication",
+    width: 50,
+    align: "center",
+  },
+  {
+    key: "interconsult",
+    header: "Interc.",
+    type: "clinical-status",
+    field: "interconsult",
+    clinicalIcon: "interconsult",
+    width: 50,
+    align: "center",
+  },
+  {
+    key: "attentionCode",
+    header: "Atención",
+    type: "attention-code",
+    field: "attentionCode",
+    width: 90,
+    align: "left",
+  },
+  {
+    key: "info",
+    header: "Info",
+    type: "info-button",
+    width: 50,
+    align: "center",
+  },
+]
 
 const Triage = lazy(() => import("triage/Triage"));
 
@@ -53,28 +149,51 @@ export default function MonitorPage() {
   const totalPages = Math.ceil(MOCK_PATIENTS.length / PAGE_SIZE);
 
   const paginatedRows: PatientRowData[] = MOCK_PATIENTS.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  ).map((p) => ({
-    ...p,
-    selected: p.id === selectedPatientId,
-    patient: {
-      ...p.patient,
-      onClick: () => handlePatientClick(p.id),
-    },
-    onInfo: () => handleInfo(p.id),
-  }));
+  (currentPage - 1) * PAGE_SIZE,
+  currentPage * PAGE_SIZE,
+);
 
-  const handlePatientClick = useCallback((id: string) => {
-    setSelectedPatientId((prev) => (prev === id ? null : id));
-  }, []);
+  // const handlePatientClick = useCallback((id: string) => {
+  //   setSelectedPatientId((prev) => (prev === id ? null : id));
+  // }, []);
 
-  const handleInfo = useCallback((id: string) => {
-    const patient = MOCK_PATIENTS.find((p) => p.id === id);
-    console.info("[MonitorPage] Info del paciente:", patient);
-  }, []);
+  // const handleInfo = useCallback((id: string) => {
+  //   const patient = MOCK_PATIENTS.find((p) => p.id === id);
+  //   console.info("[MonitorPage] Info del paciente:", patient);
+  // }, []);
 
   //const handleRefresh = () => { setCurrentPage(1); setSelectedPatientId(null) }
+
+  const handlePatientClick = useCallback((row: PatientRowData) => {
+    setSelectedPatientId((prev) => (prev === row.id ? null : row.id));
+  }, []);
+
+  const handlePriorityClick = useCallback((row: PatientRowData) => {
+    console.info("[MonitorPage] Abrir triaje solo lectura:", row);
+  }, []);
+
+  const handleBoxClick = useCallback((row: PatientRowData) => {
+    const stage = row.box.stage;
+
+    if (stage === "WAITING") {
+      console.info(
+        "[MonitorPage] Paciente aún no cuenta con atención. Comunicarse con el counter de emergencia.",
+        row,
+      );
+      return;
+    }
+
+    if (stage === "SALA_D") {
+      console.info("[MonitorPage] Abrir asignación de BOX:", row);
+      return;
+    }
+
+    console.info("[MonitorPage] Abrir cambio de BOX:", row);
+  }, []);
+
+  const handleInfo = useCallback((row: PatientRowData) => {
+    console.info("[MonitorPage] Info del paciente:", row);
+  }, []);
 
   return (
     <>
@@ -114,7 +233,16 @@ export default function MonitorPage() {
           </Box>
 
           <Box sx={{ flex: 1, overflow: "hidden", minHeight: 0 }}>
-            <EmergencyPatientTable rows={paginatedRows} header={HEADER_COLUMNS} />
+            <GenericTable
+                  rows={paginatedRows}
+                  columns={MONITOR_DSK_COLUMNS}
+                  getRowId={(row) => row.id}
+                  onPatientClick={handlePatientClick}
+                  onPriorityClick={handlePriorityClick}
+                  onBoxClick={handleBoxClick}
+                  onInfo={handleInfo}
+                />
+            {/* <EmergencyPatientTable rows={paginatedRows} header={HEADER_COLUMNS} /> */}
           </Box>
 
           <Box

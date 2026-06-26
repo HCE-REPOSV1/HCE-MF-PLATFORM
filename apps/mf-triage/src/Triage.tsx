@@ -161,6 +161,7 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.checked)}
         sx={{ display: "none" }}
       />
+      
       <Box
         onClick={() => onChange(!checked)}
         sx={{
