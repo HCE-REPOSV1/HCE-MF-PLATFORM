@@ -52,6 +52,9 @@ declare module "triage/Triage" {
     open:       boolean
     onClose:    () => void
     onGuardar?: (form: TriajeForm) => void
+    /** "read" = solo lectura (botón Prioridad en grilla) | "write" = crear triaje (menú superior).
+     *  Pendiente de implementación en mf-triage — declarado aquí para fijar el contrato. */
+    mode?:      "read" | "write"
   }
 
   const Triage: ComponentType<TriageProps>;
