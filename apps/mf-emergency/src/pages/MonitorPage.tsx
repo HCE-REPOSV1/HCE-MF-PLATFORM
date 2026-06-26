@@ -11,8 +11,9 @@ import {
   BedAvailabilityDrawer,
 } from "@hce/design-system";
 import { MOCK_PATIENTS, PAGE_SIZE } from "../mock/patients.mock";
-// import { TriajeModal } from "../components/TriajeModal";
 import { AsignarMedicoModal } from "../components/AsignarMedicoModal";
+import { usePermiso } from "../hooks/usePermiso";
+import { PERMISOS_EMERGENCY } from "../config/permisos";
 import type { PatientRowData } from "@hce/design-system";
 import type { Medico } from "../mock/medicos.mock";
 import type { TriajeForm } from "triage/Triage";
@@ -43,11 +44,15 @@ const HEADER_COLUMNS: HeaderColumn[] = [
 const Triage = lazy(() => import("triage/Triage"));
 
 export default function MonitorPage() {
+  const canReadTriage  = usePermiso(PERMISOS_EMERGENCY.triage.read)
+  const canWriteTriage = usePermiso(PERMISOS_EMERGENCY.triage.write)
+
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
     null,
   );
   const [triajeOpen, setTriajeOpen] = useState(false);
+  const [triajeModo, setTriajeModo]  = useState<"read" | "write">("write");
   const [medicoOpen, setMedicoOpen] = useState(false);
 
   const totalPages = Math.ceil(MOCK_PATIENTS.length / PAGE_SIZE);
@@ -62,6 +67,10 @@ export default function MonitorPage() {
       ...p.patient,
       onClick: () => handlePatientClick(p.id),
     },
+    // Botón Prioridad (columna grilla): abre triaje en modo lectura
+    onPriority: canReadTriage
+      ? () => { setTriajeModo("read"); setTriajeOpen(true) }
+      : undefined,
     onInfo: () => handleInfo(p.id),
   }));
 
@@ -104,7 +113,7 @@ export default function MonitorPage() {
             <MonitoActionBar
               tooltipPlacement="bottom"
               orientation="horizontal"
-              onTriaje={() => setTriajeOpen(true)}
+              onTriaje={canWriteTriage ? () => { setTriajeModo("write"); setTriajeOpen(true) } : undefined}
               onAsignarMedicos={() => setMedicoOpen(true)}
               onReportes={() => console.info("[MonitorPage] Reportes")}
               onDisponibilidad={() =>
@@ -154,6 +163,7 @@ export default function MonitorPage() {
         <Suspense fallback={null}>
           <Triage
             open={triajeOpen}
+            mode={triajeModo}
             onClose={() => setTriajeOpen(false)}
             onGuardar={(form:TriajeForm) => {
               console.info("[MonitorPage] Triaje guardado:", form);

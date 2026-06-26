@@ -25,17 +25,14 @@ export default function Header({
 }: HeaderProps) {
   const { user } = useUser();
 
-  // Datos reales del practitioner: nombre con prefijo, especialidad y foto.
-  // Se carga solo cuando el username está disponible tras el login.
-  const {
-    data: practitioner,
-    photoUrl: practitionerPhotoUrl,
-    subtitle: practitionerSubtitle,
-  } = usePractitioner(user?.username);
+  // Foto y especialidad: desde el practitioner service cuando está disponible.
+  // Si el servicio falla, el avatar muestra iniciales y el rol cae al perfil del AD.
+  const { photoUrl, subtitle: practitionerSubtitle } = usePractitioner(user?.username);
 
-  // Nombre a mostrar: name_text del practitioner si ya cargó, fallback al nombreCompleto del AD
-  const userName = practitioner?.name_text ?? user?.nombreCompleto;
-  // Subtítulo: especialidad o rol del practitioner, fallback al perfil del AD
+  // Nombre: siempre desde /auth/me — inmediato, sin flash en blanco.
+  const userName = user?.nombreCompleto;
+  // Rol: especialidad del practitioner si es médico, sino su display de rol.
+  // Fallback a nombrePerfil del AD si el practitioner service no responde.
   const userRole = practitionerSubtitle ?? user?.nombrePerfil;
 
   return (
@@ -48,7 +45,7 @@ export default function Header({
         onSedeCambiada={onSedeCambiada}
         userName={userName}
         userRole={userRole}
-        userPhotoUrl={practitionerPhotoUrl ?? undefined}
+        userPhotoUrl={photoUrl ?? undefined}
         onLogout={onLogout}
         onMenuClick={onMenuClick}
       />

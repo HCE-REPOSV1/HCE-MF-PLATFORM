@@ -37,28 +37,28 @@ const MODULES: Module[] = [
     label:       "HCE Emergencia",
     description: "Sección que abarca las funciones fundamentales del monitor de emergencia y los relatos de los pacientes.",
     path:        "/emergencia",
-    permission:  "01/02",
+    permission:  "emergency:module",
   },
   {
     Icon:        Stethoscope,
     label:       "HCE Ambulatorio",
     description: "Gestión de citas, consultorios y atenciones ambulatorias del sistema de salud.",
     path:        "/ambulatorio",
-    permission:  "01/01",
+    permission:  "ambulatorio:module",
   },
   {
     Icon:        Building2,
     label:       "HCE Hospital",
     description: "Control de hospitalización, camas disponibles, ingresos y altas médicas.",
     path:        "/hospital",
-    permission:  "01/03",
+    permission:  "hospital:module",
   },
   {
     Icon:        ClipboardList,
     label:       "Auditoría",
     description: "Reportes, trazabilidad de eventos y configuración de parámetros del sistema.",
     path:        "/auditoria",
-    permission:  "01/04",
+    permission:  "auditoria:module",
   },
 ]
 

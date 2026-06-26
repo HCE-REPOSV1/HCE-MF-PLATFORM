@@ -16,7 +16,7 @@ declare module "shell/UserContext" {
     nombreCompleto:  string
     nombrePerfil:    string
     numeroDocumento: string
-    idPerfil:        string
+    idPerfil?:       string
     sucursales:      Sucursal[]
     sessionId:       string
   }

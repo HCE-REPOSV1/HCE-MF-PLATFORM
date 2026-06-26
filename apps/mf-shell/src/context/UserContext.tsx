@@ -13,10 +13,11 @@
  *   4. Al cerrar tab / recargar → estado se limpia, /auth/me rehidrata
  * ---------------------------------------------------------
  */
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, useMemo, useCallback, type ReactNode } from "react"
 import type { OpcionMAC } from "@hce/design-system"
 import { ENDPOINTS } from "../config/endpoints"
 import { apiFetch, SessionExpiredError, SESSION_EXPIRED_EVENT } from "../services/api.service"
+import { MAC_TO_FRONT } from "../config/macMapping"
 
 export interface Sucursal {
   idSede:      string
@@ -35,7 +36,7 @@ export interface UserProfile {
   nombreCompleto:  string
   nombrePerfil:    string
   numeroDocumento: string
-  idPerfil:        string
+  idPerfil?:       string
   sucursales:      Sucursal[]
   sessionId:       string
 }
@@ -166,9 +167,37 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // E = activo, L = lectura (tratar como activo), O = inactivo
-  const hasPermission = (codigo: string): boolean =>
-    permisos.some(p => p.codigo === codigo && (p.indicador === 'E' || p.indicador === 'L'))
+  // Deriva el set de permisos semánticos desde la respuesta MAC + el mapping.
+  // - indicador "E" → agrega :read y :write
+  // - indicador "L" → agrega solo :read
+  // - indicador "O" → no agrega nada
+  const { returnedFrontCodes, permisosSet } = useMemo(() => {
+    const returned = new Map<string, string>()
+    permisos.forEach(p => {
+      const fc = MAC_TO_FRONT[p.codigo]
+      if (fc) returned.set(fc, p.indicador)
+    })
+    const set = new Set<string>()
+    returned.forEach((indicador, fc) => {
+      if (indicador === "E" || indicador === "L") {
+        set.add(fc)
+        set.add(`${fc}:read`)
+      }
+      if (indicador === "E") {
+        set.add(`${fc}:write`)
+      }
+    })
+    return { returnedFrontCodes: returned, permisosSet: set }
+  }, [permisos])
+
+  // Acepta códigos semánticos internos: "emergency:module", "emergency:triage:read", etc.
+  // Si el código base no aparece en la respuesta MAC todavía → provisional → true.
+  // Si MAC lo retornó → usa el valor real del indicador.
+  const hasPermission = useCallback((codigo: string): boolean => {
+    const base = codigo.replace(/:(?:read|write)$/, "")
+    if (!returnedFrontCodes.has(base)) return true
+    return permisosSet.has(codigo)
+  }, [returnedFrontCodes, permisosSet])
 
   useEffect(() => { fetchMe() }, [])
 
