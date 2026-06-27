@@ -1,12 +1,4 @@
 {
-   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@design-system/*": [
-        "packages/design-system/*"
-      ]
-    }
-  },
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },

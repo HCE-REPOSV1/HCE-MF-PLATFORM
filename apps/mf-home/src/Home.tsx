@@ -65,7 +65,7 @@ const MODULES: Module[] = [
 // ─────────────────────────────────────────────────────────
 export default function Home() {
   const navigate                    = useNavigate()
-  const { permisos, hasPermission } = useUser()
+  const { hasPermission } = useUser()
 
   // DEBUG temporal — abre DevTools > Console para ver los códigos reales de MAC
   //console.log('[Home] permisos MAC →', permisos)
