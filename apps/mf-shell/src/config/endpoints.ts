@@ -24,4 +24,9 @@ export const ENDPOINTS = {
     validateToken:   `${AG_CROSS}/api/v1/auth/validate`,
   },
 
+  /** Organización y sedes */
+  organization: {
+    locations: `${AG_CROSS}/api/v1/organization/1/locations`,
+  },
+
 } as const

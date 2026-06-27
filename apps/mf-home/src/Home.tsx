@@ -68,7 +68,7 @@ export default function Home() {
   const { permisos, hasPermission } = useUser()
 
   // DEBUG temporal — abre DevTools > Console para ver los códigos reales de MAC
-  console.log('[Home] permisos MAC →', permisos)
+  //console.log('[Home] permisos MAC →', permisos)
 
   const canAccess = (codigo: string): boolean => hasPermission(codigo)
 

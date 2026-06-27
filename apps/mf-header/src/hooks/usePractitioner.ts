@@ -1,17 +1,3 @@
-/**
- * ---------------------------------------------------------
- * Hook: usePractitioner
- * Carga los datos del practitioner autenticado por su username.
- * Solo se ejecuta cuando el usuario ya tiene sesión activa (username disponible).
- *
- * Estados de retorno:
- *   loading  → petición en curso
- *   error    → falló la petición (error de red; 404 devuelve null sin error)
- *   data     → PractitionerProfile | null
- *   photoUrl → URL de la foto lista para usar como src en <img>
- *   subtitle → especialidad o rol según lógica del servicio
- * ---------------------------------------------------------
- */
 import { useState, useEffect } from "react"
 import { apiFetch } from "shell/ApiClient"
 import {
@@ -30,16 +16,16 @@ interface UsePractitionerResult {
 }
 
 export function usePractitioner(username: string | null | undefined): UsePractitionerResult {
-  const [data,     setData]     = useState<PractitionerProfile | null>(null)
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
-  const [loading,  setLoading]  = useState(false)
-  const [error,    setError]    = useState<string | null>(null)
+  const [data,      setData]      = useState<PractitionerProfile | null>(null)
+  const [photoUrl,  setPhotoUrl]  = useState<string | null>(null)
+  const [loadedFor, setLoadedFor] = useState<string | null | undefined>(undefined)
+  const [error,     setError]     = useState<string | null>(null)
+
+  const loading = username !== loadedFor
 
   useEffect(() => {
     if (!username) {
-      setData(null)
-      setPhotoUrl(null)
-      setError(null)
+      setData(null); setPhotoUrl(null); setError(null); setLoadedFor(null)
       return
     }
 
@@ -47,41 +33,46 @@ export function usePractitioner(username: string | null | undefined): UsePractit
     let blobUrl: string | null = null
 
     const load = async () => {
-      setLoading(true)
       setError(null)
-      try {
-        const profile = await getPractitionerByUsername(username)
+
+      // Intenta hasta 2 veces con 1.5 s entre intentos (errores transitorios de gateway)
+      let profile: PractitionerProfile | null = null
+      let fetchError: unknown = null
+
+      for (let attempt = 0; attempt < 2; attempt++) {
         if (cancelled) return
+        if (attempt > 0) {
+          await new Promise<void>(r => setTimeout(r, 1500))
+          if (cancelled) return
+        }
+        try {
+          profile = await getPractitionerByUsername(username)
+          fetchError = null
+          break
+        } catch (err) {
+          fetchError = err
+        }
+      }
 
+      if (cancelled) return
+
+      if (fetchError) {
+        setError(fetchError instanceof Error ? fetchError.message : "Error al cargar perfil del practitioner")
+        setData(null)
+      } else {
         setData(profile)
-
-        // Fetch de la foto como blob para evitar ERR_BLOCKED_BY_RESPONSE.NotSameOrigin.
-        // El browser bloquea <img src> cross-origin cuando el servidor devuelve
-        // Cross-Origin-Resource-Policy: same-origin. Hacerlo via fetch() con
-        // credentials y convertir a blob URL evita esa restricción.
         if (profile?.practitioner_uuid) {
           try {
             const res = await apiFetch(getPractitionerPhotoUrl(profile.practitioner_uuid))
             if (!cancelled && res.ok) {
               const blob = await res.blob()
-              if (!cancelled) {
-                blobUrl = URL.createObjectURL(blob)
-                setPhotoUrl(blobUrl)
-              }
+              if (!cancelled) { blobUrl = URL.createObjectURL(blob); setPhotoUrl(blobUrl) }
             }
-          } catch {
-            // Foto no disponible — el Avatar mostrará las iniciales como fallback
-          }
+          } catch { }
         }
-      } catch (err) {
-        if (!cancelled) {
-          const msg = err instanceof Error ? err.message : "Error al cargar perfil del practitioner"
-          setError(msg)
-          setData(null)
-        }
-      } finally {
-        if (!cancelled) setLoading(false)
       }
+
+      if (!cancelled) setLoadedFor(username)
     }
 
     load()

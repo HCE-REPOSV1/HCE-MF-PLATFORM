@@ -76,12 +76,11 @@ export function getPractitionerPhotoUrl(practitionerUuid: string): string {
 
 /**
  * Devuelve el subtítulo que debe mostrarse bajo el nombre en el header.
- * - Si role_code === "doctor": muestra la especialidad local (en mayúsculas → Title Case)
- * - Cualquier otro rol: muestra role_display
+ * - Si tiene especialidad: la muestra en Title Case (ej: "ANESTESIOLOGIA" → "Anestesiología")
+ * - Sin especialidad: muestra role_display como fallback
  */
 export function getPractitionerSubtitle(practitioner: PractitionerProfile): string {
-  if (practitioner.role_code === "doctor") {
-    // Convertir de MAYÚSCULAS a Title Case (ej: "ANESTESIOLOGIA" → "Anestesiología")
+  if (practitioner.speciality_local_name?.trim()) {
     return practitioner.speciality_local_name
       .toLowerCase()
       .replace(/\b\w/g, char => char.toUpperCase())

@@ -34,19 +34,21 @@ export default function AppLayout() {
     if (!isMobile) setMobileOpen(false);
   }, [isMobile]);
 
-  const { user, hasPermission, sede, setSede, logout, loading } = useUser();
+  const { user, hasPermission, sede, setSede, logout, loading, sucursalesDisponibles } = useUser();
 
   // Construye los items del sidebar desde el sidebarConfig + hasPermission (vía macMapping).
-  // Cuando MAC cambia permisos, hasPermission se recalcula y el sidebar se actualiza solo.
   const sidebarOpciones = useMemo(
     () => buildSidebarOpciones(hasPermission),
     [hasPermission]
   );
 
+  // sucursalesDisponibles viene ya procesado desde UserContext (MAC → sedeMapping → org locations)
+  const sucursales = sucursalesDisponibles;
+
   useEffect(() => {
     if (!user || loading) return;
 
-    // Sin sedes asignadas → modal + logout
+    // Sin sedes asignadas en MAC → modal + logout
     if (user.sucursales.length === 0) {
       setSinSedesModal(true);
       return;
@@ -59,11 +61,7 @@ export default function AppLayout() {
     }
     setSinPermisosModal(false);
 
-    // Belt-and-suspenders: si sede sigue vacío, selecciona la primera
-    if (!sede) {
-      setSede(user.sucursales[0].idSede);
-    }
-  }, [user, loading, sidebarOpciones, sede, setSede]);
+  }, [user, loading, sidebarOpciones]);
 
   const handleSinSedesAceptar = async () => {
     setSinSedesModal(false);
@@ -83,13 +81,6 @@ export default function AppLayout() {
   };
 
   const closeMobileSidebar = () => setMobileOpen(false);
-
-  const sucursales = useMemo(() => {
-    return (user?.sucursales ?? []).map((s) => ({
-      id: s.idSede,
-      nombre: s.descripcion,
-    }));
-  }, [user?.sucursales]);
 
   return (
     /*
