@@ -1,4 +1,5 @@
-import { useState, useCallback, lazy, Suspense } from "react";
+import { useState, useCallback, lazy, Suspense, useEffect } from "react";
+import { useEmergencyMonitor } from "../hooks/useEmergencyMonitor";
 import {
   Box,
   hceClinicalColors,
@@ -46,7 +47,12 @@ const Triage = lazy(() => import("triage/Triage"));
 export default function MonitorPage() {
   const canReadTriage  = usePermiso(PERMISOS_EMERGENCY.triage.read)
   const canWriteTriage = usePermiso(PERMISOS_EMERGENCY.triage.write)
-
+ //prueba de funcionamiento del endpoint
+  const { data: monitorData, loading: monitorLoading, error: monitorError } = useEmergencyMonitor()
+  useEffect(() => {
+    console.log('[MonitorPage] emergency-monitor →', { loading: monitorLoading, error: monitorError, data: monitorData })
+  }, [monitorData, monitorLoading, monitorError])
+//prueba de funcionamiento
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
     null,
