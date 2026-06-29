@@ -13,10 +13,13 @@
  *   4. Al cerrar tab / recargar → estado se limpia, /auth/me rehidrata
  * ---------------------------------------------------------
  */
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, useMemo, useCallback, type ReactNode } from "react"
 import type { OpcionMAC } from "@hce/design-system"
 import { ENDPOINTS } from "../config/endpoints"
 import { apiFetch, SessionExpiredError, SESSION_EXPIRED_EVENT } from "../services/api.service"
+import { MAC_TO_FRONT } from "../config/macMapping"
+import { MAC_SEDE_TO_LOCATION_ID } from "../config/sedeMapping"
+import { useOrgLocations } from "../hooks/useOrgLocations"
 
 export interface Sucursal {
   idSede:      string
@@ -35,7 +38,7 @@ export interface UserProfile {
   nombreCompleto:  string
   nombrePerfil:    string
   numeroDocumento: string
-  idPerfil:        string
+  idPerfil?:       string
   sucursales:      Sucursal[]
   sessionId:       string
 }
@@ -64,29 +67,40 @@ function filtrarOpciones(opciones: OpcionMAC[]): OpcionMAC[] {
     }))
 }
 
+export interface SedeInfo {
+  id:     string
+  nombre: string
+}
+
 interface UserContextValue {
-  user:           UserProfile | null
-  permisos:       Permiso[]
+  user:                   UserProfile | null
+  permisos:               Permiso[]
   /** Árbol original de opciones MAC (para renderizar el sidebar) */
-  opciones:       OpcionMAC[]
-  sede:           string
-  loading:        boolean
-  hasPermission:  (codigo: string) => boolean
-  refetch:        () => Promise<void>
-  logout:         () => Promise<void>
-  setSede:        (sede: string) => void
+  opciones:               OpcionMAC[]
+  sede:                   string
+  /** Sede activa con id + nombre — null mientras carga o si no hay sede seleccionada */
+  sedeActual:             SedeInfo | null
+  /** Lista de sedes disponibles para el usuario (filtradas por MAC + mapeadas al nuevo sistema) */
+  sucursalesDisponibles:  SedeInfo[]
+  loading:                boolean
+  hasPermission:          (codigo: string) => boolean
+  refetch:                () => Promise<void>
+  logout:                 () => Promise<void>
+  setSede:                (sede: string) => void
 }
 
 const UserContext = createContext<UserContextValue>({
-  user:          null,
-  permisos:      [],
-  opciones:      [],
-  sede:          '',
-  loading:       true,
-  hasPermission: () => false,
-  refetch:       async () => {},
-  logout:        async () => {},
-  setSede:       () => {},
+  user:                  null,
+  permisos:              [],
+  opciones:              [],
+  sede:                  '',
+  sedeActual:            null,
+  sucursalesDisponibles: [],
+  loading:               true,
+  hasPermission:         () => false,
+  refetch:               async () => {},
+  logout:                async () => {},
+  setSede:               () => {},
 })
 
 export function UserProvider({ children }: { children: ReactNode }) {
@@ -95,6 +109,38 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [opciones, setOpciones] = useState<OpcionMAC[]>([])
   const [sede,     setSede]     = useState<string>('')
   const [loading,  setLoading]  = useState(true)
+
+  // Carga las ubicaciones de la organización solo cuando hay sesión activa.
+  // enabled=false limpia el resultado (útil al cerrar sesión).
+  const orgLocations = useOrgLocations(!!user)
+
+  // Sedes disponibles: MAC sucursales → location_id del nuevo sistema → datos reales de la ubicación.
+  const sucursalesDisponibles = useMemo((): SedeInfo[] => {
+    if (!user?.sucursales?.length || !orgLocations.length) return []
+    return user.sucursales
+      .map(s => {
+        const locationId = MAC_SEDE_TO_LOCATION_ID[s.idSede]
+        if (locationId == null) return null
+        const loc = orgLocations.find(l => l.location_id === locationId)
+        if (!loc) return null
+        return { id: String(locationId), nombre: loc.location_alias }
+      })
+      .filter((s): s is SedeInfo => s !== null)
+  }, [user?.sucursales, orgLocations])
+
+  // Sede actualmente activa con su info completa.
+  const sedeActual = useMemo(
+    () => sucursalesDisponibles.find(s => s.id === sede) ?? null,
+    [sucursalesDisponibles, sede]
+  )
+
+  // Auto-selecciona la primera sede disponible (con location_id del nuevo sistema)
+  // cuando aún no hay sede activa y ya llegaron los datos de la organización.
+  useEffect(() => {
+    if (!sede && sucursalesDisponibles.length > 0) {
+      setSede(sucursalesDisponibles[0].id)
+    }
+  }, [sede, sucursalesDisponibles])
 
   // Limpia el estado local sin llamar al backend — se usa cuando el backend
   // ya invalidó la sesión por su cuenta (refresh fallido en apiFetch)
@@ -123,10 +169,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
         const json = await res.json()
         const userData = json.data as UserProfile
         setUser(userData)
-        // Auto-selecciona la primera sede si aún no hay una seleccionada
-        if (userData.sucursales?.length > 0) {
-          setSede(prev => prev || userData.sucursales[0].idSede)
-        }
       } else {
         // Sin sesión previa: no hay cookie que invalidar, solo limpiar estado
         clearSession()
@@ -166,9 +208,37 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // E = activo, L = lectura (tratar como activo), O = inactivo
-  const hasPermission = (codigo: string): boolean =>
-    permisos.some(p => p.codigo === codigo && (p.indicador === 'E' || p.indicador === 'L'))
+  // Deriva el set de permisos semánticos desde la respuesta MAC + el mapping.
+  // - indicador "E" → agrega :read y :write
+  // - indicador "L" → agrega solo :read
+  // - indicador "O" → no agrega nada
+  const { returnedFrontCodes, permisosSet } = useMemo(() => {
+    const returned = new Map<string, string>()
+    permisos.forEach(p => {
+      const fc = MAC_TO_FRONT[p.codigo]
+      if (fc) returned.set(fc, p.indicador)
+    })
+    const set = new Set<string>()
+    returned.forEach((indicador, fc) => {
+      if (indicador === "E" || indicador === "L") {
+        set.add(fc)
+        set.add(`${fc}:read`)
+      }
+      if (indicador === "E") {
+        set.add(`${fc}:write`)
+      }
+    })
+    return { returnedFrontCodes: returned, permisosSet: set }
+  }, [permisos])
+
+  // Acepta códigos semánticos internos: "emergency:module", "emergency:triage:read", etc.
+  // Si el código base no aparece en la respuesta MAC todavía → provisional → true.
+  // Si MAC lo retornó → usa el valor real del indicador.
+  const hasPermission = useCallback((codigo: string): boolean => {
+    const base = codigo.replace(/:(?:read|write)$/, "")
+    if (!returnedFrontCodes.has(base)) return true
+    return permisosSet.has(codigo)
+  }, [returnedFrontCodes, permisosSet])
 
   useEffect(() => { fetchMe() }, [])
 
@@ -181,7 +251,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <UserContext.Provider value={{ user, permisos, opciones, sede, loading, hasPermission, refetch: fetchMe, logout, setSede }}>
+    <UserContext.Provider value={{ user, permisos, opciones, sede, sedeActual, sucursalesDisponibles, loading, hasPermission, refetch: fetchMe, logout, setSede }}>
       {children}
     </UserContext.Provider>
   )

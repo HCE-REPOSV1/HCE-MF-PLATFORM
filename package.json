@@ -8,13 +8,15 @@
     "packages/*"
   ],
   "scripts": {
-    "build:remotes":   "npm run build -w apps/mf-auth -w apps/mf-home -w apps/mf-emergency -w apps/mf-hospital -w apps/mf-ambulatorio -w apps/mf-auditoria -w apps/mf-header -w apps/mf-sidebar -w apps/mf-footer -w apps/mf-triage",
+    "build:remotes":     "npm run build -w apps/mf-auth -w apps/mf-home -w apps/mf-emergency -w apps/mf-hospital -w apps/mf-ambulatorio -w apps/mf-auditoria -w apps/mf-header -w apps/mf-sidebar -w apps/mf-footer -w apps/mf-triage",
+    "build:remotes:dev": "npm run build -w apps/mf-auth -w apps/mf-home -w apps/mf-emergency -w apps/mf-hospital -w apps/mf-ambulatorio -w apps/mf-auditoria -w apps/mf-header -w apps/mf-sidebar -w apps/mf-footer -w apps/mf-triage -- --mode development",
     "build:shell":     "npm --workspace apps/mf-shell run build",
     "preview:remotes": "concurrently -n auth,home,emergency,hospital,ambulatorio,auditoria,header,sidebar,footer,triage -c magenta,green,red,blue,yellow,white,gray,gray,gray \"npm --workspace apps/mf-auth run preview\" \"npm --workspace apps/mf-home run preview\" \"npm --workspace apps/mf-emergency run preview\" \"npm --workspace apps/mf-hospital run preview\" \"npm --workspace apps/mf-ambulatorio run preview\" \"npm --workspace apps/mf-auditoria run preview\" \"npm --workspace apps/mf-header run preview\" \"npm --workspace apps/mf-sidebar run preview\" \"npm --workspace apps/mf-footer run preview\" \"npm --workspace apps/mf-triage run preview\"",
     "preview:shell":   "npm --workspace apps/mf-shell run preview",
     "dev:shell":       "npm --workspace apps/mf-shell run dev",
     "clean":           "rimraf apps/mf-auth/dist apps/mf-home/dist apps/mf-shell/dist apps/mf-emergency/dist apps/mf-hospital/dist apps/mf-ambulatorio/dist apps/mf-auditoria/dist apps/mf-header/dist apps/mf-sidebar/dist apps/mf-footer/dist apps/mf-triage/dist",
-    "start":           "npm run clean && npm run build:shell && npm run build:remotes && concurrently -n shell,remotes -c bgGreen,bgBlue \"npm run preview:shell\" \"wait-on http://localhost:10500 && npm run preview:remotes\"",
+    "start":           "npm run clean && npm run build:shell && npm run build:remotes:dev && concurrently -n shell,remotes -c bgGreen,bgBlue \"npm run preview:shell\" \"wait-on http://localhost:10500 && npm run preview:remotes\"",
+    "build":           "npm run build:shell && npm run build:remotes",
     "storybook":       "npm --workspace packages/design-system run storybook"
   },
   "dependencies": {

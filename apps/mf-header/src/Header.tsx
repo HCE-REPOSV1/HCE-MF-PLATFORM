@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { HceHeader } from "@hce/design-system";
 import { useUser } from "shell/UserContext";
 import { usePractitioner } from "./hooks/usePractitioner";
@@ -16,6 +17,15 @@ interface HeaderProps {
   floating?: boolean;
 }
 
+// Datos comprometidos para el header — asignados UNA SOLA VEZ por usuario.
+// Reglas:
+//   - practitioner encontrado Y role_code="doctor" → prefix + especialidad
+//   - practitioner no encontrado O role_code≠"doctor" → user.nombrePerfil (auth/me)
+type CommittedData = {
+  role:   string | null  // subtítulo a mostrar (null = ocultar)
+  prefix: string | null  // prefijo del nombre (Dr., Dra., etc.) o null
+} | undefined
+
 export default function Header({
   sede,
   sucursales,
@@ -24,23 +34,48 @@ export default function Header({
   onMenuClick,
 }: HeaderProps) {
   const { user } = useUser();
-
-  // Datos reales del practitioner: nombre con prefijo, especialidad y foto.
-  // Se carga solo cuando el username está disponible tras el login.
   const {
-    data: practitioner,
-    photoUrl: practitionerPhotoUrl,
+    data: practitionerData,
+    photoUrl,
     subtitle: practitionerSubtitle,
+    loading: practitionerLoading,
   } = usePractitioner(user?.username);
 
-  // Nombre a mostrar: name_text del practitioner si ya cargó, fallback al nombreCompleto del AD
-  const userName = practitioner?.name_text ?? user?.nombreCompleto;
-  // Subtítulo: especialidad o rol del practitioner, fallback al perfil del AD
-  const userRole = practitionerSubtitle ?? user?.nombrePerfil;
+  const [committed, setCommitted] = useState<CommittedData>(undefined)
+
+  // Resetear al cambiar de usuario (logout / cambio de cuenta)
+  useEffect(() => {
+    setCommitted(undefined)
+  }, [user?.username])
+
+  // Commit único cuando el practitioner termina de cargar.
+  // Doctor → prefix + especialidad | Otro / no encontrado → user.nombrePerfil (auth/me)
+  useEffect(() => {
+    if (committed !== undefined) return
+    if (practitionerLoading || !user) return
+
+    if (practitionerData?.role_code === "doctor") {
+      setCommitted({
+        role:   practitionerSubtitle ?? null,
+        prefix: practitionerData.name_prefix?.trim() || null,
+      })
+    } else {
+      setCommitted({
+        role:   user.nombrePerfil ?? null,
+        prefix: null,
+      })
+    }
+  }, [committed, practitionerLoading, user, practitionerData, practitionerSubtitle])
+
+  const prefix   = committed?.prefix
+  const userName = prefix
+    ? `${prefix} ${user?.nombreCompleto ?? ''}`
+    : user?.nombreCompleto
+
+  const userRole = committed?.role ?? undefined
 
   return (
     <div>
-      {/* HEADER — flotante visual: borderRadius + sombra prueba de pr*/}
       <HceHeader
         floating
         sede={sede}
@@ -48,7 +83,7 @@ export default function Header({
         onSedeCambiada={onSedeCambiada}
         userName={userName}
         userRole={userRole}
-        userPhotoUrl={practitionerPhotoUrl ?? undefined}
+        userPhotoUrl={photoUrl ?? undefined}
         onLogout={onLogout}
         onMenuClick={onMenuClick}
       />

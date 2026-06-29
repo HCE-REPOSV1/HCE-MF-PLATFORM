@@ -1,4 +1,5 @@
 declare module "shell/UserContext" {
+  import type { OpcionMAC } from "@hce/design-system"
   export interface Sucursal {
     idSede:      string
     descripcion: string
@@ -15,7 +16,7 @@ declare module "shell/UserContext" {
     nombreCompleto:  string
     nombrePerfil:    string
     numeroDocumento: string
-    idPerfil:        string
+    idPerfil?:       string
     sucursales:      Sucursal[]
     sessionId:       string
   }
@@ -24,10 +25,17 @@ declare module "shell/UserContext" {
     titulo:    string
     indicador: string
   }
+  export interface SedeInfo {
+    id:     string
+    nombre: string
+  }
   export function useUser(): {
     user:          UserProfile | null
     permisos:      Permiso[]
-    sede:          string
+    opciones:      OpcionMAC[]
+    sede:                   string
+    sedeActual:             SedeInfo | null
+    sucursalesDisponibles:  SedeInfo[]
     loading:       boolean
     hasPermission: (codigo: string) => boolean
     refetch:       () => Promise<void>

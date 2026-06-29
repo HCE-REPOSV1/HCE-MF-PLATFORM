@@ -28,6 +28,10 @@ export const ENDPOINTS = {
   monitor: {
     emergencyMonitor:  `${AG_WEB_EMERGENCY}/api/v1/emergency-monitor?page=1&limit=20`,
 
-  }
+  },
+  /** Organización y sedes */
+  organization: {
+    locations: `${AG_CROSS}/api/v1/organization/1/locations`,
+  },
 
 } as const

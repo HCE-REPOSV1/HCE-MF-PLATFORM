@@ -7,6 +7,7 @@ import {
   UiWarningIcon,
 } from "@hce/design-system";
 import { useUser } from "./context/UserContext";
+import { buildSidebarOpciones } from "./config/sidebarConfig";
 
 const SIDEBAR_LEFT = 12; // padding izquierdo de la fila central (desktop)
 const SIDEBAR_TOP = 12; // padding superior de la fila central
@@ -33,30 +34,34 @@ export default function AppLayout() {
     if (!isMobile) setMobileOpen(false);
   }, [isMobile]);
 
-  const { user, opciones, sede, setSede, logout, loading } = useUser();
+  const { user, hasPermission, sede, setSede, logout, loading, sucursalesDisponibles } = useUser();
+
+  // Construye los items del sidebar desde el sidebarConfig + hasPermission (vía macMapping).
+  const sidebarOpciones = useMemo(
+    () => buildSidebarOpciones(hasPermission),
+    [hasPermission]
+  );
+
+  // sucursalesDisponibles viene ya procesado desde UserContext (MAC → sedeMapping → org locations)
+  const sucursales = sucursalesDisponibles;
 
   useEffect(() => {
     if (!user || loading) return;
 
-    // Sin sedes asignadas → modal + logout
+    // Sin sedes asignadas en MAC → modal + logout
     if (user.sucursales.length === 0) {
       setSinSedesModal(true);
       return;
     }
 
-    // Sin opciones de menú visibles (todas en estado "O") → modal + logout
-    if (opciones !== null && opciones.length === 0) {
+    // Sin módulos habilitados (todos con indicador "O" en MAC) → modal + logout
+    if (sidebarOpciones.length === 0) {
       setSinPermisosModal(true);
       return;
     }
-    // Si llegaron opciones, asegurarse de que el modal no quede abierto por un render intermedio
     setSinPermisosModal(false);
 
-    // Belt-and-suspenders: si sede sigue vacío, selecciona la primera
-    if (!sede) {
-      setSede(user.sucursales[0].idSede);
-    }
-  }, [user, loading, opciones, sede, setSede]);
+  }, [user, loading, sidebarOpciones]);
 
   const handleSinSedesAceptar = async () => {
     setSinSedesModal(false);
@@ -76,13 +81,6 @@ export default function AppLayout() {
   };
 
   const closeMobileSidebar = () => setMobileOpen(false);
-
-  const sucursales = useMemo(() => {
-    return (user?.sucursales ?? []).map((s) => ({
-      id: s.idSede,
-      nombre: s.descripcion,
-    }));
-  }, [user?.sucursales]);
 
   return (
     /*
@@ -168,7 +166,7 @@ export default function AppLayout() {
               multiLevel={false}
               collapsed={false}
               onToggle={closeMobileSidebar}
-              opciones={opciones}
+              opciones={sidebarOpciones}
               currentPath={location.pathname}
               onNavigate={(vista) => {
                 closeMobileSidebar();
@@ -202,7 +200,7 @@ export default function AppLayout() {
               multiLevel={false}
               collapsed={collapsed}
               onToggle={() => setCollapsed((prev) => !prev)}
-              opciones={opciones}
+              opciones={sidebarOpciones}
               currentPath={location.pathname}
               onNavigate={(vista) => {
                 closeMobileSidebar();
