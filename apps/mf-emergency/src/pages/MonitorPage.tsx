@@ -1,3 +1,5 @@
+
+import { useEmergencyMonitor } from "../hooks/useEmergencyMonitor";
 import { useState, useCallback, lazy, Suspense, useMemo, useEffect } from "react";
 import {
   Box,
@@ -9,7 +11,7 @@ import {
   EmergencyPagination,
   BedAvailabilityDrawer,
 } from "@hce/design-system";
-import {  PAGE_SIZE } from "../mock/patients.mock";
+
 import { AsignarMedicoModal } from "../components/AsignarMedicoModal";
 
 import type {  GenericTableColumn } from "@hce/design-system";
@@ -201,6 +203,12 @@ const Triage = lazy(() => import("triage/Triage"));
 export default function MonitorPage() {
   const canReadTriage  = usePermiso(PERMISOS_EMERGENCY.triage.read)
   const canWriteTriage = usePermiso(PERMISOS_EMERGENCY.triage.write)
+ //prueba de funcionamiento del endpoint
+  const { data: monitorData, loading: monitorLoading, error: monitorError } = useEmergencyMonitor()
+  useEffect(() => {
+    console.log('[MonitorPage] emergency-monitor →', { loading: monitorLoading, error: monitorError, data: monitorData })
+  }, [monitorData, monitorLoading, monitorError])
+//prueba de funcionamiento
 
   const [rows, setRows] = useState<MonitorTableRow[]>([])
 
@@ -237,8 +245,8 @@ export default function MonitorPage() {
     const sortedRows = [...rows].sort(monitorSortComparator)
 
     return sortedRows.slice(
-      (currentPage - 1) * PAGE_SIZE,
-      currentPage * PAGE_SIZE,
+      (currentPage - 1) * 10,
+      currentPage * 10,
     )
   }, [rows, currentPage])
 
