@@ -43,3 +43,10 @@ declare module "shell/UserContext" {
     setSede:       (sede: string) => void
   }
 }
+
+
+declare module "shell/MonitorService" {
+  import type { MonitorTableRow } from "./types/monitor-table.types"
+
+  export function getMonitorRows(): Promise<MonitorTableRow[]>
+}

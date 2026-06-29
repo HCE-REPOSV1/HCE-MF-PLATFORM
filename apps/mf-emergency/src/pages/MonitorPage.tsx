@@ -1,4 +1,4 @@
-import { useState, useCallback, lazy, Suspense } from "react";
+import { useState, useCallback, lazy, Suspense, useMemo, useEffect } from "react";
 import {
   Box,
   hceClinicalColors,
@@ -9,22 +9,42 @@ import {
   EmergencyPagination,
   BedAvailabilityDrawer,
 } from "@hce/design-system";
-import { MOCK_PATIENTS, PAGE_SIZE } from "../mock/patients.mock";
+import {  PAGE_SIZE } from "../mock/patients.mock";
 import { AsignarMedicoModal } from "../components/AsignarMedicoModal";
 
-import type { PatientRowData, GenericTableColumn } from "@hce/design-system";
+import type {  GenericTableColumn } from "@hce/design-system";
 
 import { usePermiso } from "../hooks/usePermiso";
 import { PERMISOS_EMERGENCY } from "../config/permisos";
 
 import type { Medico } from "../mock/medicos.mock";
 import type { TriajeForm } from "triage/Triage";
-import {GenericTable} from "@hce/design-system"
+import {GenericTable} from "@hce/design-system";
+import { getMonitorRows } from "shell/MonitorService"
 
 
+import type { MonitorTableRow } from "../types/monitor.table.types"
 
 
-const MONITOR_DSK_COLUMNS: GenericTableColumn<PatientRowData>[]  = [
+ const createMonitorDskColumns = ({
+  canReadTriage,
+  canEditBox,
+  canReadHce,
+  canReadInfo,
+  onOpenTriage,
+  onOpenHce,
+  onOpenBox,
+  onOpenInfo,
+}: {
+  canReadTriage: boolean
+  canEditBox: boolean
+  canReadHce: boolean
+  canReadInfo: boolean
+  onOpenTriage: (row: MonitorTableRow) => void
+  onOpenHce: (row: MonitorTableRow) => void
+  onOpenBox: (row: MonitorTableRow) => void
+  onOpenInfo: (row: MonitorTableRow) => void
+}): GenericTableColumn<MonitorTableRow>[] => [
   {
     key: "priority",
     header: "Prioridad",
@@ -33,6 +53,8 @@ const MONITOR_DSK_COLUMNS: GenericTableColumn<PatientRowData>[]  = [
     width: 70,
     align: "center",
     clickable: true,
+    disabledGetter: () => !canReadTriage,
+    onClick: (row) => onOpenTriage(row),
   },
   {
     key: "box",
@@ -42,23 +64,30 @@ const MONITOR_DSK_COLUMNS: GenericTableColumn<PatientRowData>[]  = [
     width: 80,
     align: "center",
     clickable: true,
+    disabledGetter: () => !canEditBox,
+    onClick: (row) => onOpenBox(row),
   },
   {
     key: "document",
     header: "N.Documento",
     type: "text",
-    field: "document",
     width: 100,
-    align: "left",
+    valueGetter: (row) =>
+      row.is_vip ? row.document_number_masked : row.document_number,
+    boldGetter: (row) => row.has_discharge,
   },
   {
     key: "patient",
     header: "Paciente",
     type: "patient-name",
-    field: "patient.name",
     width: 180,
     align: "left",
     clickable: true,
+    valueGetter: (row) =>
+      row.is_vip ? row.patient_name_masked : row.patient_name,
+    disabledGetter: (row) => !canReadHce || !row.physician_assigned,
+    boldGetter: (row) => row.has_discharge,
+    onClick: (row) => onOpenHce(row),
     cellSx: {
       padding: "0 12px",
     },
@@ -70,6 +99,7 @@ const MONITOR_DSK_COLUMNS: GenericTableColumn<PatientRowData>[]  = [
     field: "age",
     width: 55,
     align: "center",
+    boldGetter: (row) => row.has_discharge,
   },
   {
     key: "sex",
@@ -78,14 +108,16 @@ const MONITOR_DSK_COLUMNS: GenericTableColumn<PatientRowData>[]  = [
     field: "sex",
     width: 55,
     align: "center",
+    boldGetter: (row) => row.has_discharge,
   },
   {
     key: "doctor",
     header: "Médico",
-    type: "doctor",
-    field: "doctor",
+    type: "text",
+    field: "physician_name_display",
     width: 160,
     align: "left",
+    boldGetter: (row) => row.has_discharge,
   },
   {
     key: "lab",
@@ -127,9 +159,8 @@ const MONITOR_DSK_COLUMNS: GenericTableColumn<PatientRowData>[]  = [
     key: "attentionCode",
     header: "Atención",
     type: "attention-code",
-    field: "attentionCode",
+    field: "attention_id",
     width: 90,
-    align: "left",
   },
   {
     key: "info",
@@ -137,14 +168,41 @@ const MONITOR_DSK_COLUMNS: GenericTableColumn<PatientRowData>[]  = [
     type: "info-button",
     width: 50,
     align: "center",
+    clickable: true,
+    disabledGetter: (row) => !canReadInfo || row.box.stage === "ESPERA",
+    onClick: (row) => onOpenInfo(row),
   },
 ]
+
+ const monitorSortComparator = (
+  a: MonitorTableRow,
+  b: MonitorTableRow,
+) => {
+  const priorityA = a.priority_sort ?? 99
+  const priorityB = b.priority_sort ?? 99
+
+  if (priorityA !== priorityB) {
+    return priorityA - priorityB
+  }
+
+  const attentionA = a.attention_datetime
+    ? new Date(a.attention_datetime).getTime()
+    : Number.MAX_SAFE_INTEGER
+
+  const attentionB = b.attention_datetime
+    ? new Date(b.attention_datetime).getTime()
+    : Number.MAX_SAFE_INTEGER
+
+  return attentionA - attentionB
+}
 
 const Triage = lazy(() => import("triage/Triage"));
 
 export default function MonitorPage() {
   const canReadTriage  = usePermiso(PERMISOS_EMERGENCY.triage.read)
   const canWriteTriage = usePermiso(PERMISOS_EMERGENCY.triage.write)
+
+  const [rows, setRows] = useState<MonitorTableRow[]>([])
 
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
@@ -154,47 +212,110 @@ export default function MonitorPage() {
   const [triajeModo, setTriajeModo]  = useState<"read" | "write">("write");
   const [medicoOpen, setMedicoOpen] = useState(false);
 
-  const totalPages = Math.ceil(MOCK_PATIENTS.length / PAGE_SIZE);
+  const totalPages = Math.ceil(rows.length / PAGE_SIZE)
 
-  const paginatedRows: PatientRowData[] = MOCK_PATIENTS.slice(
+   useEffect(() => {
+      const loadMonitor = async () => {
+        try {
+        
 
-  (currentPage - 1) * PAGE_SIZE,
-  currentPage * PAGE_SIZE,
-);
+          const data = await getMonitorRows()
+
+          setRows(data)
+        } catch (error) {
+          console.error("[MonitorPage] Error cargando monitor:", error)
+        } finally {
+      
+        }
+      }
+
+      loadMonitor()
+    }, [])
+
+
+  const paginatedRows = useMemo(() => {
+    const sortedRows = [...rows].sort(monitorSortComparator)
+
+    return sortedRows.slice(
+      (currentPage - 1) * PAGE_SIZE,
+      currentPage * PAGE_SIZE,
+    )
+  }, [rows, currentPage])
+
+  const canEditBox = true
+  const canReadHce = true
+  const canReadInfo = true
 
 
 
+  const handlePatientClick = useCallback((row: MonitorTableRow) => {
+    setSelectedPatientId((prev) => (prev === row.id ? null : row.id))
+    console.info("[MonitorPage] Abrir HCE:", row)
+  }, [])
 
-  const handlePatientClick = useCallback((row: PatientRowData) => {
-    setSelectedPatientId((prev) => (prev === row.id ? null : row.id));
-  }, []);
+  const handlePriorityClick = useCallback(
+    (row: MonitorTableRow) => {
+      if (!canReadTriage) {
+        console.info("[MonitorPage] No tiene permiso para leer triaje:", row)
+        return
+      }
 
-  const handlePriorityClick = useCallback((row: PatientRowData) => {
-    console.info("[MonitorPage] Abrir triaje solo lectura:", row);
-  }, []);
+      setSelectedPatientId(row.id)
+      setTriajeModo("read")
+      setTriajeOpen(true)
 
-  const handleBoxClick = useCallback((row: PatientRowData) => {
-    const stage = row.box.stage;
+      console.info("[MonitorPage] Abrir triaje solo lectura:", row)
+    },
+    [canReadTriage],
+  )
 
-    if (stage === "WAITING") {
+  const handleBoxClick = useCallback((row: MonitorTableRow) => {
+    const stage = row.box.stage
+
+    if (stage === "ESPERA") {
       console.info(
         "[MonitorPage] Paciente aún no cuenta con atención. Comunicarse con el counter de emergencia.",
         row,
-      );
-      return;
+      )
+      return
     }
 
     if (stage === "SALA_D") {
-      console.info("[MonitorPage] Abrir asignación de BOX:", row);
-      return;
+      console.info("[MonitorPage] Abrir asignación de BOX:", row)
+      return
     }
 
-    console.info("[MonitorPage] Abrir cambio de BOX:", row);
-  }, []);
+    console.info("[MonitorPage] Abrir cambio de BOX:", row)
+  }, [])
 
-  const handleInfo = useCallback((row: PatientRowData) => {
-    console.info("[MonitorPage] Info del paciente:", row);
-  }, []);
+  const handleInfo = useCallback((row: MonitorTableRow) => {
+    console.info("[MonitorPage] Info del paciente:", row)
+  }, [])
+
+
+   const columns = useMemo(
+    () =>
+      createMonitorDskColumns({
+        canReadTriage,
+        canEditBox,
+        canReadHce,
+        canReadInfo,
+        onOpenTriage: handlePriorityClick,
+        onOpenHce: handlePatientClick,
+        onOpenBox: handleBoxClick,
+        onOpenInfo: handleInfo,
+      }),
+    [
+      canReadTriage,
+      canEditBox,
+      canReadHce,
+      canReadInfo,
+      handlePriorityClick,
+      handlePatientClick,
+      handleBoxClick,
+      handleInfo,
+    ],
+  )
 
   return (
     <>
@@ -236,12 +357,11 @@ export default function MonitorPage() {
           <Box sx={{ flex: 1, overflow: "hidden", minHeight: 0 }}>
             <GenericTable
                   rows={paginatedRows}
-                  columns={MONITOR_DSK_COLUMNS}
-                  getRowId={(row) => row.id}
-                  onPatientClick={handlePatientClick}
-                  onPriorityClick={handlePriorityClick}
-                  onBoxClick={handleBoxClick}
-                  onInfo={handleInfo}
+                columns={columns}
+                getRowId={(row) => row.id}
+                maxHeight="100%"
+                rowAlertGetter={(row) => row.row_alert_color === "red"}
+                 
                 />
             {/* <EmergencyPatientTable rows={paginatedRows} header={HEADER_COLUMNS} /> */}
           </Box>
@@ -256,7 +376,7 @@ export default function MonitorPage() {
             }}
           >
             <EmergencyPagination
-              totalItems={MOCK_PATIENTS.length}
+              totalItems={rows.length}
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={(page) => {
@@ -299,8 +419,7 @@ export default function MonitorPage() {
         onClose={() => setMedicoOpen(false)}
         paciente={
           selectedPatientId
-            ? MOCK_PATIENTS.find((p) => p.id === selectedPatientId)?.patient
-                .name
+            ? rows.find((p) => p.id === selectedPatientId)?.patient_name
             : undefined
         }
         onAsignar={(medico: Medico) => {

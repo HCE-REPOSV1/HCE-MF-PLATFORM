@@ -1,5 +1,5 @@
-import type { MonitorApiItem, SemaphoreColor } from "../types/monitor-api.types"
-import type { MonitorTableRow } from "../types/monitor-table.types"
+import type { MonitorApiItem, SemaphoreColor } from "../types/monitor.api.types"
+import type { MonitorTableRow } from "../types/monitor.table.types"
 
 const mapGender = (gender: MonitorApiItem["gender"]): "F" | "M" | "-" => {
   if (gender === "female") return "F"

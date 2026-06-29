@@ -33,6 +33,7 @@ export default defineConfig(({ mode }) => {
       name: "version-json",
       closeBundle() {
         const outDir = path.resolve(__dirname, "dist")
+        fs.mkdirSync(outDir, { recursive: true })
         fs.writeFileSync(
           path.join(outDir, "version.json"),
           JSON.stringify({ buildTime: BUILD_TIME }),
@@ -45,6 +46,7 @@ export default defineConfig(({ mode }) => {
         "./UserContext": "./src/context/UserContext",
         "./AuthService": "./src/services/auth.service",
         "./ApiClient": "./src/services/api.service",
+        "./MonitorService": "./src/services/monitor.service.ts",
       },
       remotes: {
         auth:        `${env.VITE_REMOTE_AUTH}?v=${encodeURIComponent(BUILD_TIME)}`,

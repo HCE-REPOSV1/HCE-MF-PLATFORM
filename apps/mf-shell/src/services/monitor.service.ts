@@ -1,18 +1,26 @@
+/* eslint-disable */
+
 import { ENDPOINTS } from "../config/endpoints"
+import { mapMonitorApiItemToTableRow } from "../../../mf-emergency/src/mapper/monitor.mapper"
+import type { MonitorApiResponse } from "../../../mf-emergency/src/types/monitor.api.types"
 
-export interface LoginResult {
-  ok:     boolean
-  status: number
-  data:   any
-}
 
-export async function login(usuario: string, password: string): Promise<LoginResult> {
-  const res  = await fetch(ENDPOINTS.auth.login, {
-    method:      "POST",
-    headers:     { "Content-Type": "application/json" },
+export async function getMonitorRows() {
+  const res = await fetch(ENDPOINTS.monitor.emergencyMonitor, {
+    method: "GET",
     credentials: "include",
-    body:        JSON.stringify({ username: usuario, password }),
+    headers: {
+      "Content-Type": "application/json",
+    },
   })
-  const data = await res.json()
-  return { ok: res.ok, status: res.status, data }
+
+  const data: MonitorApiResponse = await res.json()
+
+  if (!res.ok) {
+    throw new Error(data.message || "Error al obtener monitor")
+  }
+
+  return data.data.items.map(mapMonitorApiItemToTableRow)
 }
+
+
