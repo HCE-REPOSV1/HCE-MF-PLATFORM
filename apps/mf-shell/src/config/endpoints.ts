@@ -8,6 +8,7 @@
  */
 
 const AG_CROSS = import.meta.env.VITE_APIGE_CNL_CROSS
+const AG_WEB_EMERGENCY = import.meta.env.VITE_APIGE_WEB_EMERGENCY
 if (!AG_CROSS) throw new Error("[mf-shell] VITE_APIGE_CNL_CROSS no está configurado")
 
 export const ENDPOINTS = {
@@ -23,5 +24,10 @@ export const ENDPOINTS = {
     cerrarSesion:    `${AG_CROSS}/api/v1/auth/cerrar-sesion`,
     validateToken:   `${AG_CROSS}/api/v1/auth/validate`,
   },
+
+  monitor: {
+    emergencyMonitor:  `${AG_WEB_EMERGENCY}/api/v1/emergency-monitor?page=1&limit=20`,
+
+  }
 
 } as const

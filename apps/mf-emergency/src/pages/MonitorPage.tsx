@@ -153,16 +153,7 @@ export default function MonitorPage() {
   currentPage * PAGE_SIZE,
 );
 
-  // const handlePatientClick = useCallback((id: string) => {
-  //   setSelectedPatientId((prev) => (prev === id ? null : id));
-  // }, []);
 
-  // const handleInfo = useCallback((id: string) => {
-  //   const patient = MOCK_PATIENTS.find((p) => p.id === id);
-  //   console.info("[MonitorPage] Info del paciente:", patient);
-  // }, []);
-
-  //const handleRefresh = () => { setCurrentPage(1); setSelectedPatientId(null) }
 
   const handlePatientClick = useCallback((row: PatientRowData) => {
     setSelectedPatientId((prev) => (prev === row.id ? null : row.id));
