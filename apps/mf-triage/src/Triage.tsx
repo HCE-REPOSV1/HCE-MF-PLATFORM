@@ -138,7 +138,6 @@ function FieldCol({
 // ─── Subcomponente: toggle switch ────────────────────────────────────────────
 
 function Toggle({
-  label,
   checked,
   onChange,
 }: {
@@ -156,6 +155,7 @@ function Toggle({
         alignItems: "center",
         gap: 1.5,
         cursor: "pointer",
+        userSelect: "none"
       }}
     >
       <Box
@@ -166,13 +166,17 @@ function Toggle({
         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
           onChange(e.target.checked)
         }
-        sx={{ display: "none" }}
+        sx={{
+          position: "absolute",
+          opacity: 0,
+          width: 0,
+          height: 0,
+        }}
       />
       <Box
-        onClick={() => onChange(!checked)}
         sx={{
-          width: 44,
-          height: 24,
+          width: 38,
+          height: 22,
           borderRadius: "12px",
           backgroundColor: checked
             ? hceColors.primary.blue[600]
@@ -187,9 +191,9 @@ function Toggle({
           sx={{
             position: "absolute",
             top: 2,
-            left: checked ? 20 : 2,
-            width: 20,
-            height: 20,
+            left: checked ? 18 : 2,
+            width: 18,
+            height: 18,
             borderRadius: "50%",
             backgroundColor: "#ffffff",
             transition: "left 220ms",
@@ -197,15 +201,6 @@ function Toggle({
           }}
         />
       </Box>
-      <Typography
-        sx={{
-          fontFamily: hceTypography.fontFamily,
-          fontSize: "0.82rem",
-          color: hceColors.neutro.black[600],
-        }}
-      >
-        {label}
-      </Typography>
     </Box>
   );
 }
@@ -616,7 +611,7 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
         title="Triaje"
         onClose={handleClose}
         closeOnBackdrop={false}
-        maxWidth="lg"
+        maxWidth="md"
         primaryButton={{
           label: "Guardar triaje",
           onClick: handleGuardar,
@@ -824,6 +819,119 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
                 />
 
                 {/* Aislamiento + Gestante + FUR + Tiempo de enfermedad */}
+                <Grid
+                  container
+                  columns={12}
+                  spacing={2}
+                  sx={{
+                    width: "100%",
+                    alignItems: "flex-end",
+                  }}
+                >
+                  <Grid size={3}>
+                    <RadioGroup
+                      legend="Aislamiento"
+                      value={form.aislamiento}
+                      options={opcionesRadio}
+                      onChange={(v) => set("aislamiento", v)}
+                    />
+                  </Grid>
+                  <Grid size={3}>
+                    <RadioGroup
+                      legend="Gestante"
+                      value={form.gestante}
+                      options={opcionesRadio}
+                      onChange={(v) => set("gestante", v)}
+                      disabled={form.sexo === "M"}
+                    />
+                  </Grid>
+                  <Grid size={3}>
+                    <Box sx={{ display: "flex", flexDirection: "row", gap: 1.5, alignItems:"center" }}>
+                      <Toggle
+                        label="FUR"
+                        checked={form.furEnabled}
+                        onChange={(v) => {
+                          set("furEnabled", v);
+                          if (!v) set("fur", "");
+                        }}
+                      />
+                      <FieldCol label="Fecha FUR" flex="0 0 150px">
+                        <TextInput
+                          value={form.fur}
+                          onChange={(v) => set("fur", v)}
+                          placeholder="dd/mm/yyyy"
+                          disabled={!form.furEnabled}
+                        />
+                      </FieldCol>
+                    </Box>
+                  </Grid>
+                  <Grid size={3}>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <FieldCol label="T. de enfermedad">
+                        <Box sx={{ display: "flex", width: "100%" }}>
+                          <Box
+                            component="input"
+                            type="text"
+                            inputMode="numeric"
+                            value={form.tiempoEnfermedad}
+                            onChange={(
+                              e: React.ChangeEvent<HTMLInputElement>,
+                            ) =>
+                              set(
+                                "tiempoEnfermedad",
+                                e.target.value.replace(/\D/g, ""),
+                              )
+                            }
+                            placeholder="Ej: 12"
+                            sx={{
+                              flex: 1,
+                              minWidth: 0,
+                              height: 40,
+                              px: 1.5,
+                              border: `1.5px solid ${hceColors.neutro.black[200]}`,
+                              borderRight: "none",
+                              borderRadius: "8px 0 0 8px",
+                              outline: "none",
+                              fontFamily: hceTypography.fontFamily,
+                              fontSize: "0.875rem",
+                            }}
+                          />
+
+                          <Box
+                            sx={{
+                              width: "90px",
+                              flexShrink: 0,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              px: 1,
+                              backgroundColor: hceColors.primary.blue[600],
+                              color: "#fff",
+                              borderRadius: "0 8px 8px 0",
+                              fontFamily: hceTypography.fontFamily,
+                              fontWeight: 600,
+                              fontSize: "0.78rem",
+                              whiteSpace: "nowrap",
+                              cursor: "pointer",
+                            }}
+                            onClick={() =>
+                              set(
+                                "tiempoUnidad",
+                                form.tiempoUnidad === "horas"
+                                  ? "días"
+                                  : form.tiempoUnidad === "días"
+                                    ? "minutos"
+                                    : "horas",
+                              )
+                            }
+                          >
+                            {form.tiempoUnidad} ▾
+                          </Box>
+                        </Box>
+                      </FieldCol>
+                    </Box>
+                  </Grid>
+                </Grid>
                 <Box
                   sx={{
                     display: "flex",
@@ -833,20 +941,20 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
                     width: "100%",
                   }}
                 >
-                  <RadioGroup
+                  {/* <RadioGroup
                     legend="Aislamiento"
                     value={form.aislamiento}
                     options={opcionesRadio}
                     onChange={(v) => set("aislamiento", v)}
-                  />
-                  <RadioGroup
+                  /> */}
+                  {/* <RadioGroup
                     legend="Gestante"
                     value={form.gestante}
                     options={opcionesRadio}
                     onChange={(v) => set("gestante", v)}
                     disabled={form.sexo === "M"}
-                  />
-                  <Box
+                  /> */}
+                  {/* <Box
                     sx={{ display: "flex", alignItems: "flex-end", gap: 1.5 }}
                   >
                     <Toggle
@@ -865,69 +973,7 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
                         disabled={!form.furEnabled}
                       />
                     </FieldCol>
-                  </Box>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <FieldCol label="T. de enfermedad">
-                      <Box sx={{ display: "flex", width: "100%" }}>
-                        <Box
-                          component="input"
-                          type="text"
-                          inputMode="numeric"
-                          value={form.tiempoEnfermedad}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                            set(
-                              "tiempoEnfermedad",
-                              e.target.value.replace(/\D/g, ""),
-                            )
-                          }
-                          placeholder="Ej: 12"
-                          sx={{
-                            flex: 1,
-                            minWidth: 0,
-                            height: 40,
-                            px: 1.5,
-                            border: `1.5px solid ${hceColors.neutro.black[200]}`,
-                            borderRight: "none",
-                            borderRadius: "8px 0 0 8px",
-                            outline: "none",
-                            fontFamily: hceTypography.fontFamily,
-                            fontSize: "0.875rem",
-                          }}
-                        />
-
-                        <Box
-                          sx={{
-                            width: "90px",
-                            flexShrink: 0,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            px: 1,
-                            backgroundColor: hceColors.primary.blue[600],
-                            color: "#fff",
-                            borderRadius: "0 8px 8px 0",
-                            fontFamily: hceTypography.fontFamily,
-                            fontWeight: 600,
-                            fontSize: "0.78rem",
-                            whiteSpace: "nowrap",
-                            cursor: "pointer",
-                          }}
-                          onClick={() =>
-                            set(
-                              "tiempoUnidad",
-                              form.tiempoUnidad === "horas"
-                                ? "días"
-                                : form.tiempoUnidad === "días"
-                                  ? "minutos"
-                                  : "horas",
-                            )
-                          }
-                        >
-                          {form.tiempoUnidad} ▾
-                        </Box>
-                      </Box>
-                    </FieldCol>
-                  </Box>
+                  </Box> */}
                 </Box>
 
                 <TextareaField
@@ -961,10 +1007,10 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
                     spacing={2}
                     sx={{
                       width: "100%",
-                      alignItems: "flex-end"
+                      alignItems: "flex-end",
                     }}
                   >
-                    <Grid size={{xs:24, md:14}}>
+                    <Grid size={{ xs: 24, md: 14 }}>
                       <RadioGroup
                         value={form.traumaShock}
                         options={opcionesRadioSignosVitales}
