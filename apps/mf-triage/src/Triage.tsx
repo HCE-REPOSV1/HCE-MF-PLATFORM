@@ -28,6 +28,23 @@ import type {
 import { Grid, IconButton } from "@mui/material";
 import { usePatient } from "./hooks/usePatient";
 import { useCatalog } from "./hooks/useCatalog";
+import { useTriage } from "./hooks/useTriage";
+import { useUser } from "shell/UserContext";
+import { CSI_GENDER } from "./config/endpoints";
+import type { CatalogTimeUnit } from "./types/catalog.types";
+import type {
+  TriageFormRequest,
+  Gender,
+  EstimatedAgeGroup,
+} from "./types/triage.types";
+
+const TRIAGE_LEVEL_MAP: Record<TriagePriority, number> = {
+  I: 1,
+  II: 2,
+  III: 3,
+  IV: 4,
+};
+
 
 // ─── Opciones de principio activo (antihistamínicos) ─────────────────────────
 
@@ -373,6 +390,7 @@ interface TriajeForm {
   apellidoMaterno: string;
   fechaNacimiento: string;
   sexo: string;
+  grupoEtario: string;
   // Datos clínicos
   modoMotivo: SearchMode;
   motivoQuery: string;
@@ -417,6 +435,7 @@ const INITIAL_FORM: TriajeForm = {
   apellidoMaterno: "",
   fechaNacimiento: "",
   sexo: "",
+  grupoEtario: "",
   modoMotivo: "cie_description",
   motivoQuery: "",
   motivoSelected: null,
@@ -425,7 +444,7 @@ const INITIAL_FORM: TriajeForm = {
   furEnabled: false,
   fur: "",
   tiempoEnfermedad: "",
-  tiempoUnidad: "horas",
+  tiempoUnidad: "HRS",
   comentarios: "",
   traumaShock: false,
   noSV: false,
@@ -453,11 +472,14 @@ export interface TriajeModalProps {
   open: boolean;
   onClose: () => void;
   onGuardar?: (form: TriajeForm) => void;
+  /** "read" = solo lectura (botón Prioridad en grilla) | "write" = crear triaje (menú superior). Default: "write" */
+  mode?: "read" | "write";
 }
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 
-export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
+export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModalProps) {
+  const readOnly = mode === "read";
   const [form, setForm] = useState<TriajeForm>(INITIAL_FORM);
   const [buscandoPaciente, setBuscandoPaciente] = useState(false);
   const [pacienteNoEncontrado, setPacienteNoEncontrado] = useState(false);
@@ -469,12 +491,31 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
   const [expEva, setExpEva] = useState(true);
   const [expTriaje, setExpTriaje] = useState(true);
 
-  const [optionsActivePrinciples, setOptionsActivePrinciples] = useState<any>(
-    [],
-  );
+  const [optionsActivePrinciples, setOptionsActivePrinciples] = useState<
+    { value: string; label: string }[]
+  >([]);
 
   // Opciones de autocomplete
   const [motivoOpts, setMotivoOpts] = useState<SearchOption[]>([]);
+
+  // Opciones de tipo de documento (patient) y unidades de tiempo
+  const [tipoDocOptions, setTipoDocOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [timeUnitOptions, setTimeUnitOptions] = useState<CatalogTimeUnit[]>(
+    [],
+  );
+  const [genderOptions, setGenderOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [ageGroupOptions, setAgeGroupOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
+
+  // Paciente vinculado tras la búsqueda por documento (requerido para guardar el triaje)
+  const [patientId, setPatientId] = useState<number | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const set = useCallback(
     <K extends keyof TriajeForm>(key: K, val: TriajeForm[K]) => {
@@ -506,10 +547,18 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
   const { fetchPatient } = usePatient();
   //Data de Catalogo
   const {
-    fetchCatalogCodeSystemValue,
+    fetchCodeSystemValues,
     fetchCatalogCie,
     fetchCatalogActivePrinciples,
+    fetchIdentifierTypes,
+    fetchTimeUnits,
+    fetchAgeGroups,
   } = useCatalog();
+  //Registro de Triaje
+  // TODO: reactivar createTriage cuando se destape el POST real (ver handleGuardar)
+  const { loading: guardandoTriaje } = useTriage();
+  //Usuario y sede activa (federados desde mf-shell)
+  const { user, sedeActual } = useUser();
 
   const opcionesRadio = [
     { value: "si", label: "Si" },
@@ -523,24 +572,69 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [_, activePrinciples] = await Promise.all([
-          fetchCatalogCodeSystemValue(),
+        const results = await Promise.all([
           fetchCatalogActivePrinciples(),
+          fetchIdentifierTypes("patient"),
+          fetchTimeUnits(),
+          fetchCodeSystemValues(CSI_GENDER),
+          fetchAgeGroups(),
         ]);
+        const [activePrinciples, identifierTypes, timeUnits, genders, ageGroups] =
+          results;
 
-        console.log("fetchCatalogActivePrinciples es: ", activePrinciples);
+        if (genders && Array.isArray(genders)) {
+          setGenderOptions(
+            genders
+              .filter((g) => g.is_active)
+              .sort((a, b) => a.sort_order - b.sort_order)
+              .map((g) => ({ value: g.code, label: g.display_es })),
+          );
+        }
+
+        if (ageGroups && Array.isArray(ageGroups)) {
+          setAgeGroupOptions(
+            ageGroups
+              .filter((g) => g.is_active)
+              .sort((a, b) => a.sort_order - b.sort_order)
+              .map((g) => ({ value: g.code, label: g.display_es })),
+          );
+        }
 
         if (activePrinciples && Array.isArray(activePrinciples)) {
-          const transformerOptions = activePrinciples.map(
-            ({ atc_code, substance_name }) => ({
-              value: atc_code,
+          const transformerOptions = activePrinciples
+            .filter((p) => p.is_active)
+            .map(({ active_principle_id, substance_name }) => ({
+              value: String(active_principle_id),
               label: substance_name,
-            }),
-          );
+            }));
           setOptionsActivePrinciples(transformerOptions);
+        }
+
+        if (identifierTypes && Array.isArray(identifierTypes)) {
+          setTipoDocOptions(
+            identifierTypes
+              .filter((t) => t.is_active)
+              .sort((a, b) => a.sort_order - b.sort_order)
+              .map((t) => ({ value: t.code, label: t.display_es })),
+          );
+        } else {
+          setLoadError(
+            "No se pudieron cargar los tipos de documento. Recargue el formulario.",
+          );
+        }
+
+        if (timeUnits && Array.isArray(timeUnits)) {
+          setTimeUnitOptions(
+            [...timeUnits]
+              .filter((u) => u.is_active)
+              .sort((a, b) => a.display_order - b.display_order),
+          );
         }
       } catch (err) {
         console.log("Error al cargar información", err);
+        setLoadError(
+          "No se pudo cargar la información de catálogos. Recargue el formulario.",
+        );
       }
     };
 
@@ -550,11 +644,12 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
   // Buscar paciente por documento
   async function handleBuscarPaciente() {
     if (!form.numeroDoc || !form.tipoDoc) return;
-    const patient = await fetchPatient(form.numeroDoc, form.tipoDoc);
-
     setPacienteNoEncontrado(false);
     setBuscandoPaciente(true);
+    const patient = await fetchPatient(form.numeroDoc, form.tipoDoc);
+
     if (patient) {
+      setPatientId(patient.patient_id);
       setForm((f) => ({
         ...f,
         nombres: patient.first_name,
@@ -564,6 +659,7 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
         sexo: patient.gender,
       }));
     } else {
+      setPatientId(null);
       setPacienteNoEncontrado(true);
     }
     setBuscandoPaciente(false);
@@ -584,15 +680,126 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
     );
   }
 
-  function handleGuardar() {
-    console.log(form);
+  async function handleGuardar() {
+    if (readOnly) return;
+
+    if (form.noIdentificado) {
+      if (!form.sexo || !form.grupoEtario) {
+        setSaveError(
+          "Para un paciente no identificado debe indicar sexo y grupo etario estimado.",
+        );
+        return;
+      }
+    } else if (!patientId) {
+      setSaveError("Debe buscar un paciente por documento antes de guardar el triaje.");
+      return;
+    }
+    if (!form.motivoSelected || !form.prioridad) {
+      setSaveError("El motivo de ingreso y la clasificación de triaje son obligatorios.");
+      return;
+    }
+    if (!sedeActual) {
+      setSaveError("No se pudo determinar la sede activa. Vuelva a iniciar sesión.");
+      return;
+    }
+
+    const username = user?.username ?? "";
+    // El valor real que valida el backend (illness_duration_unit) es exactamente
+    // time_unit_name del catálogo — no se traduce ni se hardcodea en el frontend.
+    const illnessDurationUnit = timeUnitOptions.find(
+      (u) => u.time_unit_code === form.tiempoUnidad,
+    )?.time_unit_name;
+
+    const payload: TriageFormRequest = {
+      triage: {
+        // NN: patient_id se omite — el orquestador lo resuelve vía unidentified_patient
+        ...(form.noIdentificado ? {} : { patient_id: patientId }),
+        location_id: Number(sedeActual.id),
+        triage_level: TRIAGE_LEVEL_MAP[form.prioridad],
+        pain_scale_eva: form.dolEva ?? undefined,
+        chief_complaint_code: form.motivoSelected.value,//corregir debe ser el cie_id 
+        comments: form.comentarios || undefined,
+        isolation_required:
+          form.aislamiento === "" ? undefined : form.aislamiento === "si",
+        is_pregnant: form.gestante === "" ? undefined : form.gestante === "si",
+        fur_enabled: form.furEnabled,
+        fur_date: form.furEnabled && form.fur ? form.fur : undefined,
+        ...(form.tiempoEnfermedad && illnessDurationUnit
+          ? {
+              illness_duration: Number(form.tiempoEnfermedad),
+              illness_duration_unit:
+                illnessDurationUnit as TriageFormRequest["triage"]["illness_duration_unit"],
+            }
+          : {}),
+        user_create: username,
+      },
+      ...(form.noIdentificado
+        ? {
+            unidentified_patient: {
+              gender: form.sexo as Gender,
+              estimated_age_group: form.grupoEtario as EstimatedAgeGroup,
+            },
+          }
+        : {}),
+      vitalSign: {
+        systolic_pressure: form.pSistolica ? Number(form.pSistolica) : undefined,
+        diastolic_pressure: form.pDiastolica
+          ? Number(form.pDiastolica)
+          : undefined,
+        heart_rate: form.frCardiaca ? Number(form.frCardiaca) : undefined,
+        respiratory_rate: form.frRespiratoria
+          ? Number(form.frRespiratoria)
+          : undefined,
+        oxygen_saturation: form.saturacionO2
+          ? Number(form.saturacionO2)
+          : undefined,
+        temperature_c: form.temperatura
+          ? Number(form.temperatura.replace(",", "."))
+          : undefined,
+        trauma_shock_flag: form.traumaShock,
+        user_create: username,
+      },
+      glasgowScale: {
+        ocular_response: Number(form.glasgow.ocular),
+        verbal_response: Number(form.glasgow.verbal),
+        motor_response: Number(form.glasgow.motora),
+        user_create: username,
+      },
+      fastScale: {
+        face_flag: form.fast.cara === "Sí",
+        arm_flag: form.fast.brazos === "Sí",
+        speech_flag: form.fast.habla === "Sí",
+        time_flag: form.fast.tiempo === "Sí",
+        user_create: username,
+      },
+      allergyIntolerance: {
+        has_allergies: form.tieneAlergia === "si" ? "S" : "N",
+        food_allergies: form.alimentos || undefined,
+        other_allergies: form.otrosAlergias || undefined,
+        user_create: username,
+      },
+      allergySubstances: valuePrincipioActivo.map((id) => ({
+        active_principle_id: Number(id),
+      })),
+    };
+
+    console.log("Payload triage/form:", payload);
+    // const { error } = await createTriage(payload);
+    // if (error) {
+    //   setSaveError(error);
+    //   return;
+    // }
+
     onGuardar?.(form);
-    // onClose();
+    handleClose();
   }
 
   function handleClose() {
     setForm(INITIAL_FORM);
     setPacienteNoEncontrado(false);
+    setSaveError(null);
+    setPatientId(null);
+    setValuePrincipioActivo([]);
     onClose();
   }
 
@@ -611,20 +818,52 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
           onClick: () => setPacienteNoEncontrado(false),
         }}
       />
+      <HceModal
+        maxWidth={460}
+        open={!!loadError}
+        title="Error al cargar datos"
+        description={loadError ?? ""}
+        icon={<UiWarningIcon />}
+        confirmButton={{
+          label: "Aceptar",
+          onClick: () => setLoadError(null),
+        }}
+      />
+      <HceModal
+        maxWidth={460}
+        open={!!saveError}
+        title="No se pudo guardar el triaje"
+        description={saveError ?? ""}
+        icon={<UiWarningIcon />}
+        confirmButton={{
+          label: "Aceptar",
+          onClick: () => setSaveError(null),
+        }}
+      />
       <HceFormModal
         open={open}
-        title="Triaje"
+        title={readOnly ? "Triaje — Solo lectura" : "Triaje"}
         onClose={handleClose}
         closeOnBackdrop={false}
         maxWidth="lg"
-        primaryButton={{
-          label: "Guardar triaje",
-          onClick: handleGuardar,
-          color: hceColors.primary.green[600],
-          icon: <UiDisketteIcon size={16} color="#ffffff" />,
-        }}
+        primaryButton={
+          readOnly
+            ? undefined
+            : {
+                label: "Guardar triaje",
+                onClick: handleGuardar,
+                color: hceColors.primary.green[600],
+                icon: <UiDisketteIcon size={16} color="#ffffff" />,
+                disabled:
+                  guardandoTriaje ||
+                  (form.noIdentificado
+                    ? !form.sexo || !form.grupoEtario
+                    : !patientId),
+                loading: guardandoTriaje,
+              }
+        }
         secondaryButton={{
-          label: "Cancelar",
+          label: readOnly ? "Cerrar" : "Cancelar",
           onClick: handleClose,
           color: hceColors.primary.blue[600],
           icon: <CloseIcon size={16} color={hceColors.primary.blue[600]} />,
@@ -665,12 +904,9 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
                   label="Tipo de documento *"
                   value={form.tipoDoc}
                   onChange={(v) => set("tipoDoc", v)}
-                  options={[
-                    { value: "DN", label: "DNI" },
-                    { value: "CE", label: "Carné de extranjería" },
-                    { value: "pasaporte", label: "Pasaporte" },
-                  ]}
+                  options={tipoDocOptions}
                   placeholder="-Seleccionar opción-"
+                  disabled={form.noIdentificado}
                 />
               </Box>
               <Box sx={{ flex: 1, minWidth: 140 }}>
@@ -679,6 +915,7 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
                   value={form.numeroDoc}
                   onChange={(v) => set("numeroDoc", v)}
                   placeholder="Ingrese documento"
+                  disabled={form.noIdentificado}
                 />
               </Box>
               {/* Botón buscar  */}
@@ -687,7 +924,12 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
                 component="button"
                 type="button"
                 onClick={handleBuscarPaciente}
-                disabled={buscandoPaciente || !form.tipoDoc || !form.numeroDoc}
+                disabled={
+                  form.noIdentificado ||
+                  buscandoPaciente ||
+                  !form.tipoDoc ||
+                  !form.numeroDoc
+                }
                 sx={{
                   width: 45,
                   height: 36,
@@ -701,7 +943,10 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
                   cursor: "pointer",
                   flexShrink: 0,
                   opacity:
-                    buscandoPaciente || !form.tipoDoc || !form.numeroDoc
+                    form.noIdentificado ||
+                    buscandoPaciente ||
+                    !form.tipoDoc ||
+                    !form.numeroDoc
                       ? 0.5
                       : 1,
                   whiteSpace: "nowrap",
@@ -736,7 +981,25 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
                 <Checkbox
                   label=""
                   checked={form.noIdentificado}
-                  onChange={(v) => set("noIdentificado", v)}
+                  onChange={(v) => {
+                    set("noIdentificado", v);
+                    setPatientId(null);
+                    setPacienteNoEncontrado(false);
+                    if (v) {
+                      setForm((f) => ({
+                        ...f,
+                        tipoDoc: "",
+                        numeroDoc: "",
+                        nombres: "",
+                        apellidoPaterno: "",
+                        apellidoMaterno: "",
+                        fechaNacimiento: "",
+                        sexo: "unknown",
+                      }));
+                    } else {
+                      setForm((f) => ({ ...f, grupoEtario: "", sexo: "" }));
+                    }
+                  }}
                 ></Checkbox>
                 <Typography
                   sx={{
@@ -752,43 +1015,74 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
             </Box>
 
             {/* Campos del paciente */}
-            <Box sx={FIELD_ROW}>
-              <FieldCol label="Nombres" flex={2}>
-                <TextInput
-                  value={form.nombres}
-                  onChange={(v) => set("nombres", v)}
-                  placeholder="Ingrese datos"
-                />
-              </FieldCol>
-              <FieldCol label="Apellido Paterno" flex={1.5}>
-                <TextInput
-                  value={form.apellidoPaterno}
-                  onChange={(v) => set("apellidoPaterno", v)}
-                  placeholder="Ingrese datos"
-                />
-              </FieldCol>
-              <FieldCol label="Apellido Materno" flex={1.5}>
-                <TextInput
-                  value={form.apellidoMaterno}
-                  onChange={(v) => set("apellidoMaterno", v)}
-                  placeholder="Ingrese datos"
-                />
-              </FieldCol>
-              <FieldCol label="Fecha de nacimiento" flex="0 0 160px">
-                <TextInput
-                  value={form.fechaNacimiento}
-                  onChange={(v) => set("fechaNacimiento", v)}
-                  placeholder="dd/mm/yyyy"
-                />
-              </FieldCol>
-              <FieldCol label="Sexo" flex={1.5}>
-                <TextInput
-                  value={form.sexo}
-                  onChange={(v) => set("sexo", v)}
-                  placeholder="Ingrese datos"
-                />
-              </FieldCol>
-            </Box>
+            {form.noIdentificado ? (
+              <Box sx={FIELD_ROW}>
+                <FieldCol label="Documento" flex={1}>
+                  <TextInput value="NI" disabled onChange={() => {}} />
+                </FieldCol>
+                <FieldCol label="Número de documento" flex={1.5}>
+                  <TextInput value="XXXXXXXX" disabled onChange={() => {}} />
+                </FieldCol>
+                <Box sx={{ flex: 1.5 }}>
+                  <SelectField
+                    label="Sexo *"
+                    value={form.sexo}
+                    onChange={(v) => set("sexo", v)}
+                    options={genderOptions}
+                    placeholder="-Seleccionar opción-"
+                  />
+                </Box>
+                <Box sx={{ flex: 2 }}>
+                  <SelectField
+                    label="Grupo etario estimado *"
+                    value={form.grupoEtario}
+                    onChange={(v) => set("grupoEtario", v)}
+                    options={ageGroupOptions}
+                    placeholder="-Seleccionar opción-"
+                  />
+                </Box>
+              </Box>
+            ) : (
+              <Box sx={FIELD_ROW}>
+                <FieldCol label="Nombres" flex={2}>
+                  <TextInput
+                    value={form.nombres}
+                    onChange={(v) => set("nombres", v)}
+                    placeholder="Ingrese datos"
+                  />
+                </FieldCol>
+                <FieldCol label="Apellido Paterno" flex={1.5}>
+                  <TextInput
+                    value={form.apellidoPaterno}
+                    onChange={(v) => set("apellidoPaterno", v)}
+                    placeholder="Ingrese datos"
+                  />
+                </FieldCol>
+                <FieldCol label="Apellido Materno" flex={1.5}>
+                  <TextInput
+                    value={form.apellidoMaterno}
+                    onChange={(v) => set("apellidoMaterno", v)}
+                    placeholder="Ingrese datos"
+                  />
+                </FieldCol>
+                <FieldCol label="Fecha de nacimiento" flex="0 0 160px">
+                  <TextInput
+                    value={form.fechaNacimiento}
+                    onChange={(v) => set("fechaNacimiento", v)}
+                    placeholder="dd/mm/yyyy"
+                  />
+                </FieldCol>
+                <Box sx={{ flex: 1.5 }}>
+                  <SelectField
+                    label="Sexo"
+                    value={form.sexo}
+                    onChange={(v) => set("sexo", v)}
+                    options={genderOptions}
+                    placeholder="-Seleccionar opción-"
+                  />
+                </Box>
+              </Box>
+            )}
           </Box>
 
           {/* ── Sección 2: Datos clínicos (colapsable) ────────────────────── */}
@@ -844,7 +1138,7 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
                     value={form.gestante}
                     options={opcionesRadio}
                     onChange={(v) => set("gestante", v)}
-                    disabled={form.sexo === "M"}
+                    disabled={form.sexo === "male"}
                   />
                   <Box
                     sx={{ display: "flex", alignItems: "flex-end", gap: 1.5 }}
@@ -912,18 +1206,22 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
                             whiteSpace: "nowrap",
                             cursor: "pointer",
                           }}
-                          onClick={() =>
-                            set(
-                              "tiempoUnidad",
-                              form.tiempoUnidad === "horas"
-                                ? "días"
-                                : form.tiempoUnidad === "días"
-                                  ? "minutos"
-                                  : "horas",
-                            )
-                          }
+                          onClick={() => {
+                            if (!timeUnitOptions.length) return;
+                            const idx = timeUnitOptions.findIndex(
+                              (u) => u.time_unit_code === form.tiempoUnidad,
+                            );
+                            const next =
+                              timeUnitOptions[
+                                (idx + 1) % timeUnitOptions.length
+                              ];
+                            set("tiempoUnidad", next.time_unit_code);
+                          }}
                         >
-                          {form.tiempoUnidad} ▾
+                          {timeUnitOptions.find(
+                            (u) => u.time_unit_code === form.tiempoUnidad,
+                          )?.time_unit_name ?? form.tiempoUnidad}{" "}
+                          ▾
                         </Box>
                       </Box>
                     </FieldCol>

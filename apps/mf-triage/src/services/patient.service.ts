@@ -11,27 +11,27 @@ import { ENDPOINTS } from "../config/endpoints";
 import { apiFetch } from "shell/ApiClient";
 
 export interface Patient {
-  patient_id: string;
+  patient_id: number;
   patient_uuid: string;
   first_name: string;
   last_name_father: string;
   last_name_mother: string;
   birth_date: string;
   gender: string;
-  blood_type: string;
-  phone: string;
-  email: string;
+  blood_type: string | null;
+  phone: string | null;
+  email: string | null;
   is_unknown_patient: boolean;
-  ni_correlative: boolean | null;
+  ni_correlative: number | null;
   is_reniec_verified: boolean;
   is_sic_integrated: boolean;
-  legacy_patient_id: string;
+  legacy_patient_id: string | null;
   user_create: string;
-  user_modify: string;
+  user_modify: string | null;
   date_create: string;
-  date_modify: string;
+  date_modify: string | null;
   is_vip: boolean;
-  estimated_age_group: boolean | null;
+  estimated_age_group: string | null;
   is_active: boolean;
 }
 
