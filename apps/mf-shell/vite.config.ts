@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
     "VITE_REMOTE_AUTH", "VITE_REMOTE_HOME", "VITE_REMOTE_EMERGENCY",
     "VITE_REMOTE_HOSPITAL", "VITE_REMOTE_AMBULATORIO", "VITE_REMOTE_AUDITORIA",
     "VITE_REMOTE_HEADER", "VITE_REMOTE_SIDEBAR", "VITE_REMOTE_FOOTER", "VITE_REMOTE_TRIAGE",
-    "VITE_APIGE_CNL_CROSS",
+    "VITE_APIGW_CNL_CROSS",
   ]
   for (const key of required) {
     if (!env[key]) throw new Error(`[mf-shell] Falta variable de entorno: ${key}`)

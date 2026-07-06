@@ -127,11 +127,37 @@ llamadas protegidas (datos y foto del practitioner) — ningún microfrontend ha
 
 Cada app tiene su propio `.env` (ver `.env.example` en cada `apps/<nombre>`).
 Todas requieren `VITE_REMOTE_SHELL`; `mf-shell` y `mf-header` además requieren
-las URLs del API Gateway (`VITE_APIGE_CNL_CROSS` / `VITE_APIGW_CNL_WEB_EMERGENCY`).
+las URLs del API Gateway (`VITE_APIGW_CNL_CROSS` / `VITE_APIGW_CNL_WEB_EMERGENCY`).
 
 En producción estas URLs **no se hardcodean** — viven en HashiCorp Vault
 (proyecto `kv-hce-platform-dev`, paths `secret/hce/mf/<app>`) y se inyectan como
 build-args al momento de compilar. Ver la sección **Producción (Docker)** abajo.
+
+### Recargar un solo remote tras cambiar su `.env`
+
+Vite "hornea" las variables `import.meta.env.VITE_*` en el bundle al momento del
+build/arranque — no se recargan en caliente. Si editaste el `.env` de un remote
+(por ejemplo `mf-triage`) mientras la plataforma corre vía `npm start`
+(build + `vite preview`), no hace falta reiniciar todo — alcanza con reconstruir
+y volver a servir ese workspace puntual:
+
+```bash
+npm run build -w apps/mf-triage -- --mode development
+npm --workspace apps/mf-triage run preview
+```
+
+Reemplazá `apps/mf-triage` por el workspace que corresponda (`apps/mf-header`,
+`apps/mf-shell`, etc.). Si el puerto del remote sigue ocupado por el proceso
+viejo (todos corren bajo un mismo `concurrently` en `npm start`), liberalo antes
+(Windows/PowerShell, usando el puerto del remote — ver tabla de **Microfrontends**
+arriba):
+
+```powershell
+Get-NetTCPConnection -LocalPort 10510 -State Listen | Select -Expand OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force }
+```
+
+Después, hacé un hard refresh (`Ctrl+Shift+R`) en el navegador para que Module
+Federation no sirva el `remoteEntry.js` viejo cacheado.
 
 ---
 
