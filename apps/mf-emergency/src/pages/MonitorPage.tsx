@@ -251,24 +251,24 @@ export default function MonitorPage() {
 
   const response = monitorData as MonitorApiResponse | null
 
-      const rows = useMemo<MonitorTableRow[]>(() => {
-      
-      
+  const rows = useMemo<MonitorTableRow[]>(() => {
+    const response = monitorData as MonitorApiResponse | null
 
-      if (!response?.data?.items) return []
+    if (!response?.data?.items) return []
 
-     
-        return response.data.items
-          .map(mapMonitorApiItemToTableRow)
-          .sort(monitorSortComparator)
-      }, [monitorData])
+    return response.data.items
+      .map(mapMonitorApiItemToTableRow)
+      .sort(monitorSortComparator)
+  }, [monitorData])
 
 
-      const summary = useMemo<MonitorSummary[]>(() => {
-      if (!response?.data?.summary) return []
+  const summary = useMemo<MonitorSummary[]>(() => {
+    const response = monitorData as MonitorApiResponse | null
 
-      return mapMonitorApiSummaryToSummary(response.data.summary)
-    }, [response])
+    if (!response?.data?.summary) return []
+
+    return mapMonitorApiSummaryToSummary(response.data.summary)
+  }, [monitorData])
 
 
   
@@ -278,6 +278,22 @@ export default function MonitorPage() {
 
   const totalPages = meta?.totalPages ?? 1
 
+  const handleOpenTriageWrite = useCallback(() => {
+    setTriajeModo("write")
+    setTriajeOpen(true)
+  }, [])
+
+  const handleOpenAsignarMedicos = useCallback(() => {
+    setMedicoOpen(true)
+  }, [])
+
+  const handleReportes = useCallback(() => {
+    console.info("[MonitorPage] Reportes")
+  }, [])
+
+  const handleDisponibilidad = useCallback(() => {
+    console.info("[MonitorPage] Disponibilidad de camas")
+  }, [])
 
   const handlePatientClick = useCallback((row: MonitorTableRow) => {
     setSelectedPatientId((prev) => (prev === row.id ? null : row.id))
@@ -385,12 +401,10 @@ export default function MonitorPage() {
             <MonitoActionBar
               tooltipPlacement="bottom"
               orientation="horizontal"
-              onTriaje={canWriteTriage ? () => { setTriajeModo("write"); setTriajeOpen(true) } : undefined}
-              onAsignarMedicos={() => setMedicoOpen(true)}
-              onReportes={() => console.info("[MonitorPage] Reportes")}
-              onDisponibilidad={() =>
-                console.info("[MonitorPage] Disponibilidad de camas")
-              }
+              onTriaje={canWriteTriage ? handleOpenTriageWrite : undefined}
+              onAsignarMedicos={handleOpenAsignarMedicos}
+              onReportes={handleReportes}
+              onDisponibilidad={handleDisponibilidad}
             />
           </Box>
 
