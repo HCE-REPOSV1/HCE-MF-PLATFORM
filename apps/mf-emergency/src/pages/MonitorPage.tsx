@@ -1,6 +1,6 @@
 
 import { useEmergencyMonitor } from "../hooks/useEmergencyMonitor";
-import { useState, useCallback, lazy, Suspense, useMemo, useEffect } from "react";
+import { useState, useCallback, lazy, Suspense, useMemo } from "react";
 import {
   Box,
   hceClinicalColors,
@@ -9,10 +9,11 @@ import {
   hceShadows,
   MonitoActionBar,
   EmergencyPagination,
-  BedAvailabilityDrawer,
+  
 } from "@hce/design-system";
 
 import { AsignarMedicoModal } from "../components/AsignarMedicoModal";
+import { AditionalInfoModal } from "../components/AditionalInfoModal";
 
 import type {  GenericTableColumn } from "@hce/design-system";
 
@@ -22,10 +23,16 @@ import { PERMISOS_EMERGENCY } from "../config/permisos";
 import type { Medico } from "../mock/medicos.mock";
 import type { TriajeForm } from "triage/Triage";
 import {GenericTable} from "@hce/design-system";
-import { getMonitorRows } from "shell/MonitorService"
 
 
-import type { MonitorTableRow } from "../types/monitor.table.types"
+
+import type { MonitorSummary, MonitorTableRow } from "../types/monitor.table.types"
+import type { MonitorApiResponse } from "../types/monitor.api.types";
+import { mapMonitorApiItemToTableRow, mapMonitorApiSummaryToSummary } from "../mapper/monitor.mapper";
+
+
+const PAGE_SIZE = 10
+
 
 
  const createMonitorDskColumns = ({
@@ -156,6 +163,8 @@ import type { MonitorTableRow } from "../types/monitor.table.types"
     clinicalIcon: "interconsult",
     width: 50,
     align: "center",
+    clickable: true,
+    onClick: (row) => onOpenInfo(row),
   },
   {
     key: "attentionCode",
@@ -203,57 +212,71 @@ const Triage = lazy(() => import("triage/Triage"));
 export default function MonitorPage() {
   const canReadTriage  = usePermiso(PERMISOS_EMERGENCY.triage.read)
   const canWriteTriage = usePermiso(PERMISOS_EMERGENCY.triage.write)
+  const canEditBox = true
+  const canReadHce = true
+  const canReadInfo = true
  //prueba de funcionamiento del endpoint
-  const { data: monitorData, loading: monitorLoading, error: monitorError } = useEmergencyMonitor()
-  useEffect(() => {
-    console.log('[MonitorPage] emergency-monitor →', { loading: monitorLoading, error: monitorError, data: monitorData })
-  }, [monitorData, monitorLoading, monitorError])
+  // const { data: monitorData, loading: monitorLoading, error: monitorError } = useEmergencyMonitor()
+  // useEffect(() => {
+  //   console.log('[MonitorPage] emergency-monitor →', { loading: monitorLoading, error: monitorError, data: monitorData })
+  // }, [monitorData, monitorLoading, monitorError])
 //prueba de funcionamiento
 
-  const [rows, setRows] = useState<MonitorTableRow[]>([])
+  
 
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
     null,
   );
+
+  const [selectedPatient, setSelectedPatient] = useState<MonitorTableRow | null>(
+    null,
+  );
   const [triajeOpen, setTriajeOpen] = useState(false);
   const [triajeModo, setTriajeModo]  = useState<"read" | "write">("write");
   const [medicoOpen, setMedicoOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
 
-  const totalPages = Math.ceil(rows.length / PAGE_SIZE)
+  
 
-   useEffect(() => {
-      const loadMonitor = async () => {
-        try {
-        
+  const {
+    data: monitorData,
+    loading: monitorLoading,
+    error: monitorError,
+  } = useEmergencyMonitor({
+    page: currentPage,
+    limit: PAGE_SIZE,
+  })
 
-          const data = await getMonitorRows()
 
-          setRows(data)
-        } catch (error) {
-          console.error("[MonitorPage] Error cargando monitor:", error)
-        } finally {
+  const response = monitorData as MonitorApiResponse | null
+
+      const rows = useMemo<MonitorTableRow[]>(() => {
       
-        }
-      }
+      
 
-      loadMonitor()
-    }, [])
+      if (!response?.data?.items) return []
+
+     
+        return response.data.items
+          .map(mapMonitorApiItemToTableRow)
+          .sort(monitorSortComparator)
+      }, [monitorData])
 
 
-  const paginatedRows = useMemo(() => {
-    const sortedRows = [...rows].sort(monitorSortComparator)
+      const summary = useMemo<MonitorSummary[]>(() => {
+      if (!response?.data?.summary) return []
 
-    return sortedRows.slice(
-      (currentPage - 1) * 10,
-      currentPage * 10,
-    )
-  }, [rows, currentPage])
+      return mapMonitorApiSummaryToSummary(response.data.summary)
+    }, [response])
 
-  const canEditBox = true
-  const canReadHce = true
-  const canReadInfo = true
 
+  
+  const meta = response?.data?.meta
+ 
+
+
+  const totalPages = meta?.totalPages ?? 1
 
 
   const handlePatientClick = useCallback((row: MonitorTableRow) => {
@@ -297,7 +320,11 @@ export default function MonitorPage() {
   }, [])
 
   const handleInfo = useCallback((row: MonitorTableRow) => {
-    console.info("[MonitorPage] Info del paciente:", row)
+
+    setInfoOpen(true)
+    setSelectedPatient(row)
+  
+
   }, [])
 
 
@@ -330,17 +357,22 @@ export default function MonitorPage() {
       <Box
         sx={{
           inset: 0,
+          height: "100% !important",
           display: "flex",
           flexDirection: "column",
           backgroundColor: hceClinicalColors.rowAlternate,
           overflow: "hidden",
           zIndex: 1,
+          
         }}
       >
         <Box
           sx={{
             flex: 1,
             display: "flex",
+            flexwrap: "wrap",
+            alignContent: 'space-between',
+            height: "100%",
             flexDirection: "column",
             overflow: "hidden",
             padding: `${hceSpacing[3]} 52px ${hceSpacing[3]} ${hceSpacing[4]}`,
@@ -362,18 +394,26 @@ export default function MonitorPage() {
             />
           </Box>
 
-          <Box sx={{ flex: 1, overflow: "hidden", minHeight: 0 }}>
+         <Box sx={{ flex: 1, overflow: "hidden", minHeight: 300,  }}>
+          {monitorLoading ? (
+            <Box sx={{ p: 2 }}>Cargando monitor...</Box>
+          ) : monitorError ? (
+            <Box sx={{ p: 2 }}>Error: {monitorError}</Box>
+          ) : (
+            <Box sx={{ flex: 1, overflowX:"auto", maxHeight: "65vh" }}>
             <GenericTable
-                  rows={paginatedRows}
-                columns={columns}
-                getRowId={(row) => row.id}
-                maxHeight="100%"
-                rowAlertGetter={(row) => row.row_alert_color === "red"}
-                 
-                />
+              rows={rows}
+              columns={columns}
+              getRowId={(row) => row.id}
+              maxHeight="45vh"
+              rowAlertGetter={(row) => row.row_alert_color === "red"}
+            />
+            </Box>
+          )}
+          
+        </Box>
             {/* <EmergencyPatientTable rows={paginatedRows} header={HEADER_COLUMNS} /> */}
-          </Box>
-
+          
           <Box
             sx={{
               flexShrink: 0,
@@ -384,19 +424,19 @@ export default function MonitorPage() {
             }}
           >
             <EmergencyPagination
-              totalItems={rows.length}
+              summary={summary}
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={(page) => {
-                setCurrentPage(page);
-                setSelectedPatientId(null);
+                setCurrentPage(page)
+                setSelectedPatientId(null)
               }}
             />
           </Box>
         </Box>
       </Box>
 
-      <BedAvailabilityDrawer />
+      {/* <BedAvailabilityDrawer /> */}
 
       {/* Modal de Triaje */}
       {/* <TriajeModal
@@ -434,6 +474,19 @@ export default function MonitorPage() {
           console.info("[MonitorPage] Médico asignado:", medico);
           // TODO: llamar a POST /api/pacientes/{selectedPatientId}/medico con medico.id
         }}
+        />
+      {/* Modal de Información Adicional */}
+      <AditionalInfoModal
+        open={infoOpen}
+        onClose={() => setInfoOpen(false)}
+        paciente={
+          selectedPatient
+            ? selectedPatient 
+            : undefined
+        }
+        onSaveChanges={
+          async (updatedPaciente) => {
+        console.info("Guardar cambios al cerrar modal:", updatedPaciente)}}
       />
     </>
   );

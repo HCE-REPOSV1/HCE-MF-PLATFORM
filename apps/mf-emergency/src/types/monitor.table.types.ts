@@ -1,6 +1,13 @@
 import type { PriorityLevel } from "@hce/design-system"
 
-export type SemaphoreColor = "green" | "yellow" | "red" | "blue" | null
+export type SemaphoreColor = "green" | "yellow" | "red"  | null
+
+export interface MonitorSummary{
+label:string
+value:number
+
+
+}
 
 export interface MonitorTableRow {
   id: string

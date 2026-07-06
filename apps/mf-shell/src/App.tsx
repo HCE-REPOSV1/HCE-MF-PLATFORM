@@ -5,6 +5,7 @@ import AppLayout from "./Layout"
 import { useUser } from "./context/UserContext"
 import { UpdateNotification } from "./components/UpdateNotification"
 import { CSFLoading } from "@hce/design-system"
+import HomeRoutes from "./routes/HomeRoutes"
 
 const AppLoader = () => <CSFLoading open overlay message="Cargando pantallas ..." frameDuration={100} />
 
@@ -69,15 +70,20 @@ export default function App() {
             </PublicRoute>
         } />
 
-        <Route path="/emergency/emergencyTV"  element={<EmergencyTV />} />
+        <Route path="/emergency/emergencyTV/:sedeId"  element={<EmergencyTV />} />
 
         {/* Rutas protegidas — layout único con sidebar flotante */}
         <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-          <Route path="/home"          element={<Home />} />
-          <Route path="/emergencia/*"   element={<Emergency />} />
-          <Route path="/hospital/*"    element={<Hospital />} />
-          <Route path="/ambulatorio/*" element={<Ambulatorio />} />
-          <Route path="/auditoria/*"   element={<Auditoria />} />
+
+         <Route path="/home" element={<HomeRoutes />}>
+             <Route index element={<Home />} />
+         
+              <Route path="emergencia/*" element={<Emergency />} />
+              <Route path="hospital/*" element={<Hospital />} />
+              <Route path="ambulatorio/*" element={<Ambulatorio />} />
+              <Route path="auditoria/*" element={<Auditoria />} />
+
+          </Route>
         </Route>
 
         {/* Cualquier ruta desconocida → login */}

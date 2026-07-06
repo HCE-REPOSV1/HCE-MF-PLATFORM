@@ -1,6 +1,6 @@
 export type MonitorBoxStatus = "ESPERA" | "SALA_D" | "BOX_ASIGNADO"
 
-export type SemaphoreColor = "green" | "yellow" | "red" | "blue"|  null
+export type SemaphoreColor = "green" | "yellow" | "red"  | null
 
 export interface MonitorApiResponse {
   success: boolean
@@ -8,8 +8,24 @@ export interface MonitorApiResponse {
   message: string
   data: {
     items: MonitorApiItem[]
+    meta: MonitorApiMeta
+    summary: MonitorApiSummary
   }
 }
+
+export interface MonitorApiMeta {
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}
+
+export interface MonitorApiSummary {
+  total_patients: number
+  active_patients: number
+  discharged_patients: number
+}
+
 
 export interface MonitorApiItem {
   monitor_id: string
@@ -32,6 +48,7 @@ export interface MonitorApiItem {
   triage_datetime: string | null
 
   box_status: MonitorBoxStatus
+  box_code: string
   box_semaphore_color: SemaphoreColor
   location_id: number | null
 
@@ -60,4 +77,4 @@ export interface MonitorApiItem {
 
   updated_at: string | null
   updated_by: string | null
-}   
+}

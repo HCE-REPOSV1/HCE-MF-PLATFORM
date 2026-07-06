@@ -1,5 +1,5 @@
-import type { MonitorApiItem, SemaphoreColor } from "../types/monitor.api.types"
-import type { MonitorTableRow } from "../types/monitor.table.types"
+import type { MonitorApiItem, MonitorApiSummary, SemaphoreColor } from "../types/monitor.api.types"
+import type { MonitorSummary, MonitorTableRow } from "../types/monitor.table.types"
 
 const mapGender = (gender: MonitorApiItem["gender"]): "F" | "M" | "-" => {
   if (gender === "female") return "F"
@@ -59,14 +59,34 @@ const formatHour = (isoDate: string | null): string => {
 }
 
 const getBoxLabel = (item: MonitorApiItem): string => {
+  if (item.box_code != null) return item.box_code
   if (item.box_status === "ESPERA") return "ESPERA"
   if (item.box_status === "SALA_D") return "SALA D"
 
-  if (item.location_id) {
-    return `TP${String(item.location_id).padStart(2, "0")}`
-  }
+  // if (item.location_id) {
+  //   return `TP${String(item.location_id).padStart(2, "0")}`
+  // }
 
   return "-"
+}
+
+export const mapMonitorApiSummaryToSummary = (
+  summary: MonitorApiSummary,
+): MonitorSummary[] => {
+  return [
+    {
+      label: "pacientes",
+      value: summary.active_patients,
+    },
+    {
+      label: "pacientes de alta",
+      value: summary.discharged_patients,
+    },
+    {
+      label: "pacientes totales",
+      value: summary.total_patients,
+    },
+  ]
 }
 
 export const mapMonitorApiItemToTableRow = (

@@ -1,206 +1,341 @@
-// import {
-//   Box,
-//   EmergencyPagination,
-//   GenericTable,
-//   hceBorderRadius,
-//   hceClinicalColors,
-//   hceShadows,
-//   hceSpacing,
-// } from "@hce/design-system"
+import {
+  Box,
+  EmergencyPagination,
+  GenericTable,
+  hceBorderRadius,
+  hceClinicalColors,
+  HceHeader,
+  hceShadows,
+  hceSpacing,
+} from "@hce/design-system"
 
-// import type {
-//   GenericTableColumn,
-//   PatientRowData,
-// } from "@hce/design-system"
+import type {
+  GenericTableColumn,
+ 
+} from "@hce/design-system"
 
-// import { MOCK_PATIENTS, PAGE_SIZE } from "../mock/patients.mock"
-// import { useState } from "react";
-
-// const MONITOR_TV_COLUMNS: GenericTableColumn<PatientRowData>[] = [
-//   {
-//     key: "priority",
-//     header: "Prioridad",
-//     type: "priority",
-//     field: "priority",
-//     width: 70,
-//     align: "center",
-//   },
-//   {
-//     key: "box",
-//     header: "Box",
-//     type: "box",
-//     field: "box",
-//     width: 80,
-//     align: "center",
-//   },
-//   {
-//     key: "patient",
-//     header: "Paciente",
-//     type: "patient-name",
-//     field: "patient.name",
-//     width: 160,
-//     align: "left",
-//   },
-//   {
-//     key: "age",
-//     header: "Edad",
-//     type: "text",
-//     field: "age",
-//     width: 55,
-//     align: "center",
-//   },
-//   {
-//     key: "doctor",
-//     header: "Médico",
-//     type: "doctor",
-//     field: "doctor",
-//     width: 160,
-//     align: "left",
-//   },
-//   {
-//     key: "lab",
-//     header: "Lab",
-//     type: "clinical-status",
-//     field: "lab",
-//     clinicalIcon: "lab",
-//     width: 50,
-//     align: "center",
-//   },
-//   {
-//     key: "img",
-//     header: "Img",
-//     type: "clinical-status",
-//     field: "img",
-//     clinicalIcon: "img",
-//     width: 50,
-//     align: "center",
-//   },
-//   {
-//     key: "indication",
-//     header: "Indc. Med.",
-//     type: "clinical-status",
-//     field: "indication",
-//     clinicalIcon: "indication",
-//     width: 50,
-//     align: "center",
-//   },
-//   {
-//     key: "interconsult",
-//     header: "Interc.",
-//     type: "clinical-status",
-//     field: "interconsult",
-//     clinicalIcon: "interconsult",
-//     width: 50,
-//     align: "center",
-//   },
-//   {
-//     key: "attentionDate",
-//     header: "F. atención",
-//     type: "text",
-//     field: "additionalInfo.attentionDate",
-//     width: 90,
-//     align: "center",
-//   },
-//   {
-//     key: "attentionHour",
-//     header: "H. atención",
-//     type: "text",
-//     field: "additionalInfo.attentionHour",
-//     width: 90,
-//     align: "center",
-//   },
-//   {
-//     key: "waitingBoxTime",
-//     header: "T. espera - BOX",
-//     type: "waiting-time",
-//     field: "additionalInfo.waitingBoxTime",
-//     width: 150,
-//     align: "center",
-//   },
-// ]
+import { useEffect, useMemo, useState } from "react";
+import type { MonitorSummary, MonitorTableRow } from "../types/monitor.table.types";
+import { useEmergencyMonitor } from "../hooks/useEmergencyMonitor";
+import type { MonitorApiResponse } from "../types/monitor.api.types";
+import { mapMonitorApiItemToTableRow, mapMonitorApiSummaryToSummary } from "../mapper/monitor.mapper";
+import { useParams } from "react-router-dom";
+import { getSede } from "../mapper/sede.mapper";
 
 
-  
-// function toTvPatientName(fullName: string) {
-//   const parts = fullName.trim().split(/\s+/)
+const PAGE_SIZE = 10
 
-//   if (parts.length === 0) return "-"
+const AUTO_PAGE_INTERVAL_MS = 5000
 
-//   const firstName = parts[0]
-//   const firstLastNameInitial = parts[1]?.[0]
+const toTvPatientName = (fullName: string) => {
+  const parts = fullName.trim().split(/\s+/)
 
-//   if (!firstLastNameInitial) return firstName
+  if (parts.length === 0) return "-"
 
-//   return `${firstName} ${firstLastNameInitial}.`
-// }
+  const firstName = parts[0]
+  const firstLastNameInitial = parts[1]?.[0]
 
-// export default function EmergencyTvPage() {
-//   const [currentPage, setCurrentPage] = useState(1)
+  if (!firstLastNameInitial) return firstName
 
-//   const totalPages = Math.ceil(MOCK_PATIENTS.length / PAGE_SIZE)
+  return `${firstName} ${firstLastNameInitial}.`
+}
 
-//   const paginatedRows: PatientRowData[] = MOCK_PATIENTS.slice(
-//     (currentPage - 1) * PAGE_SIZE,
-//     currentPage * PAGE_SIZE,
-//   ).map((row) => ({
-//     ...row,
-//     patient: {
-//       ...row.patient,
-//       name: row.isVip
-//         ? row.patient.name
-//         : toTvPatientName(row.patient.name),
-//     },
-//   }))
+const monitorSortComparator = (
+  a: MonitorTableRow,
+  b: MonitorTableRow,
+) => {
+  const priorityA = a.priority_sort ?? 99
+  const priorityB = b.priority_sort ?? 99
 
-//   return (
-//     <Box
-//       sx={{
-//         inset: 0,
-//         display: "flex",
-//         flexDirection: "column",
-//         backgroundColor: hceClinicalColors.rowAlternate,
-//         overflow: "hidden",
-//         zIndex: 1,
-//       }}
-//     >
+  if (priorityA !== priorityB) {
+    return priorityA - priorityB
+  }
+
+  const attentionA = a.attention_datetime
+    ? new Date(a.attention_datetime).getTime()
+    : Number.MAX_SAFE_INTEGER
+
+  const attentionB = b.attention_datetime
+    ? new Date(b.attention_datetime).getTime()
+    : Number.MAX_SAFE_INTEGER
+
+  return attentionA - attentionB
+}
 
 
-        
-//       <Box
-//         sx={{
-//           flex: 1,
-//           display: "flex",
-//           flexDirection: "column",
-//           overflow: "hidden",
-//           padding: `${hceSpacing[3]} 52px ${hceSpacing[3]} ${hceSpacing[4]}`,
-//           gap: hceSpacing[3],
-//         }}
-//       >
-//         <GenericTable
-//           rows={paginatedRows}
-//           columns={MONITOR_TV_COLUMNS}
-//           getRowId={(row) => row.id}
-//         />
-//       </Box>
+const MONITOR_TV_COLUMNS  : GenericTableColumn<MonitorTableRow>[] = [
+   {
+    key: "priority",
+    header: "Prioridad",
+    type: "priority",
+    field: "priority",
+    width: 100,
+    align: "center",
+    clickable: false,
+    
+  },
+  {
+    key: "box",
+    header: "Box",
+    type: "box",
+    field: "box",
+    width: 120,
+    align: "center",
+    clickable: false,
+   
+  },
+  {
+    key: "patient",
+    header: "Paciente",
+    type: "patient-name",
+    width: 140,
+    align: "left",
+    clickable: false,
+    valueGetter: (row) => {
+      const name = row.is_vip ? row.patient_name_masked : row.patient_name
 
-//       <Box
-//         sx={{
-//           flexShrink: 0,
-//           backgroundColor: hceClinicalColors.surfaceBg,
-//           borderRadius: hceBorderRadius.lg,
-//           boxShadow: hceShadows.card,
-//           border: `1px solid ${hceClinicalColors.border}`,
-//         }}
-//       >
-//         <EmergencyPagination
-//           totalItems={MOCK_PATIENTS.length}
-//           currentPage={currentPage}
-//           totalPages={totalPages}
-//           onPageChange={(page) => {
-//             setCurrentPage(page)
-//           }}
-//         />
-//       </Box>
-//     </Box>
-//   )
-// }
+      return row.is_vip ? name : toTvPatientName(name)
+    },
+    boldGetter: (row) => row.has_discharge,
+    cellSx: {
+      padding: "0 12px",
+    },
+  },
+  {
+    key: "age",
+    header: "Edad",
+    type: "text",
+    field: "age",
+    width: 55,
+    align: "center",
+  },
+  {
+    key: "doctor",
+    header: "Médico",
+    type: "text",
+    field: "physician_name_display",
+    width: 190,
+    align: "left",
+    boldGetter: (row) => row.has_discharge,
+  },
+  {
+    key: "lab",
+    header: "Lab",
+    type: "clinical-status",
+    field: "lab",
+    clinicalIcon: "lab",
+    width: 60,
+    align: "center",
+  },
+  {
+    key: "img",
+    header: "Img",
+    type: "clinical-status",
+    field: "img",
+    clinicalIcon: "img",
+    width: 60,
+    align: "center",
+  },
+  {
+    key: "indication",
+    header: "Indc. Med.",
+    type: "clinical-status",
+    field: "indication",
+    clinicalIcon: "indication",
+    width: 60,
+    align: "center",
+  },
+  {
+    key: "interconsult",
+    header: "Interc.",
+    type: "clinical-status",
+    field: "interconsult",
+    clinicalIcon: "interconsult",
+    width: 60,
+    align: "center",
+  },
+  {
+    key: "attentionDate",
+    header: "F. atención",
+    type: "text",
+    field: "attentionDate",
+    width: 120,
+    align: "center",
+    boldGetter: (row) => row.has_discharge,
+  },
+  {
+   key: "attentionHour",
+    header: "H. atención",
+    type: "text",
+    field: "attentionHour",
+    width: 80,
+    align: "center",
+    boldGetter: (row) => row.has_discharge,
+  },
+  {
+     key: "waitingBoxTime",
+    header: "T. espera - BOX",
+    type: "waiting-time",
+    field: "waiting_time_box_display",
+    colorField: "waiting_time_box_color",
+    width: 155,
+    align: "center",
+  },
+]
+
+
+
+
+export default function EmergencyTvPage() {
+  const [currentPage, setCurrentPage] = useState(1)
+  const { sedeId } = useParams<{ sedeId: string }>()
+  const sedeName= getSede(sedeId ?? "1")
+  const {
+    data: monitorData,
+    loading: monitorLoading,
+    error: monitorError,
+     refetch,
+  } = useEmergencyMonitor({
+    page: currentPage,
+    limit: PAGE_SIZE,
+     sedeId,
+  })
+
+
+
+ const response = monitorData as MonitorApiResponse | null
+ 
+       const rows = useMemo<MonitorTableRow[]>(() => {
+       
+       
+ 
+       if (!response?.data?.items) return []
+ 
+         return response.data.items
+           .map(mapMonitorApiItemToTableRow)
+           .sort(monitorSortComparator)
+       }, [monitorData])
+ 
+ 
+       const summary = useMemo<MonitorSummary[]>(() => {
+       if (!response?.data?.summary) return []
+ 
+       return mapMonitorApiSummaryToSummary(response.data.summary)
+     }, [response])
+ 
+ 
+   
+  const meta = response?.data?.meta
+
+ 
+  const totalPages = meta?.totalPages ?? 1
+
+  useEffect(() => {
+      if (monitorLoading || monitorError) return
+      if (totalPages <= 0) return
+
+      const intervalId = window.setInterval(() => {
+        if (totalPages === 1) {
+          refetch()
+          return
+        }
+
+        setCurrentPage((prevPage) => {
+          if (prevPage >= totalPages) {
+            return 1
+          }
+
+          return prevPage + 1
+        })
+      }, AUTO_PAGE_INTERVAL_MS)
+
+      return () => {
+        window.clearInterval(intervalId)
+      }
+    }, [totalPages, monitorLoading, monitorError, refetch])
+
+     useEffect(() => {
+        if (currentPage > totalPages) {
+          setCurrentPage(1)
+        }
+      }, [currentPage, totalPages])
+
+
+  return (
+    <Box
+      sx={{
+        inset: 0,
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: hceClinicalColors.rowAlternate,
+        overflow: "hidden",
+        zIndex: 1,
+         height: "100% !important",
+      }}
+    >
+
+      <Box  sx={{
+          flex: 1,
+          display: "flex",
+          flexwrap: "wrap",
+            alignContent: 'space-between',
+            height: "100%",
+         
+          flexDirection: "column",
+          overflow: "hidden",
+          padding: `0`,
+          gap: hceSpacing[3],
+        }}>
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          padding: `0`,
+          gap: hceSpacing[3],
+        }}
+      >
+
+<HceHeader tittle="Monitor TV " sede={sedeName} ></HceHeader>
+
+
+        <Box sx={{ flex: 1, overflow: "hidden", minHeight: 0 , padding: "0 8px 0 8px"}}>
+          {monitorLoading ? (
+            <Box sx={{ p: 2 }}>Cargando monitor TV...</Box>
+          ) : monitorError ? (
+            <Box sx={{ p: 2 }}>Error: {monitorError}</Box>
+          ) : (
+             
+            <GenericTable
+              rows={rows}
+              columns={MONITOR_TV_COLUMNS}
+              getRowId={(row) => row.id}
+              maxHeight="100%"
+              rowAlertGetter={(row) => row.row_alert_color === "red"}
+            />
+              
+          )}
+        </Box>
+      </Box>
+ </Box>
+      <Box
+        sx={{
+          flexShrink: 0,
+          backgroundColor: hceClinicalColors.surfaceBg,
+          borderRadius: hceBorderRadius.lg,
+          boxShadow: hceShadows.card,
+          border: `1px solid ${hceClinicalColors.border}`,
+        }}
+      >
+        <EmergencyPagination
+          summary={summary}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={() => undefined}
+        />
+     
+    </Box>
+    </Box>
+  )
+}

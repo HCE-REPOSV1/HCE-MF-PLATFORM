@@ -28,10 +28,10 @@ const SIDEBAR_TREE: SidebarItem[] = [
     icono:      "HceMenuIcon",
     permission: "hce:root",       // [MAC] 01
     children: [
-      { idMenu: 7778, titulo: "HCE Emergencia",  vista: "/emergencia",  icono: "", permission: "emergency:module"   },
-      { idMenu: 7779, titulo: "HCE Ambulatorio", vista: "/ambulatorio", icono: "", permission: "ambulatorio:module" },
-      { idMenu: 7780, titulo: "HCE Hospital",    vista: "/hospital",    icono: "", permission: "hospital:module"    },
-      { idMenu: 7781, titulo: "Auditoría Médica",vista: "/auditoria",   icono: "", permission: "auditoria:module"   },
+      { idMenu: 7778, titulo: "HCE Emergencia",  vista: "/home/emergencia",  icono: "", permission: "emergency:module"   },
+      { idMenu: 7779, titulo: "HCE Ambulatorio", vista: "/home/ambulatorio", icono: "", permission: "ambulatorio:module" },
+      { idMenu: 7780, titulo: "HCE Hospital",    vista: "/home/hospital",    icono: "", permission: "hospital:module"    },
+      { idMenu: 7781, titulo: "Auditoría Médica",vista: "/home/auditoria",   icono: "", permission: "auditoria:module"   },
     ],
   },
 ]

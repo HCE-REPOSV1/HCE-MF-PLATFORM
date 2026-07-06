@@ -4,11 +4,13 @@ import { decryptAesGcm } from '../services/crypto.service'
 import type { EncryptedPayload } from '../services/crypto.service'
 import { ENDPOINTS } from '../config/endpoints'
 
+
 const DECRYPT_KEY = import.meta.env.VITE_EMERGENCY_DECRYPT_KEY as string
 
 interface UseEmergencyMonitorOptions {
   page?:  number
   limit?: number
+  sedeId?: string 
 }
 
 export interface UseEmergencyMonitorResult {
@@ -20,9 +22,10 @@ export interface UseEmergencyMonitorResult {
 
 export function useEmergencyMonitor({
   page  = 1,
-  limit = 20,
+  limit ,
+  sedeId,
 }: UseEmergencyMonitorOptions = {}): UseEmergencyMonitorResult {
-  const sede = useSede()
+  const sede =useSede()
 
   const [data,    setData]    = useState<unknown>(null)
   const [loading, setLoading] = useState(false)
@@ -31,8 +34,12 @@ export function useEmergencyMonitor({
 
   const refetch = useCallback(() => setTick(t => t + 1), [])
 
+  const finalLimit = limit ?? 20
+
+  const finalSedeId = sedeId ?? sede?.id
+
   useEffect(() => {
-    if (!sede) return
+    if (!finalSedeId) return
     if (!DECRYPT_KEY) {
       setError('[useEmergencyMonitor] VITE_EMERGENCY_DECRYPT_KEY no está configurado')
       return
@@ -42,15 +49,21 @@ export function useEmergencyMonitor({
     setLoading(true)
     setError(null)
 
-    const url = ENDPOINTS.emergencyMonitor.public(sede.id, page, limit)
+    console.log(`[useEmergencyMonitor] Fetching data for sedeId=${finalSedeId}, page=${page}, limit=${finalLimit}`)
 
-    fetch(url)
+    const url = ENDPOINTS.emergencyMonitor.public(finalSedeId, page, finalLimit)
+
+    fetch(url, {
+      method: "GET",
+      credentials: "include",
+    })
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         return res.json() as Promise<EncryptedPayload>
       })
       .then(payload => decryptAesGcm(payload, DECRYPT_KEY))
       .then(decrypted => {
+        console.log(`[useEmergencyMonitor] Decrypted data for sedeId=${finalSedeId}:`, decrypted)
         if (!cancelled) setData(decrypted)
       })
       .catch((err: unknown) => {
@@ -61,7 +74,7 @@ export function useEmergencyMonitor({
       })
 
     return () => { cancelled = true }
-  }, [sede, page, limit, tick])
+  }, [finalSedeId, page, limit, tick])
 
   return { data, loading, error, refetch }
 }
