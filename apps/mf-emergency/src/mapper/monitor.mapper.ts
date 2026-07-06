@@ -22,7 +22,7 @@ const mapClinicalStatus = (
 const formatWaitingTime = (minutes: number | null): string => {
   if (minutes === null || minutes === undefined) return "-"
 
-  const totalSeconds = minutes * 60
+  const totalSeconds = Math.round(minutes * 60)
   const hours = Math.floor(totalSeconds / 3600)
   const mins = Math.floor((totalSeconds % 3600) / 60)
   const secs = totalSeconds % 60
@@ -63,9 +63,6 @@ const getBoxLabel = (item: MonitorApiItem): string => {
   if (item.box_status === "ESPERA") return "ESPERA"
   if (item.box_status === "SALA_D") return "SALA D"
 
-  // if (item.location_id) {
-  //   return `TP${String(item.location_id).padStart(2, "0")}`
-  // }
 
   return "-"
 }
