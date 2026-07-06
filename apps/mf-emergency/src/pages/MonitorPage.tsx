@@ -29,6 +29,7 @@ import {GenericTable} from "@hce/design-system";
 import type { MonitorSummary, MonitorTableRow } from "../types/monitor.table.types"
 import type { MonitorApiResponse } from "../types/monitor.api.types";
 import { mapMonitorApiItemToTableRow, mapMonitorApiSummaryToSummary } from "../mapper/monitor.mapper";
+import { monitorSortComparator } from "../../src/utils/monitorSort"
 
 
 const PAGE_SIZE = 10
@@ -185,27 +186,7 @@ const PAGE_SIZE = 10
   },
 ]
 
- const monitorSortComparator = (
-  a: MonitorTableRow,
-  b: MonitorTableRow,
-) => {
-  const priorityA = a.priority_sort ?? 99
-  const priorityB = b.priority_sort ?? 99
-
-  if (priorityA !== priorityB) {
-    return priorityA - priorityB
-  }
-
-  const attentionA = a.attention_datetime
-    ? new Date(a.attention_datetime).getTime()
-    : Number.MAX_SAFE_INTEGER
-
-  const attentionB = b.attention_datetime
-    ? new Date(b.attention_datetime).getTime()
-    : Number.MAX_SAFE_INTEGER
-
-  return attentionA - attentionB
-}
+ 
 
 const Triage = lazy(() => import("triage/Triage"));
 
@@ -215,15 +196,7 @@ export default function MonitorPage() {
   const canEditBox = true
   const canReadHce = true
   const canReadInfo = true
- //prueba de funcionamiento del endpoint
-  // const { data: monitorData, loading: monitorLoading, error: monitorError } = useEmergencyMonitor()
-  // useEffect(() => {
-  //   console.log('[MonitorPage] emergency-monitor →', { loading: monitorLoading, error: monitorError, data: monitorData })
-  // }, [monitorData, monitorLoading, monitorError])
-//prueba de funcionamiento
-
   
-
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
     null,
@@ -252,23 +225,20 @@ export default function MonitorPage() {
   const response = monitorData as MonitorApiResponse | null
 
   const rows = useMemo<MonitorTableRow[]>(() => {
-    const response = monitorData as MonitorApiResponse | null
-
     if (!response?.data?.items) return []
 
     return response.data.items
       .map(mapMonitorApiItemToTableRow)
       .sort(monitorSortComparator)
-  }, [monitorData])
-
+  }, [response])
 
   const summary = useMemo<MonitorSummary[]>(() => {
-    const response = monitorData as MonitorApiResponse | null
-
     if (!response?.data?.summary) return []
 
     return mapMonitorApiSummaryToSummary(response.data.summary)
-  }, [monitorData])
+  }, [response])
+
+
 
 
   
@@ -342,6 +312,13 @@ export default function MonitorPage() {
   
 
   }, [])
+
+  const handleSaveAdditionalInfo = useCallback(
+    async (updatedPaciente: MonitorTableRow) => {
+      console.info("Guardar cambios al cerrar modal:", updatedPaciente)
+    },
+    [],
+  )
 
 
    const columns = useMemo(
@@ -493,14 +470,8 @@ export default function MonitorPage() {
       <AditionalInfoModal
         open={infoOpen}
         onClose={() => setInfoOpen(false)}
-        paciente={
-          selectedPatient
-            ? selectedPatient 
-            : undefined
-        }
-        onSaveChanges={
-          async (updatedPaciente) => {
-        console.info("Guardar cambios al cerrar modal:", updatedPaciente)}}
+        paciente={selectedPatient ?? undefined}
+        onSaveChanges={handleSaveAdditionalInfo}
       />
     </>
   );

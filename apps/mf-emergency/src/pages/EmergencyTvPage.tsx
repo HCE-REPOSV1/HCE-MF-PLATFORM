@@ -21,6 +21,7 @@ import type { MonitorApiResponse } from "../types/monitor.api.types";
 import { mapMonitorApiItemToTableRow, mapMonitorApiSummaryToSummary } from "../mapper/monitor.mapper";
 import { useParams } from "react-router-dom";
 import { getSede } from "../mapper/sede.mapper";
+import { monitorSortComparator } from "../utils/monitorSort"
 
 
 const PAGE_SIZE = 10
@@ -40,27 +41,6 @@ const toTvPatientName = (fullName: string) => {
   return `${firstName} ${firstLastNameInitial}.`
 }
 
-const monitorSortComparator = (
-  a: MonitorTableRow,
-  b: MonitorTableRow,
-) => {
-  const priorityA = a.priority_sort ?? 99
-  const priorityB = b.priority_sort ?? 99
-
-  if (priorityA !== priorityB) {
-    return priorityA - priorityB
-  }
-
-  const attentionA = a.attention_datetime
-    ? new Date(a.attention_datetime).getTime()
-    : Number.MAX_SAFE_INTEGER
-
-  const attentionB = b.attention_datetime
-    ? new Date(b.attention_datetime).getTime()
-    : Number.MAX_SAFE_INTEGER
-
-  return attentionA - attentionB
-}
 
 
 const MONITOR_TV_COLUMNS  : GenericTableColumn<MonitorTableRow>[] = [
@@ -204,24 +184,21 @@ export default function EmergencyTvPage() {
 
 
  const response = monitorData as MonitorApiResponse | null
- 
-       const rows = useMemo<MonitorTableRow[]>(() => {
-       
-       
- 
-       if (!response?.data?.items) return []
- 
-         return response.data.items
-           .map(mapMonitorApiItemToTableRow)
-           .sort(monitorSortComparator)
-       }, [monitorData])
+
+ const rows = useMemo<MonitorTableRow[]>(() => {
+    if (!response?.data?.items) return []
+
+    return response.data.items
+      .map(mapMonitorApiItemToTableRow)
+      .sort(monitorSortComparator)
+  }, [response])
  
  
-       const summary = useMemo<MonitorSummary[]>(() => {
-       if (!response?.data?.summary) return []
- 
-       return mapMonitorApiSummaryToSummary(response.data.summary)
-     }, [response])
+const summary = useMemo<MonitorSummary[]>(() => {
+  if (!response?.data?.summary) return []
+
+  return mapMonitorApiSummaryToSummary(response.data.summary)
+  }, [response])
  
  
    
@@ -277,10 +254,9 @@ export default function EmergencyTvPage() {
       <Box  sx={{
           flex: 1,
           display: "flex",
-          flexwrap: "wrap",
-            alignContent: 'space-between',
-            height: "100%",
-         
+          flexWrap: "wrap",
+          alignContent: 'space-between',
+          height: "100%",
           flexDirection: "column",
           overflow: "hidden",
           padding: `0`,
@@ -297,7 +273,7 @@ export default function EmergencyTvPage() {
         }}
       >
 
-<HceHeader tittle="Monitor TV " sede={sedeName} ></HceHeader>
+        <HceHeader title="Monitor TV " variant="tv" sede={sedeName} ></HceHeader>
 
 
         <Box sx={{ flex: 1, overflow: "hidden", minHeight: 0 , padding: "0 8px 0 8px"}}>
