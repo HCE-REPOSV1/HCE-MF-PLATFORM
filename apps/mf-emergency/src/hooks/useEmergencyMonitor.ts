@@ -49,7 +49,7 @@ export function useEmergencyMonitor({
     setLoading(true)
     setError(null)
 
-    console.log(`[useEmergencyMonitor] Fetching data for sedeId=${finalSedeId}, page=${page}, limit=${finalLimit}`)
+   
 
     const url = ENDPOINTS.emergencyMonitor.public(finalSedeId, page, finalLimit)
 
@@ -63,7 +63,7 @@ export function useEmergencyMonitor({
       })
       .then(payload => decryptAesGcm(payload, DECRYPT_KEY))
       .then(decrypted => {
-        console.log(`[useEmergencyMonitor] Decrypted data for sedeId=${finalSedeId}:`, decrypted)
+     
         if (!cancelled) setData(decrypted)
       })
       .catch((err: unknown) => {
