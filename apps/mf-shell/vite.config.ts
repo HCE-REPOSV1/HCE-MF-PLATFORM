@@ -46,7 +46,7 @@ export default defineConfig(({ mode }) => {
         "./UserContext": "./src/context/UserContext",
         "./AuthService": "./src/services/auth.service",
         "./ApiClient": "./src/services/api.service",
-        "./MonitorService": "./src/services/monitor.service.ts",
+        
       },
       remotes: {
         auth:        `${env.VITE_REMOTE_AUTH}?v=${encodeURIComponent(BUILD_TIME)}`,
