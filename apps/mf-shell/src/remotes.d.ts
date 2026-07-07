@@ -40,10 +40,12 @@ declare module "emergency/menuConfig" {
   export const menuConfig: MenuConfigItem[]
 }
 declare module "emergency/EmergencyTV" {
-  const EmergencyTV: React.ComponentType
+  import type { ComponentType } from "react"
+
+  const EmergencyTV: ComponentType<Record<string, never>>
+
   export default EmergencyTV
 }
-
 // ─── Hospital ─────────────────────────────────────────────
 declare module "hospital/Hospital" {
   import type { ComponentType } from "react"
