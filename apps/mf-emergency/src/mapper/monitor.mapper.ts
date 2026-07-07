@@ -67,6 +67,14 @@ const getBoxLabel = (item: MonitorApiItem): string => {
   return "-"
 }
 
+const formatAge = (age_display: MonitorApiItem["age_display"]): string => {
+  if (!age_display) return "-"
+
+  const [first, second] = age_display.split(" ")
+
+  return `${first} ${second.charAt(0)}`
+}
+
 export const mapMonitorApiSummaryToSummary = (
   summary: MonitorApiSummary,
 ): MonitorSummary[] => {
@@ -111,7 +119,7 @@ export const mapMonitorApiItemToTableRow = (
     patient_name: item.patient_name ?? "-",
     patient_name_masked: item.patient_name_masked ?? "-",
 
-    age: item.age_display ?? "-",
+    age: formatAge(item.age_display) ?? "-",
     sex: mapGender(item.gender),
 
     physician_assigned: item.physician_assigned,
