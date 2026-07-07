@@ -38,7 +38,7 @@ export interface TriageData {
   encounter_id?:            number;
   practitioner_id?:         number;
   cie_id?:                  number;
-  chief_complaint_code?:    string;
+  chief_complaint_code?:    number;
   comments?:                string;
   isolation_required?:      boolean;
   is_pregnant?:             boolean;

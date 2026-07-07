@@ -45,25 +45,6 @@ const TRIAGE_LEVEL_MAP: Record<TriagePriority, number> = {
   IV: 4,
 };
 
-
-// ─── Opciones de principio activo (antihistamínicos) ─────────────────────────
-
-// const PRINCIPIOS_ACTIVOS_OPTIONS = [
-//   { value: "loratadina", label: "Loratadina" },
-//   { value: "cetirizina", label: "Cetirizina" },
-//   { value: "fexofenadina", label: "Fexofenadina" },
-//   { value: "desloratadina", label: "Desloratadina" },
-//   { value: "levocetirizina", label: "Levocetirizina" },
-//   { value: "difenhidramina", label: "Difenhidramina" },
-//   { value: "clorfenamina", label: "Clorfenamina" },
-//   { value: "clemastina", label: "Clemastina" },
-//   { value: "mometasona", label: "Mometasona" },
-//   { value: "fluticasona", label: "Fluticasona" },
-//   { value: "budesonida", label: "Budesonida" },
-//   { value: "pseudoefedrina", label: "Pseudoefedrina" },
-//   { value: "fenilefrina", label: "Fenilefrina" },
-// ];
-
 // ─── Subcomponente: cabecera colapsable de sección ───────────────────────────
 
 function SectionHeader({
@@ -155,11 +136,9 @@ function FieldCol({
 // ─── Subcomponente: toggle switch ────────────────────────────────────────────
 
 function Toggle({
-  label,
   checked,
   onChange,
 }: {
-  label: string;
   checked: boolean;
   onChange: (v: boolean) => void;
 }) {
@@ -214,15 +193,6 @@ function Toggle({
           }}
         />
       </Box>
-      <Typography
-        sx={{
-          fontFamily: hceTypography.fontFamily,
-          fontSize: "0.82rem",
-          color: hceColors.neutro.black[600],
-        }}
-      >
-        {label}
-      </Typography>
     </Box>
   );
 }
@@ -279,20 +249,6 @@ function NumericField({
             "&::placeholder": { color: hceColors.neutro.black[300] },
           }}
         />
-
-        {/* {suffix && (
-      <Box 
-        sx={{ 
-          pr: 1.5, 
-          fontFamily: hceTypography.fontFamily, 
-          fontSize: "0.875rem", 
-          color: hceColors.neutro.black[400],
-          userSelect: "none"
-        }}
-      >
-        {suffix}
-      </Box>
-    )} */}
       </Box>
     </FieldCol>
   );
@@ -478,7 +434,12 @@ export interface TriajeModalProps {
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 
-export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModalProps) {
+export function Triage({
+  open,
+  onClose,
+  onGuardar,
+  mode = "write",
+}: TriajeModalProps) {
   const readOnly = mode === "read";
   const [form, setForm] = useState<TriajeForm>(INITIAL_FORM);
   const [buscandoPaciente, setBuscandoPaciente] = useState(false);
@@ -502,9 +463,7 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
   const [tipoDocOptions, setTipoDocOptions] = useState<
     { value: string; label: string }[]
   >([]);
-  const [timeUnitOptions, setTimeUnitOptions] = useState<CatalogTimeUnit[]>(
-    [],
-  );
+  const [timeUnitOptions, setTimeUnitOptions] = useState<CatalogTimeUnit[]>([]);
   const [genderOptions, setGenderOptions] = useState<
     { value: string; label: string }[]
   >([]);
@@ -556,13 +515,17 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
   } = useCatalog();
   //Registro de Triaje
   // TODO: reactivar createTriage cuando se destape el POST real (ver handleGuardar)
-  const { loading: guardandoTriaje } = useTriage();
+  const { createTriage,loading: guardandoTriaje } = useTriage();
   //Usuario y sede activa (federados desde mf-shell)
   const { user, sedeActual } = useUser();
 
   const opcionesRadio = [
-    { value: "si", label: "Si" },
-    { value: "no", label: "No" },
+    { value: "S", label: "Si" },
+    { value: "N", label: "No" },
+  ];
+  const opcionesRadioAlergia = [
+    { value: "S", label: "Si" },
+    { value: "N", label: "Niega alergias" },
   ];
   const opcionesRadioSignosVitales = [
     { value: true, label: "Trauma Shock" },
@@ -579,8 +542,13 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
           fetchCodeSystemValues(CSI_GENDER),
           fetchAgeGroups(),
         ]);
-        const [activePrinciples, identifierTypes, timeUnits, genders, ageGroups] =
-          results;
+        const [
+          activePrinciples,
+          identifierTypes,
+          timeUnits,
+          genders,
+          ageGroups,
+        ] = results;
 
         if (genders && Array.isArray(genders)) {
           setGenderOptions(
@@ -672,7 +640,7 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
     setMotivoOpts(
       results
         ? results.map((d) => ({
-            value: d.cie_code,
+            value: d.cie_id,
             label: d.cie_description,
             secondary: d.cie_code,
           }))
@@ -691,15 +659,21 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
         return;
       }
     } else if (!patientId) {
-      setSaveError("Debe buscar un paciente por documento antes de guardar el triaje.");
+      setSaveError(
+        "Debe buscar un paciente por documento antes de guardar el triaje.",
+      );
       return;
     }
     if (!form.motivoSelected || !form.prioridad) {
-      setSaveError("El motivo de ingreso y la clasificación de triaje son obligatorios.");
+      setSaveError(
+        "El motivo de ingreso y la clasificación de triaje son obligatorios.",
+      );
       return;
     }
     if (!sedeActual) {
-      setSaveError("No se pudo determinar la sede activa. Vuelva a iniciar sesión.");
+      setSaveError(
+        "No se pudo determinar la sede activa. Vuelva a iniciar sesión.",
+      );
       return;
     }
 
@@ -717,7 +691,8 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
         location_id: Number(sedeActual.id),
         triage_level: TRIAGE_LEVEL_MAP[form.prioridad],
         pain_scale_eva: form.dolEva ?? undefined,
-        chief_complaint_code: form.motivoSelected.value,//corregir debe ser el cie_id 
+        // chief_complaint_code: form.motivoSelected.value, //corregir debe ser el cie_id
+        cie_id: form.motivoSelected.value, //corregir debe ser el cie_id
         comments: form.comentarios || undefined,
         isolation_required:
           form.aislamiento === "" ? undefined : form.aislamiento === "si",
@@ -742,7 +717,9 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
           }
         : {}),
       vitalSign: {
-        systolic_pressure: form.pSistolica ? Number(form.pSistolica) : undefined,
+        systolic_pressure: form.pSistolica
+          ? Number(form.pSistolica)
+          : undefined,
         diastolic_pressure: form.pDiastolica
           ? Number(form.pDiastolica)
           : undefined,
@@ -784,14 +761,14 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
     };
 
     console.log("Payload triage/form:", payload);
-    // const { error } = await createTriage(payload);
-    // if (error) {
-    //   setSaveError(error);
-    //   return;
-    // }
+    const { error } = await createTriage(payload);
+    if (error) {
+      setSaveError(error);
+      return;
+    }
 
     onGuardar?.(form);
-    handleClose();
+    // handleClose();
   }
 
   function handleClose() {
@@ -845,7 +822,7 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
         title={readOnly ? "Triaje — Solo lectura" : "Triaje"}
         onClose={handleClose}
         closeOnBackdrop={false}
-        maxWidth="lg"
+        maxWidth="md"
         primaryButton={
           readOnly
             ? undefined
@@ -1118,115 +1095,130 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
                 />
 
                 {/* Aislamiento + Gestante + FUR + Tiempo de enfermedad */}
-                <Box
-                  sx={{
-                    display: "flex",
-                    gap: 2,
-                    alignItems: "flex-end",
-                    flexWrap: "nowrap",
-                    width: "100%",
-                  }}
-                >
-                  <RadioGroup
-                    legend="Aislamiento"
-                    value={form.aislamiento}
-                    options={opcionesRadio}
-                    onChange={(v) => set("aislamiento", v)}
-                  />
-                  <RadioGroup
-                    legend="Gestante"
-                    value={form.gestante}
-                    options={opcionesRadio}
-                    onChange={(v) => set("gestante", v)}
-                    disabled={form.sexo === "male"}
-                  />
-                  <Box
-                    sx={{ display: "flex", alignItems: "flex-end", gap: 1.5 }}
-                  >
-                    <Toggle
-                      label="FUR"
-                      checked={form.furEnabled}
-                      onChange={(v) => {
-                        set("furEnabled", v);
-                        if (!v) set("fur", "");
-                      }}
+                <Grid container columns={12} spacing={2}>
+                  <Grid size={3}>
+                    <RadioGroup
+                      legend="Aislamiento"
+                      value={form.aislamiento}
+                      options={opcionesRadio}
+                      onChange={(v) => set("aislamiento", v)}
                     />
-                    <FieldCol label="Fecha FUR" flex="0 0 150px">
-                      <TextInput
-                        value={form.fur}
-                        onChange={(v) => set("fur", v)}
-                        placeholder="dd/mm/yyyy"
-                        disabled={!form.furEnabled}
-                      />
-                    </FieldCol>
-                  </Box>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <FieldCol label="T. de enfermedad">
-                      <Box sx={{ display: "flex", width: "100%" }}>
-                        <Box
-                          component="input"
-                          type="text"
-                          inputMode="numeric"
-                          value={form.tiempoEnfermedad}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                            set(
-                              "tiempoEnfermedad",
-                              e.target.value.replace(/\D/g, ""),
-                            )
-                          }
-                          placeholder="Ej: 12"
-                          sx={{
-                            flex: 1,
-                            minWidth: 0,
-                            height: 40,
-                            px: 1.5,
-                            border: `1.5px solid ${hceColors.neutro.black[200]}`,
-                            borderRight: "none",
-                            borderRadius: "8px 0 0 8px",
-                            outline: "none",
-                            fontFamily: hceTypography.fontFamily,
-                            fontSize: "0.875rem",
+                  </Grid>
+                  <Grid size={3}>
+                    <RadioGroup
+                      legend="Gestante"
+                      value={form.gestante}
+                      options={opcionesRadio}
+                      onChange={(v) => set("gestante", v)}
+                      disabled={form.sexo === "male"}
+                    />
+                  </Grid>
+                  <Grid size={3}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        gap: 2,
+                        alignItems: "flex-end",
+                        flexWrap: "nowrap",
+                        width: "100%",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "flex-end",
+                          gap: 1.5,
+                        }}
+                      >
+                        <Toggle
+                          checked={form.furEnabled}
+                          onChange={(v) => {
+                            set("furEnabled", v);
+                            if (!v) set("fur", "");
                           }}
                         />
-
-                        <Box
-                          sx={{
-                            width: "90px",
-                            flexShrink: 0,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            px: 1,
-                            backgroundColor: hceColors.primary.blue[600],
-                            color: "#fff",
-                            borderRadius: "0 8px 8px 0",
-                            fontFamily: hceTypography.fontFamily,
-                            fontWeight: 600,
-                            fontSize: "0.78rem",
-                            whiteSpace: "nowrap",
-                            cursor: "pointer",
-                          }}
-                          onClick={() => {
-                            if (!timeUnitOptions.length) return;
-                            const idx = timeUnitOptions.findIndex(
-                              (u) => u.time_unit_code === form.tiempoUnidad,
-                            );
-                            const next =
-                              timeUnitOptions[
-                                (idx + 1) % timeUnitOptions.length
-                              ];
-                            set("tiempoUnidad", next.time_unit_code);
-                          }}
-                        >
-                          {timeUnitOptions.find(
-                            (u) => u.time_unit_code === form.tiempoUnidad,
-                          )?.time_unit_name ?? form.tiempoUnidad}{" "}
-                          ▾
-                        </Box>
+                        <FieldCol label="Fecha FUR" flex="0 0 150px">
+                          <TextInput
+                            value={form.fur}
+                            onChange={(v) => set("fur", v)}
+                            placeholder="dd/mm/yyyy"
+                            disabled={!form.furEnabled}
+                          />
+                        </FieldCol>
                       </Box>
-                    </FieldCol>
-                  </Box>
-                </Box>
+                    </Box>
+                  </Grid>
+                  <Grid size={3}>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <FieldCol label="T. de enfermedad">
+                        <Box sx={{ display: "flex", width: "100%" }}>
+                          <Box
+                            component="input"
+                            type="text"
+                            inputMode="numeric"
+                            value={form.tiempoEnfermedad}
+                            onChange={(
+                              e: React.ChangeEvent<HTMLInputElement>,
+                            ) =>
+                              set(
+                                "tiempoEnfermedad",
+                                e.target.value.replace(/\D/g, ""),
+                              )
+                            }
+                            placeholder="Ej: 12"
+                            sx={{
+                              flex: 1,
+                              minWidth: 0,
+                              height: 40,
+                              px: 1.5,
+                              border: `1.5px solid ${hceColors.neutro.black[200]}`,
+                              borderRight: "none",
+                              borderRadius: "8px 0 0 8px",
+                              outline: "none",
+                              fontFamily: hceTypography.fontFamily,
+                              fontSize: "0.875rem",
+                            }}
+                          />
+
+                          <Box
+                            sx={{
+                              width: "90px",
+                              flexShrink: 0,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              px: 1,
+                              backgroundColor: hceColors.primary.blue[600],
+                              color: "#fff",
+                              borderRadius: "0 8px 8px 0",
+                              fontFamily: hceTypography.fontFamily,
+                              fontWeight: 600,
+                              fontSize: "0.78rem",
+                              whiteSpace: "nowrap",
+                              cursor: "pointer",
+                            }}
+                            onClick={() => {
+                              if (!timeUnitOptions.length) return;
+                              const idx = timeUnitOptions.findIndex(
+                                (u) => u.time_unit_code === form.tiempoUnidad,
+                              );
+                              const next =
+                                timeUnitOptions[
+                                  (idx + 1) % timeUnitOptions.length
+                                ];
+                              set("tiempoUnidad", next.time_unit_code);
+                            }}
+                          >
+                            {timeUnitOptions.find(
+                              (u) => u.time_unit_code === form.tiempoUnidad,
+                            )?.time_unit_name ?? form.tiempoUnidad}{" "}
+                            ▾
+                          </Box>
+                        </Box>
+                      </FieldCol>
+                    </Box>
+                  </Grid>
+                </Grid>
 
                 <TextareaField
                   label="Comentarios"
@@ -1247,65 +1239,55 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
               onToggle={() => setExpSignosVitales((e) => !e)}
             />
             {expSignosVitales && (
-              <Box sx={{ mt: 2 }}>
-                <Box
+              <Box>
+                <Grid
+                  container
+                  columns={24}
+                  spacing={2}
                   sx={{
-                    width: "100%",
-                  }}
-                >
-                  <Grid
-                    container
-                    columns={24}
-                    spacing={2}
-                    sx={{
-                      width: "100%",
-                      alignItems: "flex-end"
-                    }}
-                  >
-                    <Grid size={{xs:24, md:14}}>
-                      <RadioGroup
-                        value={form.traumaShock}
-                        options={opcionesRadioSignosVitales}
-                        onChange={(v) => {
-                          set("traumaShock", v);
-                        }}
-                      />
-                    </Grid>
-                    {/* <Grid size={{ md: 1 }} /> */}
-                    <Grid size={{ xs: 8, md: 3 }}>
-                      <NumericField
-                        label="Peso"
-                        value={form.peso}
-                        onChange={(v) => set("peso", v)}
-                        suffix="Kg"
-                      />
-                    </Grid>
-                    <Grid size={{ xs: 8, md: 3 }}>
-                      <NumericField
-                        label="Talla"
-                        value={form.talla}
-                        onChange={(v) => set("talla", v)}
-                        suffix="cm"
-                      />
-                    </Grid>
-                    <Grid size={{ xs: 8, md: 4 }}>
-                      <NumericField
-                        label="IMC"
-                        value={imc}
-                        suffix="%"
-                        readOnly
-                      />
-                    </Grid>
-                  </Grid>
-                </Box>
-
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    gap: 2,
                     width: "100%",
                     alignItems: "flex-end",
+                    mt: 2,
+                  }}
+                >
+                  <Grid size={{ xs: 24, md: 14 }}>
+                    <RadioGroup
+                      value={form.traumaShock}
+                      options={opcionesRadioSignosVitales}
+                      onChange={(v) => {
+                        set("traumaShock", v);
+                      }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 8, md: 3 }}>
+                    <NumericField
+                      label="Peso"
+                      value={form.peso}
+                      onChange={(v) => set("peso", v)}
+                      suffix="Kg"
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 8, md: 3 }}>
+                    <NumericField
+                      label="Talla"
+                      value={form.talla}
+                      onChange={(v) => set("talla", v)}
+                      suffix="cm"
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 8, md: 4 }}>
+                    <NumericField label="IMC" value={imc} suffix="%" readOnly />
+                  </Grid>
+                </Grid>
+                {/* Fila 2: Signos */}
+                <Grid
+                  container
+                  columns={12}
+                  spacing={2}
+                  sx={{
+                    width: "100%",
+                    alignItems: "flex-end",
+                    mt: 2,
                   }}
                 >
                   {[
@@ -1332,7 +1314,7 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
                       suffix: "%",
                     },
                   ].map((f) => (
-                    <Box key={f.key} sx={{}}>
+                    <Grid key={f.key} size={2}>
                       <NumericField
                         label={f.label}
                         value={form[f.key as keyof TriajeForm] as string}
@@ -1341,17 +1323,13 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
                         }
                         suffix={f.suffix}
                       />
-                    </Box>
+                    </Grid>
                   ))}
-                </Box>
-
-                {/* Fila 2: Signos */}
-                {/* <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
-                 
-                </Box> */}
+                </Grid>
 
                 {/* Escala de Glasgow + FAST */}
-                <Box sx={{ display: "flex", gap: 2 }}>
+
+                <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
                   {/* Glasgow */}
                   <Box
                     component="fieldset"
@@ -1359,15 +1337,12 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
                       flex: 1,
                       border: `1.5px solid ${hceColors.primary.green[500]}`,
                       borderRadius: "8px",
-                      px: 2,
-                      py: 1.5,
                       m: 0,
                     }}
                   >
                     <Box
                       component="legend"
                       sx={{
-                        px: 1,
                         fontFamily: hceTypography.fontFamily,
                         fontSize: "0.75rem",
                         fontWeight: 700,
@@ -1376,9 +1351,17 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
                     >
                       Escala de Glasgow
                     </Box>
-                    <Box sx={{ display: "flex", gap: 1.5, mt: 1 }}>
+                    <Grid
+                      container
+                      columns={12}
+                      spacing={2}
+                      sx={{
+                        width: "100%",
+                        alignItems: "flex-end",
+                      }}
+                    >
                       {(["ocular", "verbal", "motora"] as const).map((key) => (
-                        <Box key={key} sx={{ flex: 1 }}>
+                        <Grid key={key} size={3}>
                           <SelectField
                             label={
                               {
@@ -1406,7 +1389,7 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
                               }),
                             )}
                           />
-                        </Box>
+                        </Grid>
                       ))}
                       <NumericField
                         label="Resultado"
@@ -1414,7 +1397,7 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
                         suffix="pts"
                         readOnly
                       />
-                    </Box>
+                    </Grid>
                   </Box>
 
                   {/* FAST */}
@@ -1424,8 +1407,6 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
                       flex: 1,
                       border: `1.5px solid ${hceColors.primary.green[500]}`,
                       borderRadius: "8px",
-                      px: 2,
-                      py: 1.5,
                       m: 0,
                     }}
                   >
@@ -1441,10 +1422,18 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
                     >
                       FAST
                     </Box>
-                    <Box sx={{ display: "flex", gap: 1.5, mt: 1 }}>
+                    <Grid
+                      container
+                      columns={12}
+                      spacing={2}
+                      sx={{
+                        width: "100%",
+                        alignItems: "flex-end",
+                      }}
+                    >
                       {(["cara", "brazos", "habla", "tiempo"] as const).map(
                         (key) => (
-                          <Box key={key} sx={{ flex: 1 }}>
+                          <Grid key={key} size={3}>
                             <SelectField
                               label={
                                 {
@@ -1463,10 +1452,10 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
                                 { value: "Sí", label: "Sí" },
                               ]}
                             />
-                          </Box>
+                          </Grid>
                         ),
                       )}
-                    </Box>
+                    </Grid>
                   </Box>
                 </Box>
               </Box>
@@ -1481,79 +1470,35 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
               onToggle={() => setExpAlergias((e) => !e)}
             />
             {expAlergias && (
-              <Box
-                sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}
-              >
-                <Box
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
+                <Grid
+                  container
+                  columns={12}
+                  spacing={2}
                   sx={{
-                    display: "flex",
-                    gap: 2,
+                    width: "100%",
                     alignItems: "flex-end",
-                    flexWrap: "wrap",
                   }}
                 >
-                  <Box
-                    component="fieldset"
-                    sx={{
-                      border: `1.5px solid ${hceColors.primary.green[500]}`,
-                      borderRadius: "8px",
-                      px: 2,
-                      py: 1,
-                      m: 0,
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Box component="legend" sx={{ display: "none" }}>
-                      Declaratoria
-                    </Box>
-                    <Box sx={{ display: "flex", gap: 2 }}>
-                      {[
-                        { value: "si", label: "Si" },
-                        { value: "niega", label: "Niega alergias" },
-                      ].map((opt) => (
-                        <Box
-                          key={opt.value}
-                          component="label"
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                            cursor: "pointer",
-                            fontFamily: hceTypography.fontFamily,
-                            fontSize: "0.875rem",
-                          }}
-                        >
-                          <input
-                            type="radio"
-                            name="alergia-declaratoria"
-                            value={opt.value}
-                            checked={form.tieneAlergia === opt.value}
-                            onChange={() => set("tieneAlergia", opt.value)}
-                            style={{
-                              accentColor: hceColors.primary.green[500],
-                            }}
-                          />
-                          {opt.label}
-                        </Box>
-                      ))}
-                    </Box>
-                  </Box>
-                  <Box sx={{ flex: 1, minWidth: 220 }}>
-                    {/* <SelectField
-                    label="Principio activo"
-                    value={form.principioActivo}
-                    onChange={(v) => set("principioActivo", v)}
-                    options={PRINCIPIOS_ACTIVOS_OPTIONS}
-                    placeholder="-Seleccionar principio activo-"
-                  /> */}
+                  <Grid size={4}>
+                    <RadioGroup
+                      value={form.tieneAlergia}
+                      options={opcionesRadioAlergia}
+                      onChange={(v) => {
+                        set("tieneAlergia", v);
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid size={8}>
                     <MultiSelect
                       options={optionsActivePrinciples}
                       label="Principio activo"
                       value={valuePrincipioActivo}
                       onChange={setValuePrincipioActivo}
                     />
-                  </Box>
-                </Box>
+                  </Grid>
+                </Grid>
                 <TextareaField
                   label="Alimentos"
                   value={form.alimentos}
@@ -1580,7 +1525,7 @@ export function Triage({ open, onClose, onGuardar, mode = "write" }: TriajeModal
               onToggle={() => setExpEva((e) => !e)}
             />
             {expEva && (
-              <Box sx={{ mt: 3, px: 1 }}>
+              <Box sx={{ mt: 2, px: 1 }}>
                 <EvaScale
                   value={form.dolEva}
                   onChange={(v) => set("dolEva", v)}
