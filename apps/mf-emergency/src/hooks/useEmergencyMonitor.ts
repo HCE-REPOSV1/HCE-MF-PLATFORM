@@ -37,13 +37,17 @@ export function useEmergencyMonitor({
 
   const finalLimit = limit ?? 20
 
-  // Route param (monitor TV público) tiene prioridad; si no hay, cae al location_uuid
-  // de la sede activa del usuario logueado (monitor del dashboard).
+  // locationUuid explícito (route param) => monitor TV público, sin sesión, endpoint cifrado.
+  // Sin locationUuid => monitor del dashboard logueado, cae al location_uuid de la sede
+  // activa del usuario (useSedeUuid), endpoint autenticado sin cifrar. Nunca deben mezclarse:
+  // el público es la única ruta libre en la primera capa del apigw, el del dashboard exige
+  // sesión (JwtAuthGuard) en ambos gateways.
+  const isPublicView = locationUuid !== undefined
   const finalLocationUuid = locationUuid ?? sedeUuid ?? undefined
 
   useEffect(() => {
     if (!finalLocationUuid) return
-    if (!DECRYPT_KEY) {
+    if (isPublicView && !DECRYPT_KEY) {
       setError('[useEmergencyMonitor] VITE_EMERGENCY_DECRYPT_KEY no está configurado')
       return
     }
@@ -52,9 +56,9 @@ export function useEmergencyMonitor({
     setLoading(true)
     setError(null)
 
-   
-
-    const url = ENDPOINTS.emergencyMonitor.public(finalLocationUuid, page, finalLimit)
+    const url = isPublicView
+      ? ENDPOINTS.emergencyMonitor.public(finalLocationUuid, page, finalLimit)
+      : ENDPOINTS.emergencyMonitor.porSede(finalLocationUuid, page, finalLimit)
 
     fetch(url, {
       method: "GET",
@@ -62,11 +66,10 @@ export function useEmergencyMonitor({
     })
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json() as Promise<EncryptedPayload>
+        return res.json()
       })
-      .then(payload => decryptAesGcm(payload, DECRYPT_KEY))
+      .then(payload => (isPublicView ? decryptAesGcm(payload as EncryptedPayload, DECRYPT_KEY) : payload))
       .then(decrypted => {
-     
         if (!cancelled) setData(decrypted)
       })
       .catch((err: unknown) => {
@@ -77,7 +80,7 @@ export function useEmergencyMonitor({
       })
 
     return () => { cancelled = true }
-  }, [finalLocationUuid, page, limit, tick])
+  }, [finalLocationUuid, isPublicView, page, limit, tick])
 
   return { data, loading, error, refetch }
 }
