@@ -164,82 +164,73 @@ const MONITOR_TV_COLUMNS  : GenericTableColumn<MonitorTableRow>[] = [
 
 
 
-
 export default function EmergencyTvPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const { locationUuid } = useParams<{ locationUuid: string }>()
+  
   const {
     data: monitorData,
     loading: monitorLoading,
     error: monitorError,
-     refetch,
+    refetch,
   } = useEmergencyMonitor({
     page: currentPage,
     limit: PAGE_SIZE,
     locationUuid,
   })
 
+  const response = monitorData as MonitorApiResponse | null
+  const sedeName = response?.data?.location_name ?? "-"
 
+  // Determinar si es la carga inicial real (no tenemos datos aún y está cargando)
+  const isFirstLoading = monitorLoading && !response;
 
- const response = monitorData as MonitorApiResponse | null
-
- // Nombre de sede resuelto por el backend a partir del location_uuid (ver
- // OrganizationLocationHttpClient en ms-bs-core-emergency-monitor). Ya no depende del
- // mapa hardcodeado por id secuencial (sede.mapper.ts), que no reconocía UUIDs.
- const sedeName = response?.data?.location_name ?? "-"
-
- const rows = useMemo<MonitorTableRow[]>(() => {
+  const rows = useMemo<MonitorTableRow[]>(() => {
     if (!response?.data?.items) return []
-
     return response.data.items
       .map(mapMonitorApiItemToTableRow)
       .sort(monitorSortComparator)
   }, [response])
- 
- 
-const summary = useMemo<MonitorSummary[]>(() => {
-  if (!response?.data?.summary) return []
-
-  return mapMonitorApiSummaryToSummary(response.data.summary)
+  
+  const summary = useMemo<MonitorSummary[]>(() => {
+    if (!response?.data?.summary) return []
+    return mapMonitorApiSummaryToSummary(response.data.summary)
   }, [response])
- 
- 
-   
+  
   const meta = response?.data?.meta
-
- 
   const totalPages = meta?.totalPages ?? 1
 
+  // Intervalo para paginado automático
   useEffect(() => {
-      if (monitorLoading || monitorError) return
-      if (totalPages <= 0) return
+    // IMPORTANTE: Quitamos "monitorLoading" de aquí para que el contador 
+    // no se pause o rompa mientras se hace el fetch en segundo plano.
+    if (monitorError) return
+    if (totalPages <= 0) return
 
-      const intervalId = window.setInterval(() => {
-        if (totalPages === 1) {
-          refetch()
-          return
-        }
-
-        setCurrentPage((prevPage) => {
-          if (prevPage >= totalPages) {
-            return 1
-          }
-
-          return prevPage + 1
-        })
-      }, AUTO_PAGE_INTERVAL_MS)
-
-      return () => {
-        window.clearInterval(intervalId)
+    const intervalId = window.setInterval(() => {
+      if (totalPages === 1) {
+        refetch()
+        return
       }
-    }, [totalPages, monitorLoading, monitorError, refetch])
 
-     useEffect(() => {
-        if (currentPage > totalPages) {
-          setCurrentPage(1)
+      setCurrentPage((prevPage) => {
+        if (prevPage >= totalPages) {
+          return 1
         }
-      }, [currentPage, totalPages])
+        return prevPage + 1
+      })
+    }, AUTO_PAGE_INTERVAL_MS)
 
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [totalPages, monitorError, refetch])
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1)
+    }
+  }, [currentPage, totalPages])
 
   return (
     <Box
@@ -250,11 +241,10 @@ const summary = useMemo<MonitorSummary[]>(() => {
         backgroundColor: hceClinicalColors.rowAlternate,
         overflow: "hidden",
         zIndex: 1,
-         height: "100% !important",
+        height: "100% !important",
       }}
     >
-
-      <Box  sx={{
+      <Box sx={{
           flex: 1,
           display: "flex",
           flexWrap: "wrap",
@@ -265,39 +255,40 @@ const summary = useMemo<MonitorSummary[]>(() => {
           padding: `0`,
           gap: hceSpacing[3],
         }}>
-      <Box
-        sx={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-          padding: `0`,
-          gap: hceSpacing[3],
-        }}
-      >
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+            padding: `0`,
+            gap: hceSpacing[3],
+          }}
+        >
+          <HceHeader title="Monitor TV " variant="tv" sede={sedeName} />
 
-        <HceHeader title="Monitor TV " variant="tv" sede={sedeName} ></HceHeader>
-
-
-        <Box sx={{ flex: 1, overflow: "hidden", minHeight: 0 , padding: "0 8px 0 8px"}}>
-          {monitorLoading ? (
-            <Box sx={{ p: 2 }}>Cargando monitor TV...</Box>
-          ) : monitorError ? (
-            <Box sx={{ p: 2 }}>Error: {monitorError}</Box>
-          ) : (
-             
-            <GenericTable
-              rows={rows}
-              columns={MONITOR_TV_COLUMNS}
-              getRowId={(row) => row.id}
-              maxHeight="100%"
-              rowAlertGetter={(row) => row.row_alert_color === "red"}
-            />
-              
-          )}
+          <Box sx={{ flex: 1, overflow: "hidden", minHeight: 0 , padding: "0 8px 0 8px"}}>
+            {/* 1. Cambiado monitorLoading por isFirstLoading */}
+            {isFirstLoading ? (
+              <Box sx={{ p: 2 }}>Cargando monitor TV...</Box>
+            ) : monitorError ? (
+              <Box sx={{ p: 2 }}>Error: {monitorError}</Box>
+            ) : (
+              <GenericTable
+                rows={rows}
+                columns={MONITOR_TV_COLUMNS}
+                getRowId={(row) => row.id}
+                maxHeight="100%"
+                rowAlertGetter={(row) => row.row_alert_color === "red"}
+                // Opcional: si GenericTable soporta una opacidad o un loading interno, 
+                // puedes pasárselo sin desmontar el componente completo.
+                // loading={monitorLoading} 
+              />
+            )}
+          </Box>
         </Box>
       </Box>
- </Box>
+      
       <Box
         sx={{
           flexShrink: 0,
@@ -313,8 +304,7 @@ const summary = useMemo<MonitorSummary[]>(() => {
           totalPages={totalPages}
           onPageChange={() => undefined}
         />
-     
-    </Box>
+      </Box>
     </Box>
   )
 }
