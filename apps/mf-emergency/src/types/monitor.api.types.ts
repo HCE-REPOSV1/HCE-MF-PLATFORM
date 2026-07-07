@@ -10,6 +10,8 @@ export interface MonitorApiResponse {
     items: MonitorApiItem[]
     meta: MonitorApiMeta
     summary: MonitorApiSummary
+    /** Nombre de la sede consultada (resuelto por el backend a partir del location_uuid). Null si no se pudo resolver. */
+    location_name: string | null
   }
 }
 

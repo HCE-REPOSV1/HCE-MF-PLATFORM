@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useSede } from './useSede'
+import { useSedeUuid } from './useSedeUuid'
 import { decryptAesGcm } from '../services/crypto.service'
 import type { EncryptedPayload } from '../services/crypto.service'
 import { ENDPOINTS } from '../config/endpoints'
@@ -10,7 +10,8 @@ const DECRYPT_KEY = import.meta.env.VITE_EMERGENCY_DECRYPT_KEY as string
 interface UseEmergencyMonitorOptions {
   page?:  number
   limit?: number
-  sedeId?: string 
+  /** UUID público de la sede (location_uuid). Viene del route param en la vista de TV pública. */
+  locationUuid?: string
 }
 
 export interface UseEmergencyMonitorResult {
@@ -23,9 +24,9 @@ export interface UseEmergencyMonitorResult {
 export function useEmergencyMonitor({
   page  = 1,
   limit ,
-  sedeId,
+  locationUuid,
 }: UseEmergencyMonitorOptions = {}): UseEmergencyMonitorResult {
-  const sede =useSede()
+  const sedeUuid = useSedeUuid()
 
   const [data,    setData]    = useState<unknown>(null)
   const [loading, setLoading] = useState(false)
@@ -36,10 +37,12 @@ export function useEmergencyMonitor({
 
   const finalLimit = limit ?? 20
 
-  const finalSedeId = sedeId ?? sede?.id
+  // Route param (monitor TV público) tiene prioridad; si no hay, cae al location_uuid
+  // de la sede activa del usuario logueado (monitor del dashboard).
+  const finalLocationUuid = locationUuid ?? sedeUuid ?? undefined
 
   useEffect(() => {
-    if (!finalSedeId) return
+    if (!finalLocationUuid) return
     if (!DECRYPT_KEY) {
       setError('[useEmergencyMonitor] VITE_EMERGENCY_DECRYPT_KEY no está configurado')
       return
@@ -51,7 +54,7 @@ export function useEmergencyMonitor({
 
    
 
-    const url = ENDPOINTS.emergencyMonitor.public(finalSedeId, page, finalLimit)
+    const url = ENDPOINTS.emergencyMonitor.public(finalLocationUuid, page, finalLimit)
 
     fetch(url, {
       method: "GET",
@@ -74,7 +77,7 @@ export function useEmergencyMonitor({
       })
 
     return () => { cancelled = true }
-  }, [finalSedeId, page, limit, tick])
+  }, [finalLocationUuid, page, limit, tick])
 
   return { data, loading, error, refetch }
 }

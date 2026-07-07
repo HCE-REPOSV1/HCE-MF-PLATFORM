@@ -70,7 +70,7 @@ export default function App() {
             </PublicRoute>
         } />
 
-        <Route path="/emergency/emergencyTV/:sedeId"  element={<EmergencyTV />} />
+        <Route path="/emergency/emergencyTV/:locationUuid"  element={<EmergencyTV />} />
 
         {/* Rutas protegidas — layout único con sidebar flotante */}
         <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>

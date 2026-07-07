@@ -35,6 +35,7 @@ declare module "shell/UserContext" {
     opciones:      OpcionMAC[]
     sede:                   string
     sedeActual:             SedeInfo | null
+    sedeActualUuid:         string | null
     sucursalesDisponibles:  SedeInfo[]
     loading:       boolean
     hasPermission: (codigo: string) => boolean

@@ -4,6 +4,7 @@ import { ENDPOINTS } from "../config/endpoints"
 
 export interface OrgLocation {
   location_id:    number
+  location_uuid:  string
   location_alias: string
   location_name:  string
   is_active:      boolean

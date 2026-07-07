@@ -20,7 +20,6 @@ import { useEmergencyMonitor } from "../hooks/useEmergencyMonitor";
 import type { MonitorApiResponse } from "../types/monitor.api.types";
 import { mapMonitorApiItemToTableRow, mapMonitorApiSummaryToSummary } from "../mapper/monitor.mapper";
 import { useParams } from "react-router-dom";
-import { getSede } from "../mapper/sede.mapper";
 import { monitorSortComparator } from "../utils/monitorSort"
 
 
@@ -168,8 +167,7 @@ const MONITOR_TV_COLUMNS  : GenericTableColumn<MonitorTableRow>[] = [
 
 export default function EmergencyTvPage() {
   const [currentPage, setCurrentPage] = useState(1)
-  const { sedeId } = useParams<{ sedeId: string }>()
-  const sedeName= getSede(sedeId ?? "1")
+  const { locationUuid } = useParams<{ locationUuid: string }>()
   const {
     data: monitorData,
     loading: monitorLoading,
@@ -178,12 +176,17 @@ export default function EmergencyTvPage() {
   } = useEmergencyMonitor({
     page: currentPage,
     limit: PAGE_SIZE,
-     sedeId,
+    locationUuid,
   })
 
 
 
  const response = monitorData as MonitorApiResponse | null
+
+ // Nombre de sede resuelto por el backend a partir del location_uuid (ver
+ // OrganizationLocationHttpClient en ms-bs-core-emergency-monitor). Ya no depende del
+ // mapa hardcodeado por id secuencial (sede.mapper.ts), que no reconocía UUIDs.
+ const sedeName = response?.data?.location_name ?? "-"
 
  const rows = useMemo<MonitorTableRow[]>(() => {
     if (!response?.data?.items) return []
