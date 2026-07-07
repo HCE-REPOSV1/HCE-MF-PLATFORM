@@ -18,6 +18,7 @@ import {
   UiWarningIcon,
   MultiSelect,
   RadioGroup,
+  CSFLoading,
 } from "@hce/design-system";
 import type {
   TriagePriority,
@@ -503,7 +504,7 @@ export function Triage({
   );
 
   //Data de Paciente
-  const { fetchPatient } = usePatient();
+  const { fetchPatient, loading: buscandoPaciente } = usePatient();
   //Data de Catalogo
   const {
     fetchCodeSystemValues,
@@ -512,10 +513,26 @@ export function Triage({
     fetchIdentifierTypes,
     fetchTimeUnits,
     fetchAgeGroups,
+    loadingCatalogCie,
+    loadingCodeSystemValues,
+    loadingCatalogActivePrinciples,
+    loadingIdentifierTypes,
+    loadingTimeUnits,
+    loadingAgeGroups,
   } = useCatalog();
   //Registro de Triaje
-  // TODO: reactivar createTriage cuando se destape el POST real (ver handleGuardar)
   const { createTriage,loading: guardandoTriaje } = useTriage();
+  // Overlay unificado: cualquier llamada en curso del formulario (catálogos, búsqueda de
+  // paciente, guardado) bloquea la pantalla con el mismo spinner de marca.
+  const formBusy =
+    guardandoTriaje ||
+    buscandoPaciente ||
+    loadingCatalogCie ||
+    loadingCodeSystemValues ||
+    loadingCatalogActivePrinciples ||
+    loadingIdentifierTypes ||
+    loadingTimeUnits ||
+    loadingAgeGroups;
   //Usuario y sede activa (federados desde mf-shell)
   const { user, sedeActual } = useUser();
 
@@ -599,7 +616,7 @@ export function Triage({
           );
         }
       } catch (err) {
-        console.log("Error al cargar información", err);
+        console.error("Error al cargar información", err);
         setLoadError(
           "No se pudo cargar la información de catálogos. Recargue el formulario.",
         );
@@ -691,19 +708,17 @@ export function Triage({
         location_id: Number(sedeActual.id),
         triage_level: TRIAGE_LEVEL_MAP[form.prioridad],
         pain_scale_eva: form.dolEva ?? undefined,
-        // chief_complaint_code: form.motivoSelected.value, //corregir debe ser el cie_id
-        cie_id: form.motivoSelected.value, //corregir debe ser el cie_id
+        cie_id: form.motivoSelected.value,
         comments: form.comentarios || undefined,
         isolation_required:
-          form.aislamiento === "" ? undefined : form.aislamiento === "si",
-        is_pregnant: form.gestante === "" ? undefined : form.gestante === "si",
+          form.aislamiento === "" ? undefined : form.aislamiento === "S",
+        is_pregnant: form.gestante === "" ? undefined : form.gestante === "S",
         fur_enabled: form.furEnabled,
         fur_date: form.furEnabled && form.fur ? form.fur : undefined,
         ...(form.tiempoEnfermedad && illnessDurationUnit
           ? {
               illness_duration: Number(form.tiempoEnfermedad),
-              illness_duration_unit:
-                illnessDurationUnit as TriageFormRequest["triage"]["illness_duration_unit"],
+              illness_duration_unit: illnessDurationUnit,
             }
           : {}),
         user_create: username,
@@ -750,7 +765,7 @@ export function Triage({
         user_create: username,
       },
       allergyIntolerance: {
-        has_allergies: form.tieneAlergia === "si" ? "S" : "N",
+        has_allergies: form.tieneAlergia === "S" ? "S" : "N",
         food_allergies: form.alimentos || undefined,
         other_allergies: form.otrosAlergias || undefined,
         user_create: username,
@@ -760,7 +775,6 @@ export function Triage({
       })),
     };
 
-    console.log("Payload triage/form:", payload);
     const { error } = await createTriage(payload);
     if (error) {
       setSaveError(error);
@@ -784,6 +798,12 @@ export function Triage({
 
   return (
     <Box>
+      <CSFLoading
+        open={formBusy}
+        overlay
+        message={guardandoTriaje ? "Guardando triaje..." : "Cargando..."}
+        frameDuration={100}
+      />
       <HceModal
         maxWidth={460}
         open={pacienteNoEncontrado}
@@ -956,7 +976,8 @@ export function Triage({
                 }}
               >
                 <Checkbox
-                  label=""
+                  label="No identificado"
+                  sideLabel="end"
                   checked={form.noIdentificado}
                   onChange={(v) => {
                     set("noIdentificado", v);
@@ -978,16 +999,6 @@ export function Triage({
                     }
                   }}
                 ></Checkbox>
-                <Typography
-                  sx={{
-                    fontFamily: hceTypography.fontFamily,
-                    fontSize: "0.82rem",
-                    color: hceColors.primary.blue[600],
-                    fontWeight: 500,
-                  }}
-                >
-                  No identificado
-                </Typography>
               </Box>
             </Box>
 

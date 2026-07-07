@@ -20,7 +20,7 @@ if (!AG_WEB_EMERGENCY)
     "[mf-triage] VITE_APIGW_WEB_EMERGENCY no está configurado",
   );
 if (!AG_CLN_CROSS)
-  throw new Error("[mf-triage] AG_CLN_CROSS no está configurado");
+  throw new Error("[mf-triage] VITE_APIGW_CLN_CROSS no está configurado");
 if (!CSI_GENDER)
   throw new Error("[mf-triage] VITE_CSI_GENDER no está configurado");
 
@@ -30,14 +30,14 @@ export const ENDPOINTS = {
       idValue: string | null | undefined,
       idType: string | null | undefined,
     ) =>
-      `${AG_WEB_EMERGENCY}/api/v1/patient/by-identifier?identifier_value=${idValue}&identifier_type=${idType}`,
+      `${AG_WEB_EMERGENCY}/api/v1/patient/by-identifier?identifier_value=${encodeURIComponent(idValue ?? "")}&identifier_type=${encodeURIComponent(idType ?? "")}`,
   },
   triage: {
     CreateForm: () => `${AG_WEB_EMERGENCY}/api/v1/triage/form`,
   },
   catalogs: {
     CieSearch: (text: string, column: string) =>
-      `${AG_CLN_CROSS}/api/v1/catalogs/cie/search?text=${text}&column=${column}`,
+      `${AG_CLN_CROSS}/api/v1/catalogs/cie/search?text=${encodeURIComponent(text)}&column=${encodeURIComponent(column)}`,
     // Catálogo genérico de valores predeterminados del sistema (tabla code-system-values)
     CodeSystemValues: (codeSystemId: string | number) =>
       `${AG_CLN_CROSS}/api/v1/catalogs/code-system-values?code_system_id=${codeSystemId}`,

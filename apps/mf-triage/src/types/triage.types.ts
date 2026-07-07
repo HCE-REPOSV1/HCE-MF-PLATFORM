@@ -30,7 +30,10 @@ export type EstimatedAgeGroup =
   | "ADULTO"
   | "ADULTO_MAYOR";
 
-export type IllnessDurationUnit = "horas" | "minutos" | "dias";
+// El valor real que valida el backend es exactamente time_unit_name del catálogo remoto
+// (CatalogTimeUnit) — no se traduce ni se hardcodea, así que no hay un union type conocido
+// de antemano que lo represente con seguridad.
+export type IllnessDurationUnit = string;
 
 export interface TriageData {
   patient_id?:              number | null;
