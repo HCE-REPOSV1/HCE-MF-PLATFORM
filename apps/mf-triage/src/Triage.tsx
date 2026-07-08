@@ -508,7 +508,7 @@ export function Triage({
     }
 
     onGuardar?.(form);
-    // handleClose();
+    handleClose();
   }
 
   function handleClose() {

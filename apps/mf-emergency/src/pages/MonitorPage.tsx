@@ -216,6 +216,7 @@ export default function MonitorPage() {
     data: monitorData,
     loading: monitorLoading,
     error: monitorError,
+    refetch: refetchMonitor,
   } = useEmergencyMonitor({
     page: currentPage,
     limit: PAGE_SIZE,
@@ -445,8 +446,11 @@ export default function MonitorPage() {
             mode={triajeModo}
             onClose={() => setTriajeOpen(false)}
             onGuardar={(form:TriajeForm) => {
+              // El POST ya ocurrió dentro de Triage.tsx (createTriage) antes de llamar
+              // a este callback; acá solo queda refrescar la data del monitor para que
+              // el triaje recién guardado se refleje sin esperar al próximo auto-refetch.
               console.info("[MonitorPage] Triaje guardado:", form);
-              // TODO: llamar a POST /api/triaje con los datos del form
+              refetchMonitor();
             }}
           />
         </Suspense>

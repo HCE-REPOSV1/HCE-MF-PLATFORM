@@ -6,6 +6,7 @@ import {
   getPractitionerSubtitle,
   type PractitionerProfile,
 } from "../services/practitioner.service"
+import { pushDebugLog } from "../debugLog"
 
 interface UsePractitionerResult {
   data:     PractitionerProfile | null
@@ -51,23 +52,26 @@ export function usePractitioner(username: string | null | undefined): UsePractit
         }
         try {
           profile = await getPractitionerByUsername(username)
-          console.log(`[usePractitioner] intento ${attempt + 1}/4 OK`, { username, profile })
+          pushDebugLog(`usePractitioner intento ${attempt + 1}/4 OK role_code=${profile?.role_code}`)
           fetchError = null
           break
         } catch (err) {
           fetchError = err
-          console.log(`[usePractitioner] intento ${attempt + 1}/4 FALLÓ`, { username, err })
+          pushDebugLog(`usePractitioner intento ${attempt + 1}/4 FALLÓ ${err instanceof Error ? err.message : String(err)}`)
         }
       }
 
-      if (cancelled) return
+      if (cancelled) {
+        pushDebugLog(`usePractitioner CANCELADO antes de setear resultado (username=${username})`)
+        return
+      }
 
       if (fetchError) {
-        console.log("[usePractitioner] se agotaron los 4 intentos, sin data", { username, fetchError })
+        pushDebugLog(`usePractitioner se agotaron los 4 intentos, sin data`)
         setError(fetchError instanceof Error ? fetchError.message : "Error al cargar perfil del practitioner")
         setData(null)
       } else {
-        console.log("[usePractitioner] setData final", { username, profile })
+        pushDebugLog(`usePractitioner setData final role_code=${profile?.role_code}`)
         setData(profile)
         if (profile?.practitioner_uuid) {
           try {
@@ -81,14 +85,17 @@ export function usePractitioner(username: string | null | undefined): UsePractit
       }
 
       if (!cancelled) {
-        console.log("[usePractitioner] setLoadedFor", username)
+        pushDebugLog(`usePractitioner setLoadedFor ${username}`)
         setLoadedFor(username)
       }
     }
 
+    pushDebugLog(`usePractitioner EFFECT START username=${username}`)
+
     load()
 
     return () => {
+      pushDebugLog(`usePractitioner EFFECT CLEANUP (cancelling) username=${username}`)
       cancelled = true
       if (blobUrl) URL.revokeObjectURL(blobUrl)
     }
