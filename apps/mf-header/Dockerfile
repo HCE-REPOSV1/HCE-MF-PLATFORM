@@ -3,7 +3,7 @@
 FROM node:20-alpine AS builder
 ARG VERDACCIO_URL=http://host.docker.internal:10100
 ARG VITE_REMOTE_SHELL=http://localhost:10500/remoteEntry.js
-ARG VITE_APIGE_CNL_CROSS=http://localhost:10601
+ARG VITE_APIGW_CNL_CROSS=http://localhost:10601
 ARG VITE_APIGW_CNL_WEB_EMERGENCY=http://localhost:10602
 WORKDIR /app
 
@@ -29,7 +29,7 @@ RUN --mount=type=cache,target=/root/.npm \
 
 COPY apps/mf-header ./apps/mf-header
 RUN VITE_REMOTE_SHELL=${VITE_REMOTE_SHELL} \
-    VITE_APIGE_CNL_CROSS=${VITE_APIGE_CNL_CROSS} \
+    VITE_APIGW_CNL_CROSS=${VITE_APIGW_CNL_CROSS} \
     VITE_APIGW_CNL_WEB_EMERGENCY=${VITE_APIGW_CNL_WEB_EMERGENCY} \
     npm run build -w apps/mf-header
 

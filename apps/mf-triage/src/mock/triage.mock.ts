@@ -51,9 +51,9 @@ export const DIAGNOSTICOS_MOCK: DiagnosticoCIE10[] = [
   { codigo: "Z03.8", nombre: "Observación por otras enfermedades sospechosas" },
 ]
 
-export function buscarDiagnosticoMock(query: string, modo: "nombre" | "cie10"): DiagnosticoCIE10[] {
+export function buscarDiagnosticoMock(query: string, modo: "cie_description" | "cie_code"): DiagnosticoCIE10[] {
   const q = query.toLowerCase()
-  if (modo === "cie10") {
+  if (modo === "cie_code") {
     return DIAGNOSTICOS_MOCK.filter(d => d.codigo.toLowerCase().startsWith(q))
   }
   return DIAGNOSTICOS_MOCK.filter(d => d.nombre.toLowerCase().includes(q))

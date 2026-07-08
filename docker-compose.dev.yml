@@ -14,7 +14,7 @@ services:
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
         # URLs de producción — se hornean en el bundle al compilar
-        VITE_APIGE_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
+        VITE_APIGW_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
         VITE_REMOTE_AUTH:        https://servicios.dev.sanfelipe.com:20501/assets/remoteEntry.js
         VITE_REMOTE_HOME:        https://servicios.dev.sanfelipe.com:20502/assets/remoteEntry.js
         VITE_REMOTE_EMERGENCY:   https://servicios.dev.sanfelipe.com:20503/assets/remoteEntry.js
@@ -147,7 +147,7 @@ services:
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
         VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
-        VITE_APIGE_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
+        VITE_APIGW_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
         VITE_APIGW_CNL_WEB_EMERGENCY: https://servicios.dev.sanfelipe.com:20602
     restart: unless-stopped
     ports:

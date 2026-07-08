@@ -13,7 +13,7 @@ services:
       args:
         VERDACCIO_URL: ${VERDACCIO_URL}
         # Build-args leídos desde Vault (secret/hce/mf/mf-shell) — ver deploy-mf.sh
-        VITE_APIGE_CNL_CROSS: ${VITE_APIGE_CNL_CROSS}
+        VITE_APIGW_CNL_CROSS: ${VITE_APIGW_CNL_CROSS}
         VITE_REMOTE_AUTH: ${VITE_REMOTE_AUTH}
         VITE_REMOTE_HOME: ${VITE_REMOTE_HOME}
         VITE_REMOTE_EMERGENCY: ${VITE_REMOTE_EMERGENCY}
@@ -152,7 +152,7 @@ services:
         VERDACCIO_URL: ${VERDACCIO_URL}
         # Build-args leídos desde Vault (secret/hce/mf/mf-header)
         VITE_REMOTE_SHELL: ${VITE_REMOTE_SHELL}
-        VITE_APIGE_CNL_CROSS: ${VITE_APIGE_CNL_CROSS}
+        VITE_APIGW_CNL_CROSS: ${VITE_APIGW_CNL_CROSS}
         VITE_APIGW_CNL_WEB_EMERGENCY: ${VITE_APIGW_CNL_WEB_EMERGENCY}
     restart: unless-stopped
     ports:

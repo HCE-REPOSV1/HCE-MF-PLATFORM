@@ -7,9 +7,9 @@
  * ---------------------------------------------------------
  */
 
-const AG_CROSS = import.meta.env.VITE_APIGE_CNL_CROSS
+const AG_CROSS = import.meta.env.VITE_APIGW_CNL_CROSS
 const AG_WEB_EMERGENCY = import.meta.env.VITE_APIGW_CNL_WEB_EMERGENCY
-if (!AG_CROSS) throw new Error("[mf-header] VITE_APIGE_CNL_CROSS no está configurado")
+if (!AG_CROSS) throw new Error("[mf-header] VITE_APIGW_CNL_CROSS no está configurado")
 if (!AG_WEB_EMERGENCY) throw new Error("[mf-header] VITE_APIGW_CNL_WEB_EMERGENCY no está configurado")
 
 export const ENDPOINTS = {
