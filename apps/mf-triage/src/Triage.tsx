@@ -775,7 +775,7 @@ export function Triage({
                     />
                   </FieldCol>
                 </Grid>
-                <Grid size={{ xs: 24, sm: 12, md: 5 }}>
+                <Grid size={{ xs: 24, sm: 12, md: 4 }}>
                   <FieldCol label="Apellido Paterno">
                     <TextInput
                       value={form.apellidoPaterno}
@@ -784,7 +784,7 @@ export function Triage({
                     />
                   </FieldCol>
                 </Grid>
-                <Grid size={{ xs: 24, sm: 12, md: 5 }}>
+                <Grid size={{ xs: 24, sm: 12, md: 4 }}>
                   <FieldCol label="Apellido Materno">
                     <TextInput
                       value={form.apellidoMaterno}
@@ -802,7 +802,11 @@ export function Triage({
                     />
                   </FieldCol>
                 </Grid>
-                <Grid size={{ xs: 24, sm: 12, md: 4 }}>
+                {/* md:6 (antes 4) — "-Seleccionar opción-" y "Desconocido" no entraban
+                    cómodos en 4/24; se le sacó 1 columna a cada apellido (5→4) en vez de
+                    achicar la tipografía del SelectField (rompería consistencia con el
+                    resto del form). */}
+                <Grid size={{ xs: 24, sm: 12, md: 6 }}>
                   <SelectField
                     label="Sexo"
                     value={form.sexo}
