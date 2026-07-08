@@ -60,9 +60,13 @@ export function useEmergencyMonitor({
       ? ENDPOINTS.emergencyMonitor.public(finalLocationUuid, page, finalLimit)
       : ENDPOINTS.emergencyMonitor.porSede(finalLocationUuid, page, finalLimit)
 
+    // cache: "no-store" — sin esto, refetch() podía pegarle a la misma URL y recibir una
+    // respuesta HTTP cacheada vieja en vez de la data fresca (ej. tras guardar un triaje,
+    // la grilla seguía mostrando el conteo anterior hasta un reload completo).
     fetch(url, {
       method: "GET",
       credentials: "include",
+      cache: "no-store",
     })
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
