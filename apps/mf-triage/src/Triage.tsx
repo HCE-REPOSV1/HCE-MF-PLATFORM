@@ -1,4 +1,4 @@
-import { useState, useId, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -19,6 +19,12 @@ import {
   MultiSelect,
   RadioGroup,
   CSFLoading,
+  SectionHeader,
+  FieldCol,
+  Toggle,
+  NumericField,
+  TextareaField,
+  DatePicker,
 } from "@hce/design-system";
 import type {
   TriagePriority,
@@ -46,293 +52,13 @@ const TRIAGE_LEVEL_MAP: Record<TriagePriority, number> = {
   IV: 4,
 };
 
-// ─── Subcomponente: cabecera colapsable de sección ───────────────────────────
-
-function SectionHeader({
-  title,
-  expanded,
-  onToggle,
-}: {
-  title: string;
-  expanded: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <Box
-      component="button"
-      type="button"
-      onClick={onToggle}
-      aria-expanded={expanded}
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        width: "100%",
-        px: 3,
-        py: 1.25,
-        backgroundColor: hceColors.primary.blue[600],
-        borderRadius: "8px",
-        border: "none",
-        cursor: "pointer",
-        outline: "none",
-        "&:focus-visible": {
-          outline: `2px solid #ffffff`,
-          outlineOffset: "-3px",
-        },
-      }}
-    >
-      <Typography
-        sx={{
-          color: "#fff",
-          fontFamily: hceTypography.fontFamily,
-          fontWeight: 600,
-          fontSize: "0.9rem",
-        }}
-      >
-        {title}
-      </Typography>
-      <Box
-        sx={{
-          color: "#fff",
-          fontSize: "18px",
-          lineHeight: 1,
-          transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-          transition: "transform 220ms",
-        }}
-      >
-        ▾
-      </Box>
-    </Box>
-  );
-}
-
-// ─── Subcomponente: par label + input en columna ─────────────────────────────
-
-function FieldCol({
-  label,
-  children,
-  flex = 1,
-}: {
-  label: string;
-  children: React.ReactNode;
-  flex?: number | string;
-}) {
-  return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: "4px", flex }}>
-      <Typography
-        sx={{
-          fontFamily: hceTypography.fontFamily,
-          fontSize: "0.72rem",
-          fontWeight: 600,
-          color: hceColors.neutro.black[400],
-        }}
-      >
-        {label}
-      </Typography>
-      {children}
-    </Box>
-  );
-}
-
-// ─── Subcomponente: toggle switch ────────────────────────────────────────────
-
-function Toggle({
-  checked,
-  onChange,
-}: {
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  const id = useId();
-  return (
-    <Box
-      component="label"
-      htmlFor={id}
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        gap: 1.5,
-        cursor: "pointer",
-      }}
-    >
-      <Box
-        component="input"
-        id={id}
-        type="checkbox"
-        checked={checked}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-          onChange(e.target.checked)
-        }
-        sx={{ display: "none" }}
-      />
-      <Box
-        onClick={() => onChange(!checked)}
-        sx={{
-          width: 44,
-          height: 24,
-          borderRadius: "12px",
-          backgroundColor: checked
-            ? hceColors.primary.blue[600]
-            : hceColors.neutro.black[300],
-          position: "relative",
-          cursor: "pointer",
-          transition: "background-color 220ms",
-          flexShrink: 0,
-        }}
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            top: 2,
-            left: checked ? 20 : 2,
-            width: 20,
-            height: 20,
-            borderRadius: "50%",
-            backgroundColor: "#ffffff",
-            transition: "left 220ms",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-          }}
-        />
-      </Box>
-    </Box>
-  );
-}
-
-// ─── Subcomponente: campo numérico con sufijo ─────────────────────────────────
-
-function NumericField({
-  label,
-  value,
-  onChange,
-  readOnly = false,
-}: {
-  label: string;
-  value: string;
-  onChange?: (v: string) => void;
-  suffix: string;
-  readOnly?: boolean;
-}) {
-  return (
-    <FieldCol label={label}>
-      <Box
-        sx={{
-          border: `1.5px solid ${hceColors.neutro.black[200]}`,
-          borderRadius: "8px",
-          width: "100%",
-          height: 40,
-          display: "flex",
-          alignItems: "center",
-          boxSizing: "border-box",
-          backgroundColor: readOnly ? hceColors.neutro.black[50] : "#ffffff",
-          overflow: "hidden",
-        }}
-      >
-        <Box
-          component="input"
-          type="text"
-          inputMode="decimal"
-          value={value}
-          readOnly={readOnly}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            onChange?.(e.target.value.replace(/[^\d.,]/g, ""))
-          }
-          sx={{
-            px: 1.5,
-            border: "none",
-            outline: "none",
-            fontFamily: hceTypography.fontFamily,
-            fontSize: "0.875rem",
-            backgroundColor: "transparent",
-            color: hceColors.neutro.black[700],
-            width: "100%", // Obligatorio para que ocupe todo el espacio asignado
-            height: "100%",
-            boxSizing: "border-box",
-            "&::placeholder": { color: hceColors.neutro.black[300] },
-          }}
-        />
-      </Box>
-    </FieldCol>
-  );
-}
-
-// ─── Subcomponente: textarea con contador ─────────────────────────────────────
-
-function TextareaField({
-  label,
-  value,
-  onChange,
-  maxLength = 100,
-  placeholder = "Ingrese texto",
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  maxLength?: number;
-  placeholder?: string;
-}) {
-  const id = useId();
-  return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-      <Typography
-        component="label"
-        htmlFor={id}
-        sx={{
-          fontFamily: hceTypography.fontFamily,
-          fontSize: "0.72rem",
-          fontWeight: 600,
-          color: hceColors.neutro.black[400],
-        }}
-      >
-        {label}
-      </Typography>
-      <Box
-        sx={{
-          position: "relative",
-          border: `1.5px solid ${hceColors.neutro.black[200]}`,
-          borderRadius: "8px",
-          backgroundColor: "#fff",
-        }}
-      >
-        <Box
-          id={id}
-          component="textarea"
-          value={value}
-          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-            onChange(e.target.value.slice(0, maxLength))
-          }
-          maxLength={maxLength}
-          placeholder={placeholder}
-          rows={3}
-          sx={{
-            display: "block",
-            width: "100%",
-            p: "10px 12px",
-            border: "none",
-            outline: "none",
-            resize: "none",
-            fontFamily: hceTypography.fontFamily,
-            fontSize: "0.875rem",
-            color: hceColors.neutro.black[700],
-            backgroundColor: "transparent",
-            boxSizing: "border-box",
-            "&::placeholder": { color: hceColors.neutro.black[300] },
-          }}
-        />
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: 6,
-            right: 10,
-            fontFamily: hceTypography.fontFamily,
-            fontSize: "0.65rem",
-            color: hceColors.neutro.black[300],
-          }}
-        >
-          {value.length}/{maxLength}
-        </Box>
-      </Box>
-    </Box>
-  );
+// El backend entrega birth_date en ISO (YYYY-MM-DD); este campo es solo de
+// visualización (no se reenvía en el payload de triaje), y debe mostrarse en DD-MM-YYYY.
+function formatBirthDate(isoDate: string): string {
+  if (!isoDate) return "";
+  const [y, m, d] = isoDate.split("-");
+  if (!y || !m || !d) return isoDate;
+  return `${d}-${m}-${y}`;
 }
 
 // ─── Estado del formulario ────────────────────────────────────────────────────
@@ -504,7 +230,7 @@ export function Triage({
   );
 
   //Data de Paciente
-  const { fetchPatient, loading: buscandoPaciente } = usePatient();
+  const { fetchPatient } = usePatient();
   //Data de Catalogo
   const {
     fetchCodeSystemValues,
@@ -640,7 +366,7 @@ export function Triage({
         nombres: patient.first_name,
         apellidoPaterno: patient.last_name_father,
         apellidoMaterno: patient.last_name_mother,
-        fechaNacimiento: patient.birth_date,
+        fechaNacimiento: formatBirthDate(patient.birth_date),
         sexo: patient.gender,
       }));
     } else {
@@ -1057,7 +783,7 @@ export function Triage({
                   <TextInput
                     value={form.fechaNacimiento}
                     onChange={(v) => set("fechaNacimiento", v)}
-                    placeholder="dd/mm/yyyy"
+                    placeholder="dd-mm-yyyy"
                   />
                 </FieldCol>
                 <Box sx={{ flex: 1.5 }}>
@@ -1143,17 +869,21 @@ export function Triage({
                       >
                         <Toggle
                           checked={form.furEnabled}
+                          disabled={form.sexo === "male"}
                           onChange={(v) => {
                             set("furEnabled", v);
                             if (!v) set("fur", "");
                           }}
                         />
                         <FieldCol label="Fecha FUR" flex="0 0 150px">
-                          <TextInput
+                          {/* DatePicker: doble método de entrada (escritura manual segmentada +
+                              selector de calendario nativo). El value ya es YYYY-MM-DD, formato
+                              que exige @IsDateString() en fur_date del backend
+                              (ms-bs-core-triage/create-Triage.dto.ts) — sin conversión manual. */}
+                          <DatePicker
                             value={form.fur}
                             onChange={(v) => set("fur", v)}
-                            placeholder="dd/mm/yyyy"
-                            disabled={!form.furEnabled}
+                            disabled={!form.furEnabled || form.sexo === "male"}
                           />
                         </FieldCol>
                       </Box>
@@ -1276,6 +1006,7 @@ export function Triage({
                       value={form.peso}
                       onChange={(v) => set("peso", v)}
                       suffix="Kg"
+                      numberType="decimal"
                     />
                   </Grid>
                   <Grid size={{ xs: 8, md: 3 }}>
@@ -1284,10 +1015,11 @@ export function Triage({
                       value={form.talla}
                       onChange={(v) => set("talla", v)}
                       suffix="cm"
+                      numberType="natural"
                     />
                   </Grid>
                   <Grid size={{ xs: 8, md: 4 }}>
-                    <NumericField label="IMC" value={imc} suffix="%" readOnly />
+                    <NumericField label="IMC" value={imc} suffix="" readOnly />
                   </Grid>
                 </Grid>
                 {/* Fila 2: Signos */}
@@ -1302,33 +1034,38 @@ export function Triage({
                   }}
                 >
                   {[
-                    { key: "frCardiaca", label: "Fr. Cardiaca", suffix: "lpm" },
+                    { key: "frCardiaca", label: "Fr. Cardiaca", suffix: "LPM", numberType: "natural" as const },
                     {
                       key: "frRespiratoria",
                       label: "Fr. Respiratoria",
-                      suffix: "rpm",
+                      suffix: "RPM",
+                      numberType: "natural" as const,
                     },
                     {
                       key: "pSistolica",
                       label: "P. Sistólica",
                       suffix: "mmHg",
+                      numberType: "natural" as const,
                     },
                     {
                       key: "pDiastolica",
                       label: "P. Diastólica",
                       suffix: "mmHg",
+                      numberType: "natural" as const,
                     },
-                    { key: "temperatura", label: "Temperatura", suffix: "°C" },
+                    { key: "temperatura", label: "Temperatura", suffix: "°C", numberType: "decimal" as const },
                     {
                       key: "saturacionO2",
                       label: "Saturación O2",
                       suffix: "%",
+                      numberType: "natural" as const,
                     },
                   ].map((f) => (
                     <Grid key={f.key} size={2}>
                       <NumericField
                         label={f.label}
                         value={form[f.key as keyof TriajeForm] as string}
+                        numberType={f.numberType}
                         onChange={(v) =>
                           set(f.key as keyof TriajeForm, v as any)
                         }
