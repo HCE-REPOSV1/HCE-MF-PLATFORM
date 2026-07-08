@@ -1,14 +1,15 @@
 /**
  * ---------------------------------------------------------
  * Service: triage.service
- * Registra el formulario de triaje.
+ * Registra el formulario de triaje y obtiene el triaje completo.
  * Endpoints:
  * - POST triage/form
+ * - GET  triage/:id/full
  * ---------------------------------------------------------
  */
 import { ENDPOINTS } from "../config/endpoints";
 import { apiFetch } from "shell/ApiClient";
-import type { TriageFormRequest, TriageFormResponse } from "../types/triage.types";
+import type { TriageFormRequest, TriageFormResponse, TriageFullData, TriageFullResponse } from "../types/triage.types";
 
 export async function postTriageForm(
   payload: TriageFormRequest,
@@ -23,6 +24,21 @@ export async function postTriageForm(
 
   if (!res.ok || !json?.success) {
     throw new Error(json?.message || `Error ${res.status} al registrar el triaje`);
+  }
+
+  return json.data;
+}
+
+export async function getTriageFull(
+  triageId: string | number,
+): Promise<TriageFullData | null> {
+  const res = await apiFetch(ENDPOINTS.triage.Full(triageId));
+  if (res.status === 404) return null;
+
+  const json = (await res.json().catch(() => null)) as TriageFullResponse | null;
+
+  if (!res.ok || !json?.success) {
+    throw new Error(json?.message || `Error ${res.status} al obtener el triaje`);
   }
 
   return json.data;

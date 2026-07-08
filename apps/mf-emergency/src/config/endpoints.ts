@@ -12,4 +12,17 @@ export const ENDPOINTS = {
       `${AG_WEB_EMERGENCY}/api/v1/emergency-monitor/por-sede?location_uuid=${locationUuid}&page=${page}&limit=${limit}`,
   },
 
+  // El gateway apigw-cnl-web-emergency (mismo AG_WEB_EMERGENCY) también proxea
+  // encounter/* hacia ms-cnl-web-hce-encounter (ver CNL_ENCOUNTER_URL en su .env).
+  bedManagement: {
+    /** Camas de la sede con color por estado (ocupado/altaAdministrativa/housekeeping/mantenimiento/disponible). */
+    board: (locationId: number | string) =>
+      `${AG_WEB_EMERGENCY}/api/v1/encounter/beds/board?location_id=${locationId}`,
+    /** Solo camas con bed_status=available de la sede. */
+    available: (locationId: number | string) =>
+      `${AG_WEB_EMERGENCY}/api/v1/encounter/beds/available?location_id=${locationId}`,
+    /** Reasignar la cama de un encounter (libera la actual, ocupa la nueva). */
+    reassign: () => `${AG_WEB_EMERGENCY}/api/v1/encounter/beds/reassign`,
+  },
+
 } as const

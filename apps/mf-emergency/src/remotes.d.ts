@@ -13,6 +13,7 @@ declare module "triage/Triage" {
     apellidoMaterno:  string
     fechaNacimiento:  string
     sexo:             string
+    grupoEtario:      string
     // Datos clínicos
     modoMotivo:       SearchMode
     motivoQuery:      string
@@ -52,9 +53,10 @@ declare module "triage/Triage" {
     open:       boolean
     onClose:    () => void
     onGuardar?: (form: TriajeForm) => void
-    /** "read" = solo lectura (botón Prioridad en grilla) | "write" = crear triaje (menú superior).
-     *  Pendiente de implementación en mf-triage — declarado aquí para fijar el contrato. */
+    /** "read" = solo lectura (botón Prioridad en grilla, precarga con GET /triage/:id/full) | "write" = crear triaje (menú superior). */
     mode?:      "read" | "write"
+    /** triage_id a precargar en modo "read" (viene de MonitorTableRow.triage_id). */
+    triageId?:  number | string
   }
 
   const Triage: ComponentType<TriageProps>;
