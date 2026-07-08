@@ -7,9 +7,9 @@
  * ---------------------------------------------------------
  */
 
-const AG_CROSS = import.meta.env.VITE_APIGE_CNL_CROSS
+const AG_CROSS = import.meta.env.VITE_APIGW_CNL_CROSS
 
-if (!AG_CROSS) throw new Error("[mf-shell] VITE_APIGE_CNL_CROSS no está configurado")
+if (!AG_CROSS) throw new Error("[mf-shell] VITE_APIGW_CNL_CROSS no está configurado")
 
 export const ENDPOINTS = {
 
