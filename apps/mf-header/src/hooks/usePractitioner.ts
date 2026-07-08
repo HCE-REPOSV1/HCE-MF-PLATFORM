@@ -51,19 +51,23 @@ export function usePractitioner(username: string | null | undefined): UsePractit
         }
         try {
           profile = await getPractitionerByUsername(username)
+          console.log(`[usePractitioner] intento ${attempt + 1}/4 OK`, { username, profile })
           fetchError = null
           break
         } catch (err) {
           fetchError = err
+          console.log(`[usePractitioner] intento ${attempt + 1}/4 FALLÓ`, { username, err })
         }
       }
 
       if (cancelled) return
 
       if (fetchError) {
+        console.log("[usePractitioner] se agotaron los 4 intentos, sin data", { username, fetchError })
         setError(fetchError instanceof Error ? fetchError.message : "Error al cargar perfil del practitioner")
         setData(null)
       } else {
+        console.log("[usePractitioner] setData final", { username, profile })
         setData(profile)
         if (profile?.practitioner_uuid) {
           try {
@@ -76,7 +80,10 @@ export function usePractitioner(username: string | null | undefined): UsePractit
         }
       }
 
-      if (!cancelled) setLoadedFor(username)
+      if (!cancelled) {
+        console.log("[usePractitioner] setLoadedFor", username)
+        setLoadedFor(username)
+      }
     }
 
     load()

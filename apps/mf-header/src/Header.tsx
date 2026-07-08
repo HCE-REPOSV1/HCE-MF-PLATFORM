@@ -58,23 +58,49 @@ export default function Header({
 
   const [committed, setCommitted] = useState<CommittedData>(undefined)
 
+  // DEBUG temporal — trazar cada render para ver qué cambia y cuándo.
+  console.log("[Header] render", {
+    username: user?.username,
+    practitionerLoading,
+    practitionerData,
+    practitionerSubtitle,
+    committed,
+  })
+
   // Resetear al cambiar de usuario (logout / cambio de cuenta)
   useEffect(() => {
+    console.log("[Header] reset committed — user?.username cambió a", user?.username)
     setCommitted(undefined)
   }, [user?.username])
 
   // Commit único cuando el practitioner termina de cargar.
   // Doctor → prefix + especialidad | Otro / no encontrado → user.nombrePerfil (auth/me)
   useEffect(() => {
-    if (committed !== undefined) return
-    if (practitionerLoading || !user) return
+    if (committed !== undefined) {
+      console.log("[Header] commit effect — ya hay committed, no hace nada", committed)
+      return
+    }
+    if (practitionerLoading || !user) {
+      console.log("[Header] commit effect — esperando", { practitionerLoading, hasUser: !!user })
+      return
+    }
 
     if (practitionerData?.role_code === "doctor") {
+      console.log("[Header] commit effect — DOCTOR", {
+        role_code: practitionerData.role_code,
+        name_prefix: practitionerData.name_prefix,
+        practitionerSubtitle,
+      })
       setCommitted({
         role:   practitionerSubtitle ?? null,
         prefix: practitionerData.name_prefix?.trim() || null,
       })
     } else {
+      console.log("[Header] commit effect — FALLBACK (no doctor / sin practitioner)", {
+        practitionerData,
+        role_code: practitionerData?.role_code,
+        nombrePerfil: user.nombrePerfil,
+      })
       setCommitted({
         role:   user.nombrePerfil ?? null,
         prefix: null,

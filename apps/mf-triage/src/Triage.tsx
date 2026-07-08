@@ -858,6 +858,10 @@ export function Triage({
                         gap: 1,
                         width: "100%",
                         minWidth: 0,
+                        // Espacio extra a la derecha: el DatePicker con flex:1 llega hasta el
+                        // borde de la celda del grid, quedando muy pegado a "Tiempo de
+                        // enfermedad" (celda siguiente) pese al spacing={2} del Grid container.
+                        pr: 2,
                       }}
                     >
                       <Toggle
