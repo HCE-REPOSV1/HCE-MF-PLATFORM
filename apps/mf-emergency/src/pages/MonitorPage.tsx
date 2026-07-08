@@ -9,16 +9,20 @@ import {
   hceShadows,
   MonitoActionBar,
   EmergencyPagination,
-  
+  BedAvailabilityDrawerV2,
+
 } from "@hce/design-system";
 
 import { AsignarMedicoModal } from "../components/AsignarMedicoModal";
 import { AditionalInfoModal } from "../components/AditionalInfoModal";
+import { useBedBoard } from "../hooks/useBedBoard";
+import { mapBedApiItemToAvailabilityItem } from "../mapper/bed.mapper";
 
 import type {  GenericTableColumn } from "@hce/design-system";
 
 import { usePermiso } from "../hooks/usePermiso";
 import { PERMISOS_EMERGENCY } from "../config/permisos";
+import { useSede } from "../hooks/useSede";
 
 import type { Medico } from "../mock/medicos.mock";
 import type { TriajeForm } from "triage/Triage";
@@ -64,7 +68,9 @@ const PAGE_SIZE = 10
     width: 70,
     align: "center",
     clickable: true,
-    disabledGetter: () => !canReadTriage,
+    // Solo se puede abrir el triaje (modo lectura) desde este campo, y solo si la fila
+    // ya tiene un triage_id vinculado — sin eso no hay nada que cargar.
+    disabledGetter: (row) => !canReadTriage || row.triage_id == null,
     onClick: (row) => onOpenTriage(row),
   },
   {
@@ -194,6 +200,7 @@ const Triage = lazy(() => import("triage/Triage"));
 export default function MonitorPage() {
   const canReadTriage  = usePermiso(PERMISOS_EMERGENCY.triage.read)
   const canWriteTriage = usePermiso(PERMISOS_EMERGENCY.triage.write)
+  const canReadBeds    = usePermiso(PERMISOS_EMERGENCY.beds)
   const canEditBox = true
   const canReadHce = true
   const canReadInfo = true
@@ -208,14 +215,22 @@ export default function MonitorPage() {
   );
   const [triajeOpen, setTriajeOpen] = useState(false);
   const [triajeModo, setTriajeModo]  = useState<"read" | "write">("write");
+  const [selectedTriageId, setSelectedTriageId] = useState<number | undefined>(undefined);
   const [medicoOpen, setMedicoOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [boxModalOpen, setBoxModalOpen] = useState(false)
   const [boxModalType, setBoxModalType] = useState<"change" | "assign">("assign")
   const [selectedBoxPatient, setSelectedBoxPatient] =
     useState<MonitorTableRow | null>(null)  
+  const [disponibilidadOpen, setDisponibilidadOpen] = useState(false);
 
-  
+  const sede = useSede()
+  const {
+    beds:    bedBoardData,
+    loading: bedBoardLoading,
+  } = useBedBoard({ locationId: sede?.id, enabled: disponibilidadOpen })
+
+  const bedBoard = useMemo(() => bedBoardData.map(mapBedApiItemToAvailabilityItem), [bedBoardData])
 
   const {
     data: monitorData,
@@ -268,7 +283,7 @@ export default function MonitorPage() {
   }, [])
 
   const handleDisponibilidad = useCallback(() => {
-    console.info("[MonitorPage] Disponibilidad de camas")
+    setDisponibilidadOpen(true)
   }, [])
 
   const handlePatientClick = useCallback((row: MonitorTableRow) => {
@@ -282,8 +297,13 @@ export default function MonitorPage() {
         console.info("[MonitorPage] No tiene permiso para leer triaje:", row)
         return
       }
+      if (row.triage_id == null) {
+        console.info("[MonitorPage] La fila no tiene triaje vinculado todavía:", row)
+        return
+      }
 
       setSelectedPatientId(row.id)
+      setSelectedTriageId(row.triage_id)
       setTriajeModo("read")
       setTriajeOpen(true)
 
@@ -391,7 +411,7 @@ export default function MonitorPage() {
               onTriaje={canWriteTriage ? handleOpenTriageWrite : undefined}
               onAsignarMedicos={handleOpenAsignarMedicos}
               onReportes={handleReportes}
-              onDisponibilidad={handleDisponibilidad}
+              onDisponibilidad={canReadBeds ? handleDisponibilidad : undefined}
             />
           </Box>
 
@@ -437,7 +457,13 @@ export default function MonitorPage() {
         </Box>
       </Box>
 
-      {/* <BedAvailabilityDrawer /> */}
+      {/* Panel de disponibilidad de camas — disparado por handleDisponibilidad (MonitoActionBar) */}
+      <BedAvailabilityDrawerV2
+        open={disponibilidadOpen}
+        onClose={() => setDisponibilidadOpen(false)}
+        beds={bedBoard}
+        title={bedBoardLoading ? "Disponibilidad de camas (cargando...)" : "Disponibilidad de camas"}
+      />
 
       {/* Modal de Triaje */}
       {/* <TriajeModal
@@ -453,6 +479,7 @@ export default function MonitorPage() {
           <Triage
             open={triajeOpen}
             mode={triajeModo}
+            triageId={selectedTriageId}
             onClose={() => setTriajeOpen(false)}
             onGuardar={(form:TriajeForm) => {
               // El POST ya ocurrió dentro de Triage.tsx (createTriage) antes de llamar

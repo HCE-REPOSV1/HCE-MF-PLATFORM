@@ -34,6 +34,8 @@ export const ENDPOINTS = {
   },
   triage: {
     CreateForm: () => `${AG_WEB_EMERGENCY}/api/v1/triage/form`,
+    /** Triaje completo (triage + vitalSign + glasgowScale + fastScale + patient + declaratoria de alergia). */
+    Full: (triageId: string | number) => `${AG_WEB_EMERGENCY}/api/v1/triage/${triageId}/full`,
   },
   catalogs: {
     CieSearch: (text: string, column: string) =>

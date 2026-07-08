@@ -120,3 +120,45 @@ export interface TriageFormResponse {
   message:     string;
   data:        unknown;
 }
+
+/**
+ * Respuesta de GET /triage/:id/full (ms-cnl-web-hce-triage) — precarga del formulario en modo lectura.
+ * `patient` y `allergyIntolerance`/`allergySubstances` son best-effort en el backend: pueden venir
+ * `null` (sin declaratoria de alergia) o con `error`/`message` si el ms-bs correspondiente falló.
+ */
+export interface TriageFullData {
+  triage: TriageData & {
+    triage_id:      number;
+    patient_id:     number;
+    triage_level:   1 | 2 | 3 | 4 | null;
+  };
+  vitalSign:    (VitalSignData & { weight_kg?: number; height_cm?: number }) | null;
+  glasgowScale: GlasgowScaleData | null;
+  fastScale:    FastScaleData | null;
+  patient: {
+    patient_id?:          number;
+    first_name?:          string | null;
+    last_name_father?:    string | null;
+    last_name_mother?:    string | null;
+    birth_date?:          string | null;
+    gender?:              string | null;
+    estimated_age_group?: string | null;
+    document_type?:       string | null;
+    document_number?:     string | null;
+    error?:               unknown;
+    message?:             string;
+  } | null;
+  allergyIntolerance: (AllergyIntoleranceData & {
+    allergy_intolerance_id?: number;
+    error?:                  unknown;
+    message?:                string;
+  }) | null;
+  allergySubstances: AllergySubstanceData[];
+}
+
+export interface TriageFullResponse {
+  success:    boolean;
+  statusCode: number;
+  message:    string;
+  data:       TriageFullData;
+}

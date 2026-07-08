@@ -36,6 +36,7 @@ import { Grid, IconButton } from "@mui/material";
 import { usePatient } from "./hooks/usePatient";
 import { useCatalog } from "./hooks/useCatalog";
 import { useTriage } from "./hooks/useTriage";
+import { useTriageFull } from "./hooks/useTriageFull";
 import { useUser } from "shell/UserContext";
 import { CSI_GENDER } from "./config/endpoints";
 import type { CatalogTimeUnit } from "./types/catalog.types";
@@ -43,6 +44,7 @@ import type {
   TriageFormRequest,
   Gender,
   EstimatedAgeGroup,
+  TriageFullData,
 } from "./types/triage.types";
 
 const TRIAGE_LEVEL_MAP: Record<TriagePriority, number> = {
@@ -52,6 +54,13 @@ const TRIAGE_LEVEL_MAP: Record<TriagePriority, number> = {
   IV: 4,
 };
 
+const TRIAGE_LEVEL_MAP_REVERSE: Record<number, TriagePriority> = {
+  1: "I",
+  2: "II",
+  3: "III",
+  4: "IV",
+};
+
 // El backend entrega birth_date en ISO (YYYY-MM-DD); este campo es solo de
 // visualización (no se reenvía en el payload de triaje), y debe mostrarse en DD-MM-YYYY.
 function formatBirthDate(isoDate: string): string {
@@ -59,6 +68,59 @@ function formatBirthDate(isoDate: string): string {
   const [y, m, d] = isoDate.split("-");
   if (!y || !m || !d) return isoDate;
   return `${d}-${m}-${y}`;
+}
+
+/** GET /triage/:id/full -> TriajeForm, para precarga en modo lectura. */
+function mapTriageFullToForm(full: TriageFullData): Partial<TriajeForm> {
+  const { triage, vitalSign, glasgowScale, fastScale, patient, allergyIntolerance } = full;
+
+  return {
+    tipoDoc:          patient?.document_type ?? "",
+    numeroDoc:        patient?.document_number ?? "",
+    nombres:          patient?.first_name ?? "",
+    apellidoPaterno:  patient?.last_name_father ?? "",
+    apellidoMaterno:  patient?.last_name_mother ?? "",
+    fechaNacimiento:  patient?.birth_date ? formatBirthDate(patient.birth_date) : "",
+    sexo:             patient?.gender ?? "",
+    grupoEtario:      patient?.estimated_age_group ?? "",
+
+    motivoQuery:      triage.chief_complaint_code != null ? String(triage.chief_complaint_code) : "",
+    aislamiento:      triage.isolation_required == null ? "" : (triage.isolation_required ? "S" : "N"),
+    gestante:         triage.is_pregnant == null ? "" : (triage.is_pregnant ? "S" : "N"),
+    furEnabled:       Boolean(triage.fur_enabled),
+    fur:              triage.fur_date ?? "",
+    tiempoEnfermedad: triage.illness_duration != null ? String(triage.illness_duration) : "",
+    tiempoUnidad:     triage.illness_duration_unit ?? "",
+    comentarios:      triage.comments ?? "",
+
+    traumaShock:    Boolean(vitalSign?.trauma_shock_flag),
+    peso:           vitalSign?.weight_kg != null ? String(vitalSign.weight_kg) : "",
+    talla:          vitalSign?.height_cm != null ? String(vitalSign.height_cm) : "",
+    frCardiaca:     vitalSign?.heart_rate != null ? String(vitalSign.heart_rate) : "",
+    frRespiratoria: vitalSign?.respiratory_rate != null ? String(vitalSign.respiratory_rate) : "",
+    pSistolica:     vitalSign?.systolic_pressure != null ? String(vitalSign.systolic_pressure) : "",
+    pDiastolica:    vitalSign?.diastolic_pressure != null ? String(vitalSign.diastolic_pressure) : "",
+    temperatura:    vitalSign?.temperature_c != null ? String(vitalSign.temperature_c) : "",
+    saturacionO2:   vitalSign?.oxygen_saturation != null ? String(vitalSign.oxygen_saturation) : "",
+    glasgow: {
+      ocular: glasgowScale?.ocular_response != null ? String(glasgowScale.ocular_response) : "1",
+      verbal: glasgowScale?.verbal_response != null ? String(glasgowScale.verbal_response) : "1",
+      motora: glasgowScale?.motor_response != null ? String(glasgowScale.motor_response) : "1",
+    },
+    fast: {
+      cara:   fastScale?.face_flag ? "Sí" : "No",
+      brazos: fastScale?.arm_flag ? "Sí" : "No",
+      habla:  fastScale?.speech_flag ? "Sí" : "No",
+      tiempo: fastScale?.time_flag ? "Sí" : "No",
+    },
+
+    tieneAlergia:  allergyIntolerance ? allergyIntolerance.has_allergies : "",
+    alimentos:     allergyIntolerance?.food_allergies ?? "",
+    otrosAlergias: allergyIntolerance?.other_allergies ?? "",
+
+    dolEva:    triage.pain_scale_eva ?? null,
+    prioridad: triage.triage_level != null ? TRIAGE_LEVEL_MAP_REVERSE[triage.triage_level] : null,
+  };
 }
 
 // ─── Estado del formulario ────────────────────────────────────────────────────
@@ -157,6 +219,8 @@ export interface TriajeModalProps {
   onGuardar?: (form: TriajeForm) => void;
   /** "read" = solo lectura (botón Prioridad en grilla) | "write" = crear triaje (menú superior). Default: "write" */
   mode?: "read" | "write";
+  /** triage_id a precargar en modo "read" (GET /triage/:id/full). Sin esto, "read" no dispara ningún fetch. */
+  triageId?: number | string;
 }
 
 // ─── Componente principal ─────────────────────────────────────────────────────
@@ -166,6 +230,7 @@ export function Triage({
   onClose,
   onGuardar,
   mode = "write",
+  triageId,
 }: TriajeModalProps) {
   const readOnly = mode === "read";
   const [form, setForm] = useState<TriajeForm>(INITIAL_FORM);
@@ -248,11 +313,14 @@ export function Triage({
   } = useCatalog();
   //Registro de Triaje
   const { createTriage,loading: guardandoTriaje } = useTriage();
+  //Precarga del triaje completo (modo lectura)
+  const { fetchTriageFull, loading: loadingTriageFull } = useTriageFull();
   // Overlay unificado: cualquier llamada en curso del formulario (catálogos, búsqueda de
   // paciente, guardado) bloquea la pantalla con el mismo spinner de marca.
   const formBusy =
     guardandoTriaje ||
     buscandoPaciente ||
+    loadingTriageFull ||
     loadingCatalogCie ||
     loadingCodeSystemValues ||
     loadingCatalogActivePrinciples ||
@@ -351,6 +419,24 @@ export function Triage({
 
     loadData();
   }, []);
+
+  // Modo lectura (botón Prioridad en grilla): precarga el triaje vinculado.
+  useEffect(() => {
+    if (!open || !readOnly || !triageId) return;
+
+    let cancelled = false;
+    fetchTriageFull(triageId).then((full) => {
+      if (cancelled) return;
+      if (!full) {
+        setLoadError("No se pudo cargar el triaje solicitado.");
+        return;
+      }
+      setForm((f) => ({ ...f, ...mapTriageFullToForm(full) }));
+    });
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, readOnly, triageId]);
 
   // Buscar paciente por documento
   async function handleBuscarPaciente() {
@@ -515,6 +601,7 @@ export function Triage({
     setForm(INITIAL_FORM);
     setPacienteNoEncontrado(false);
     setSaveError(null);
+    setLoadError(null);
     setPatientId(null);
     setValuePrincipioActivo([]);
     onClose();
