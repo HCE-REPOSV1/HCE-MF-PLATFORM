@@ -854,39 +854,34 @@ export function Triage({
                     <Box
                       sx={{
                         display: "flex",
-                        gap: 2,
                         alignItems: "flex-end",
-                        flexWrap: "nowrap",
+                        gap: 1,
                         width: "100%",
+                        minWidth: 0,
                       }}
                     >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "flex-end",
-                          gap: 1.5,
+                      <Toggle
+                        checked={form.furEnabled}
+                        disabled={form.sexo === "male"}
+                        onChange={(v) => {
+                          set("furEnabled", v);
+                          if (!v) set("fur", "");
                         }}
-                      >
-                        <Toggle
-                          checked={form.furEnabled}
-                          disabled={form.sexo === "male"}
-                          onChange={(v) => {
-                            set("furEnabled", v);
-                            if (!v) set("fur", "");
-                          }}
+                      />
+                      {/* flex:1 + minWidth:0 en vez de un ancho fijo (150px) — con el Toggle
+                          al lado, un ancho fijo desbordaba la celda del grid y chocaba con
+                          "Tiempo de enfermedad" en la columna siguiente. */}
+                      <FieldCol label="Fecha FUR" flex="1 1 0">
+                        {/* DatePicker: doble método de entrada (escritura manual segmentada +
+                            selector de calendario nativo). El value ya es YYYY-MM-DD, formato
+                            que exige @IsDateString() en fur_date del backend
+                            (ms-bs-core-triage/create-Triage.dto.ts) — sin conversión manual. */}
+                        <DatePicker
+                          value={form.fur}
+                          onChange={(v) => set("fur", v)}
+                          disabled={!form.furEnabled || form.sexo === "male"}
                         />
-                        <FieldCol label="Fecha FUR" flex="0 0 150px">
-                          {/* DatePicker: doble método de entrada (escritura manual segmentada +
-                              selector de calendario nativo). El value ya es YYYY-MM-DD, formato
-                              que exige @IsDateString() en fur_date del backend
-                              (ms-bs-core-triage/create-Triage.dto.ts) — sin conversión manual. */}
-                          <DatePicker
-                            value={form.fur}
-                            onChange={(v) => set("fur", v)}
-                            disabled={!form.furEnabled || form.sexo === "male"}
-                          />
-                        </FieldCol>
-                      </Box>
+                      </FieldCol>
                     </Box>
                   </Grid>
                   <Grid size={3}>

@@ -31,33 +31,35 @@ type Module = {
   permission:  string
 }
 
+// Rutas absolutas relativas al shell — deben coincidir con las anidadas bajo
+// "/home" en mf-shell/src/App.tsx (emergencia/*, hospital/*, ambulatorio/*, auditoria/*).
 const MODULES: Module[] = [
   {
     Icon:        FileText,
     label:       "HCE Emergencia",
     description: "Sección que abarca las funciones fundamentales del monitor de emergencia y los relatos de los pacientes.",
-    path:        "/emergencia",
+    path:        "/home/emergencia",
     permission:  "emergency:module",
   },
   {
     Icon:        Stethoscope,
     label:       "HCE Ambulatorio",
     description: "Gestión de citas, consultorios y atenciones ambulatorias del sistema de salud.",
-    path:        "/ambulatorio",
+    path:        "/home/ambulatorio",
     permission:  "ambulatorio:module",
   },
   {
     Icon:        Building2,
     label:       "HCE Hospital",
     description: "Control de hospitalización, camas disponibles, ingresos y altas médicas.",
-    path:        "/hospital",
+    path:        "/home/hospital",
     permission:  "hospital:module",
   },
   {
     Icon:        ClipboardList,
     label:       "Auditoría",
     description: "Reportes, trazabilidad de eventos y configuración de parámetros del sistema.",
-    path:        "/auditoria",
+    path:        "/home/auditoria",
     permission:  "auditoria:module",
   },
 ]
