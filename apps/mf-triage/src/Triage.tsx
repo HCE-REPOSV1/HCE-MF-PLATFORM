@@ -520,7 +520,15 @@ export function Triage({
     onClose();
   }
 
-  const FIELD_ROW = { display: "flex", gap: 2, alignItems: "flex-end" };
+  // flexWrap solo por debajo de "md": en pantalla normal (md+) se mantiene la fila
+  // única exacta de siempre; en pantallas chicas los campos se reordenan en vez de
+  // aplastarse (antes no envolvía en absoluto).
+  const FIELD_ROW = {
+    display: "flex",
+    flexWrap: { xs: "wrap", md: "nowrap" },
+    gap: 2,
+    alignItems: "flex-end",
+  } as const;
 
   return (
     <Box>
@@ -731,13 +739,13 @@ export function Triage({
             {/* Campos del paciente */}
             {form.noIdentificado ? (
               <Box sx={FIELD_ROW}>
-                <FieldCol label="Documento" flex={1}>
+                <FieldCol label="Documento" flex={1} minWidth={110}>
                   <TextInput value="NI" disabled onChange={() => {}} />
                 </FieldCol>
-                <FieldCol label="Número de documento" flex={1.5}>
+                <FieldCol label="Número de documento" flex={1.5} minWidth={140}>
                   <TextInput value="XXXXXXXX" disabled onChange={() => {}} />
                 </FieldCol>
-                <Box sx={{ flex: 1.5 }}>
+                <Box sx={{ flex: 1.5, minWidth: 160 }}>
                   <SelectField
                     label="Sexo *"
                     value={form.sexo}
@@ -746,7 +754,7 @@ export function Triage({
                     placeholder="-Seleccionar opción-"
                   />
                 </Box>
-                <Box sx={{ flex: 2 }}>
+                <Box sx={{ flex: 2, minWidth: 200 }}>
                   <SelectField
                     label="Grupo etario estimado *"
                     value={form.grupoEtario}
@@ -758,21 +766,21 @@ export function Triage({
               </Box>
             ) : (
               <Box sx={FIELD_ROW}>
-                <FieldCol label="Nombres" flex={2}>
+                <FieldCol label="Nombres" flex={2} minWidth={160}>
                   <TextInput
                     value={form.nombres}
                     onChange={(v) => set("nombres", v)}
                     placeholder="Ingrese datos"
                   />
                 </FieldCol>
-                <FieldCol label="Apellido Paterno" flex={1.5}>
+                <FieldCol label="Apellido Paterno" flex={1.5} minWidth={140}>
                   <TextInput
                     value={form.apellidoPaterno}
                     onChange={(v) => set("apellidoPaterno", v)}
                     placeholder="Ingrese datos"
                   />
                 </FieldCol>
-                <FieldCol label="Apellido Materno" flex={1.5}>
+                <FieldCol label="Apellido Materno" flex={1.5} minWidth={140}>
                   <TextInput
                     value={form.apellidoMaterno}
                     onChange={(v) => set("apellidoMaterno", v)}
@@ -786,7 +794,7 @@ export function Triage({
                     placeholder="dd-mm-yyyy"
                   />
                 </FieldCol>
-                <Box sx={{ flex: 1.5 }}>
+                <Box sx={{ flex: 1.5, minWidth: 160 }}>
                   <SelectField
                     label="Sexo"
                     value={form.sexo}
@@ -831,9 +839,13 @@ export function Triage({
                   }}
                 />
 
-                {/* Aislamiento + Gestante + FUR + Tiempo de enfermedad */}
-                <Grid container columns={12} spacing={2}>
-                  <Grid size={3}>
+                {/* Aislamiento + Gestante + FUR + Tiempo de enfermedad.
+                    columns={24} + size={{xs,sm,md}}, mismo patrón responsivo que "Signos
+                    Vitales" — antes usaba size={3} fijo (sin breakpoints), así que no
+                    reordenaba en pantallas chicas y las celdas se aplastaban en vez de
+                    apilarse/ajustarse como el resto de los campos del form. */}
+                <Grid container columns={24} spacing={2}>
+                  <Grid size={{ xs: 24, sm: 12, md: 6 }}>
                     <RadioGroup
                       legend="Aislamiento"
                       value={form.aislamiento}
@@ -841,7 +853,7 @@ export function Triage({
                       onChange={(v) => set("aislamiento", v)}
                     />
                   </Grid>
-                  <Grid size={3}>
+                  <Grid size={{ xs: 24, sm: 12, md: 6 }}>
                     <RadioGroup
                       legend="Gestante"
                       value={form.gestante}
@@ -850,18 +862,17 @@ export function Triage({
                       disabled={form.sexo === "male"}
                     />
                   </Grid>
-                  <Grid size={3}>
+                  <Grid size={{ xs: 24, sm: 12, md: 6 }}>
                     <Box
                       sx={{
                         display: "flex",
                         alignItems: "flex-end",
                         gap: 1,
                         width: "100%",
-                        minWidth: 0,
-                        // Espacio extra a la derecha: el DatePicker con flex:1 llega hasta el
-                        // borde de la celda del grid, quedando muy pegado a "Tiempo de
-                        // enfermedad" (celda siguiente) pese al spacing={2} del Grid container.
-                        pr: 2,
+                        // minWidth propio (no 0): con el Toggle al lado, dejar que el
+                        // DatePicker se achique sin límite lo volvía ilegible en vez de
+                        // simplemente pasar a su propia fila como los demás campos.
+                        minWidth: 220,
                       }}
                     >
                       <Toggle
@@ -872,9 +883,6 @@ export function Triage({
                           if (!v) set("fur", "");
                         }}
                       />
-                      {/* flex:1 + minWidth:0 en vez de un ancho fijo (150px) — con el Toggle
-                          al lado, un ancho fijo desbordaba la celda del grid y chocaba con
-                          "Tiempo de enfermedad" en la columna siguiente. */}
                       <FieldCol label="Fecha FUR" flex="1 1 0">
                         {/* DatePicker: doble método de entrada (escritura manual segmentada +
                             selector de calendario nativo). El value ya es YYYY-MM-DD, formato
@@ -888,7 +896,7 @@ export function Triage({
                       </FieldCol>
                     </Box>
                   </Grid>
-                  <Grid size={3}>
+                  <Grid size={{ xs: 24, sm: 12, md: 6 }}>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <FieldCol label="T. de enfermedad">
                         <Box sx={{ display: "flex", width: "100%" }}>
@@ -1060,7 +1068,7 @@ export function Triage({
                       numberType: "natural" as const,
                     },
                   ].map((f) => (
-                    <Grid key={f.key} size={2}>
+                    <Grid key={f.key} size={{ xs: 6, sm: 4, md: 2 }}>
                       <NumericField
                         label={f.label}
                         value={form[f.key as keyof TriajeForm] as string}
@@ -1076,7 +1084,9 @@ export function Triage({
 
                 {/* Escala de Glasgow + FAST */}
 
-                <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+                {/* En pantalla normal (md+) van lado a lado como siempre; en pantallas
+                    chicas se apilan en vez de aplastar los dos fieldsets uno junto al otro. */}
+                <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2, mt: 2 }}>
                   {/* Glasgow */}
                   <Box
                     component="fieldset"
@@ -1108,7 +1118,7 @@ export function Triage({
                       }}
                     >
                       {(["ocular", "verbal", "motora"] as const).map((key) => (
-                        <Grid key={key} size={3}>
+                        <Grid key={key} size={{ xs: 12, sm: 6, md: 3 }}>
                           <SelectField
                             label={
                               {
@@ -1138,12 +1148,16 @@ export function Triage({
                           />
                         </Grid>
                       ))}
-                      <NumericField
-                        label="Resultado"
-                        value={String(glasgowTotal)}
-                        suffix="pts"
-                        readOnly
-                      />
+                      {/* No estaba envuelto en un Grid item propio — quedaba con el tamaño
+                          implícito de MUI Grid v2 en vez de alinearse con sus 3 hermanos. */}
+                      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                        <NumericField
+                          label="Resultado"
+                          value={String(glasgowTotal)}
+                          suffix="pts"
+                          readOnly
+                        />
+                      </Grid>
                     </Grid>
                   </Box>
 
@@ -1180,7 +1194,7 @@ export function Triage({
                     >
                       {(["cara", "brazos", "habla", "tiempo"] as const).map(
                         (key) => (
-                          <Grid key={key} size={3}>
+                          <Grid key={key} size={{ xs: 12, sm: 6, md: 3 }}>
                             <SelectField
                               label={
                                 {
@@ -1227,7 +1241,7 @@ export function Triage({
                     alignItems: "flex-end",
                   }}
                 >
-                  <Grid size={4}>
+                  <Grid size={{ xs: 12, sm: 4, md: 4 }}>
                     <RadioGroup
                       value={form.tieneAlergia}
                       options={opcionesRadioAlergia}
@@ -1237,7 +1251,7 @@ export function Triage({
                     />
                   </Grid>
 
-                  <Grid size={8}>
+                  <Grid size={{ xs: 12, sm: 8, md: 8 }}>
                     <MultiSelect
                       options={optionsActivePrinciples}
                       label="Principio activo"
