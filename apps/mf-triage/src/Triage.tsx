@@ -851,9 +851,13 @@ export function Triage({
                     columns={24} + size={{xs,sm,md}}, mismo patrón responsivo que "Signos
                     Vitales" — antes usaba size={3} fijo (sin breakpoints), así que no
                     reordenaba en pantallas chicas y las celdas se aplastaban en vez de
-                    apilarse/ajustarse como el resto de los campos del form. */}
+                    apilarse/ajustarse como el resto de los campos del form.
+                    Columnas desparejas a propósito: FUR tiene Toggle + DatePicker (dos
+                    controles) y necesita más ancho que un RadioGroup simple "Sí/No" —
+                    con las 4 celdas iguales (6/6/6/6) el DatePicker quedaba pegado al
+                    borde de su celda, muy cerca de "Tiempo de enfermedad". */}
                 <Grid container columns={24} spacing={2}>
-                  <Grid size={{ xs: 24, sm: 12, md: 6 }}>
+                  <Grid size={{ xs: 24, sm: 12, md: 5 }}>
                     <RadioGroup
                       legend="Aislamiento"
                       value={form.aislamiento}
@@ -861,7 +865,7 @@ export function Triage({
                       onChange={(v) => set("aislamiento", v)}
                     />
                   </Grid>
-                  <Grid size={{ xs: 24, sm: 12, md: 6 }}>
+                  <Grid size={{ xs: 24, sm: 12, md: 5 }}>
                     <RadioGroup
                       legend="Gestante"
                       value={form.gestante}
@@ -870,7 +874,7 @@ export function Triage({
                       disabled={form.sexo === "male"}
                     />
                   </Grid>
-                  <Grid size={{ xs: 24, sm: 12, md: 6 }}>
+                  <Grid size={{ xs: 24, sm: 12, md: 8 }}>
                     {/* minWidth:0 (no un valor fijo como 220) — un mínimo fijo mayor al ancho
                         real de la celda del Grid en ciertos breakpoints la desbordaba, tapando
                         "T. de enfermedad". El Toggle mantiene su ancho fijo y el FieldCol con
