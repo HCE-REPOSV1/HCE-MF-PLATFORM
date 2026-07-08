@@ -35,14 +35,18 @@ export function usePractitioner(username: string | null | undefined): UsePractit
     const load = async () => {
       setError(null)
 
-      // Intenta hasta 2 veces con 1.5 s entre intentos (errores transitorios de gateway)
+      // Intenta hasta 4 veces con 2 s entre intentos (errores transitorios de gateway).
+      // Header.tsx compromete el subtítulo (doctor vs. genérico) una sola vez apenas
+      // loading pasa a false — si el presupuesto de reintentos era muy corto (2 intentos,
+      // 1.5s), un gateway lento agotaba los intentos y el fallback quedaba "clavado" para
+      // toda la sesión de página, dando la sensación de que el subtítulo cambia entre reloads.
       let profile: PractitionerProfile | null = null
       let fetchError: unknown = null
 
-      for (let attempt = 0; attempt < 2; attempt++) {
+      for (let attempt = 0; attempt < 4; attempt++) {
         if (cancelled) return
         if (attempt > 0) {
-          await new Promise<void>(r => setTimeout(r, 1500))
+          await new Promise<void>(r => setTimeout(r, 2000))
           if (cancelled) return
         }
         try {

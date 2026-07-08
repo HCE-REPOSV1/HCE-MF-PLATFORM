@@ -33,11 +33,16 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
 
 // ─── Páginas ─────────────────────────────────────────────────
 function LoginPage() {
-  const navigate             = useNavigate()
-  const { refetch, setSede } = useUser()
+  const navigate      = useNavigate()
+  const { refetch } = useUser()
 
-  const handleSuccess = async (sede: string) => {
-    setSede(sede)
+  // No llamar setSede acá: "sede" que manda Login.tsx es el idSede crudo del MAC
+  // (ej. "2"), no el location_id mapeado que espera el contexto (sucursalesDisponibles[i].id).
+  // Escribirlo directo dejaba "sede" con un valor no-vacío prematuro, y el useEffect de
+  // auto-selección en UserContext.tsx (guard `if (!sede ...)`) nunca llegaba a corregirlo
+  // — el header quedaba en blanco tras el login (funcionaba solo con F5 porque ahí "sede"
+  // arranca realmente vacío). refetch() ya dispara ese useEffect correctamente por su cuenta.
+  const handleSuccess = async () => {
     await refetch()
     navigate("/home", { replace: true })
   }
