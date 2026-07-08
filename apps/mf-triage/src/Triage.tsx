@@ -1,4 +1,4 @@
-import { useState, useId, useCallback } from "react"
+import { useState, useId, useCallback, useEffect } from "react"
 import {
   Box, Typography,
   HceFormModal,
@@ -15,6 +15,8 @@ import {
   buscarDiagnosticoMock,
 } from "./mock/triage.mock"
 import { IconButton } from "@mui/material"
+import { useTriageFull } from "./hooks/useTriageFull"
+import { mapTriageFullToForm } from "./mapper/triageFull.mapper"
 
 // ─── Opciones de principio activo (antihistamínicos) ─────────────────────────
 
@@ -286,7 +288,7 @@ function TextareaField({ label, value, onChange, maxLength = 100, placeholder = 
 
 // ─── Estado del formulario ────────────────────────────────────────────────────
 
-interface TriajeForm {
+export interface TriajeForm {
   // Datos del paciente
   tipoDoc:         string
   numeroDoc:       string
@@ -351,14 +353,29 @@ export interface TriajeModalProps {
   open:     boolean
   onClose:  () => void
   onGuardar?: (form: TriajeForm) => void
+  /** "read" = solo lectura (botón Prioridad en grilla, precarga con GET /triage/:id/full) | "write" = crear triaje. */
+  mode?:      "read" | "write"
+  /** triage_id a precargar en modo "read". Sin esto, "read" no dispara ningún fetch. */
+  triageId?:  number | string
 }
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 
-export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
+export function Triage({ open, onClose, onGuardar, mode = "write", triageId }: TriajeModalProps) {
   const [form, setForm] = useState<TriajeForm>(INITIAL_FORM)
   const [buscandoPaciente, setBuscandoPaciente] = useState(false)
   const [pacienteNoEncontrado, setPacienteNoEncontrado] = useState(false)
+
+  const isReadOnly = mode === "read"
+  const {
+    data:    triageFullData,
+    loading: triageFullLoading,
+    error:   triageFullError,
+  } = useTriageFull(isReadOnly && open ? triageId : undefined)
+
+  useEffect(() => {
+    if (triageFullData?.data) setForm(f => ({ ...f, ...mapTriageFullToForm(triageFullData.data) }))
+  }, [triageFullData])
 
   // Secciones expandibles
   const [expDatosClinicos,    setExpDatosClinicos]     = useState(true)
@@ -428,14 +445,14 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
       onClose={handleClose}
       closeOnBackdrop={false}
       maxWidth="md"
-      primaryButton={{
+      primaryButton={isReadOnly ? undefined : {
         label:   "Guardar triaje",
         onClick: handleGuardar,
         color:   hceColors.primary.green[600],
         icon:    <UiDisketteIcon size={16} color="#ffffff" />,
       }}
       secondaryButton={{
-        label:  "Cancelar",
+        label:  isReadOnly ? "Cerrar" : "Cancelar",
         onClick: handleClose,
         color:  hceColors.primary.blue[600],
         icon:   <CloseIcon size={16} color={hceColors.primary.blue[600]} />,
@@ -443,6 +460,19 @@ export function Triage({ open, onClose, onGuardar }: TriajeModalProps) {
       buttonAlign="right"
     >
       <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+
+        {isReadOnly && triageFullLoading && (
+          <Typography sx={{ fontFamily: hceTypography.fontFamily, fontSize: "0.85rem", color: hceColors.neutro.black[400] }}>
+            Cargando triaje...
+          </Typography>
+        )}
+        {isReadOnly && triageFullError && (
+          <Box sx={{ px: 1.5, py: 0.75, backgroundColor: "#fdecea", borderRadius: "6px", border: "1px solid #f44336" }}>
+            <Typography sx={{ fontFamily: hceTypography.fontFamily, fontSize: "0.8rem", color: "#b71c1c" }}>
+              No se pudo cargar el triaje: {triageFullError}
+            </Typography>
+          </Box>
+        )}
 
         {/* ── Sección 1: Datos del paciente ─────────────────────────────── */}
         <Box>

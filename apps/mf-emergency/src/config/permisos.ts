@@ -14,6 +14,7 @@ export const PERMISOS_EMERGENCY = {
   patients: "emergency:patients",  // [PROV] página Pacientes
   reports:  "emergency:reports",   // [PROV] página Reportes
   settings: "emergency:settings",  // [PROV] página Configuración
+  beds:     "emergency:beds",      // [PROV] panel de disponibilidad de camas (BedAvailabilityDrawerV2)
 
   triage: {
     base:  "emergency:triage",        // [MAC]  01/02/01 — acceso al modal de triaje
