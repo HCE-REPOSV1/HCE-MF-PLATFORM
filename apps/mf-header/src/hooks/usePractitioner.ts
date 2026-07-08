@@ -6,7 +6,6 @@ import {
   getPractitionerSubtitle,
   type PractitionerProfile,
 } from "../services/practitioner.service"
-import { pushDebugLog } from "../debugLog"
 
 interface UsePractitionerResult {
   data:     PractitionerProfile | null
@@ -37,10 +36,6 @@ export function usePractitioner(username: string | null | undefined): UsePractit
       setError(null)
 
       // Intenta hasta 4 veces con 2 s entre intentos (errores transitorios de gateway).
-      // Header.tsx compromete el subtítulo (doctor vs. genérico) una sola vez apenas
-      // loading pasa a false — si el presupuesto de reintentos era muy corto (2 intentos,
-      // 1.5s), un gateway lento agotaba los intentos y el fallback quedaba "clavado" para
-      // toda la sesión de página, dando la sensación de que el subtítulo cambia entre reloads.
       let profile: PractitionerProfile | null = null
       let fetchError: unknown = null
 
@@ -52,26 +47,19 @@ export function usePractitioner(username: string | null | undefined): UsePractit
         }
         try {
           profile = await getPractitionerByUsername(username)
-          pushDebugLog(`usePractitioner intento ${attempt + 1}/4 OK role_code=${profile?.role_code}`)
           fetchError = null
           break
         } catch (err) {
           fetchError = err
-          pushDebugLog(`usePractitioner intento ${attempt + 1}/4 FALLÓ ${err instanceof Error ? err.message : String(err)}`)
         }
       }
 
-      if (cancelled) {
-        pushDebugLog(`usePractitioner CANCELADO antes de setear resultado (username=${username})`)
-        return
-      }
+      if (cancelled) return
 
       if (fetchError) {
-        pushDebugLog(`usePractitioner se agotaron los 4 intentos, sin data`)
         setError(fetchError instanceof Error ? fetchError.message : "Error al cargar perfil del practitioner")
         setData(null)
       } else {
-        pushDebugLog(`usePractitioner setData final role_code=${profile?.role_code}`)
         setData(profile)
         if (profile?.practitioner_uuid) {
           try {
@@ -84,18 +72,12 @@ export function usePractitioner(username: string | null | undefined): UsePractit
         }
       }
 
-      if (!cancelled) {
-        pushDebugLog(`usePractitioner setLoadedFor ${username}`)
-        setLoadedFor(username)
-      }
+      if (!cancelled) setLoadedFor(username)
     }
-
-    pushDebugLog(`usePractitioner EFFECT START username=${username}`)
 
     load()
 
     return () => {
-      pushDebugLog(`usePractitioner EFFECT CLEANUP (cancelling) username=${username}`)
       cancelled = true
       if (blobUrl) URL.revokeObjectURL(blobUrl)
     }

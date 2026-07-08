@@ -55,7 +55,12 @@ interface PractitionerResponse {
 export async function getPractitionerByUsername(
   username: string,
 ): Promise<PractitionerProfile | null> {
-  const res = await apiFetch(ENDPOINTS.practitioners.byUsername(username))
+  // cache: "no-store" — sin esto, el navegador podía servir una respuesta HTTP cacheada
+  // vieja (de antes de que el role_code del usuario quedara en "doctor" en el backend).
+  // Explicaba el bug intermitente del subtítulo: con DevTools cerrado el caché normal
+  // aplicaba y a veces devolvía role_code=undefined; con DevTools abierto + "Disable
+  // cache" tildado, siempre pedía fresco y funcionaba bien.
+  const res = await apiFetch(ENDPOINTS.practitioners.byUsername(username), { cache: "no-store" })
 
   if (res.status === 404) return null
   if (!res.ok) throw new Error(`Error ${res.status} al obtener datos del practitioner`)

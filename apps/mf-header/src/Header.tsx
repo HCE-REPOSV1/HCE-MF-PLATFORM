@@ -1,8 +1,7 @@
-import { useState, useEffect, useMemo, useSyncExternalStore } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { HceBreadcrumb, HceHeader } from "@hce/design-system";
 import { useUser } from "shell/UserContext";
 import { usePractitioner } from "./hooks/usePractitioner";
-import { pushDebugLog, getDebugLog, subscribeDebugLog } from "./debugLog";
 
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -59,39 +58,23 @@ export default function Header({
 
   const [committed, setCommitted] = useState<CommittedData>(undefined)
 
-  // DEBUG temporal — se muestra en pantalla (no en consola) porque abrir DevTools cambia
-  // el timing lo suficiente como para que el bug no se reproduzca. Comparte buffer con
-  // usePractitioner.ts (debugLog.ts) para ver los reintentos y el commit en una sola
-  // línea de tiempo. Borrar junto con el overlay más abajo una vez resuelto el bug.
-  const debugLines = useSyncExternalStore(subscribeDebugLog, getDebugLog)
-  pushDebugLog(`Header render user=${user?.username ?? "∅"} loading=${practitionerLoading} role_code=${practitionerData?.role_code ?? "∅"} committed=${committed === undefined ? "undefined" : JSON.stringify(committed)}`)
-
   // Resetear al cambiar de usuario (logout / cambio de cuenta)
   useEffect(() => {
-    pushDebugLog(`Header RESET committed — username cambió a ${user?.username ?? "∅"}`)
     setCommitted(undefined)
   }, [user?.username])
 
   // Commit único cuando el practitioner termina de cargar.
   // Doctor → prefix + especialidad | Otro / no encontrado → user.nombrePerfil (auth/me)
   useEffect(() => {
-    if (committed !== undefined) {
-      pushDebugLog(`Header commit effect — ya hay committed, no hace nada`)
-      return
-    }
-    if (practitionerLoading || !user) {
-      pushDebugLog(`Header commit effect — esperando (loading=${practitionerLoading} hasUser=${!!user})`)
-      return
-    }
+    if (committed !== undefined) return
+    if (practitionerLoading || !user) return
 
     if (practitionerData?.role_code === "doctor") {
-      pushDebugLog(`Header commit effect — DOCTOR prefix=${practitionerData.name_prefix} subtitle=${practitionerSubtitle}`)
       setCommitted({
         role:   practitionerSubtitle ?? null,
         prefix: practitionerData.name_prefix?.trim() || null,
       })
     } else {
-      pushDebugLog(`Header commit effect — FALLBACK role_code=${practitionerData?.role_code ?? "∅"} nombrePerfil=${user.nombrePerfil}`)
       setCommitted({
         role:   user.nombrePerfil ?? null,
         prefix: null,
@@ -134,7 +117,6 @@ export default function Header({
   
 
   return (
-    <>
     <div    style={{ display: "flex", flexDirection: "column", gap: 20, width: "100%" }}>
       <HceHeader
         floating
@@ -164,28 +146,5 @@ export default function Header({
         )}
 
     </div>
-
-    {/* DEBUG temporal — overlay visible en pantalla, borrar junto con pushDebugLog
-        una vez resuelto el bug del subtítulo. */}
-    <div style={{
-      position: "fixed",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      maxHeight: "35vh",
-      overflow: "auto",
-      background: "rgba(0,0,0,0.92)",
-      color: "#7CFC7C",
-      fontFamily: "monospace",
-      fontSize: 10,
-      lineHeight: 1.4,
-      padding: "6px 10px",
-      zIndex: 999999,
-      whiteSpace: "pre-wrap",
-      pointerEvents: "none",
-    }}>
-      {debugLines.join("\n")}
-    </div>
-    </>
   );
 }
