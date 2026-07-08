@@ -30,6 +30,7 @@ import type { MonitorSummary, MonitorTableRow } from "../types/monitor.table.typ
 import type { MonitorApiResponse } from "../types/monitor.api.types";
 import { mapMonitorApiItemToTableRow, mapMonitorApiSummaryToSummary } from "../mapper/monitor.mapper";
 import { monitorSortComparator } from "../../src/utils/monitorSort"
+import { BoxModal } from "../components/BoxModal";
 
 
 const PAGE_SIZE = 10
@@ -209,6 +210,10 @@ export default function MonitorPage() {
   const [triajeModo, setTriajeModo]  = useState<"read" | "write">("write");
   const [medicoOpen, setMedicoOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [boxModalOpen, setBoxModalOpen] = useState(false)
+  const [boxModalType, setBoxModalType] = useState<"change" | "assign">("assign")
+  const [selectedBoxPatient, setSelectedBoxPatient] =
+    useState<MonitorTableRow | null>(null)  
 
   
 
@@ -298,12 +303,16 @@ export default function MonitorPage() {
       return
     }
 
+    setSelectedBoxPatient(row)
+
     if (stage === "SALA_D") {
-      console.info("[MonitorPage] Abrir asignación de BOX:", row)
+      setBoxModalType("assign")
+      setBoxModalOpen(true)
       return
     }
 
-    console.info("[MonitorPage] Abrir cambio de BOX:", row)
+    setBoxModalType("change")
+    setBoxModalOpen(true)
   }, [])
 
   const handleInfo = useCallback((row: MonitorTableRow) => {
@@ -476,6 +485,24 @@ export default function MonitorPage() {
         onClose={() => setInfoOpen(false)}
         paciente={selectedPatient ?? undefined}
         onSaveChanges={handleSaveAdditionalInfo}
+      />
+
+
+   {/* Modal de Box */}
+      <BoxModal
+        open={boxModalOpen}
+        onClose={() => setBoxModalOpen(false)}
+        paciente={selectedBoxPatient ?? undefined}
+        type={boxModalType}
+        onSaveChanges={async (paciente, bedId) => {
+          console.info("Guardar box:", {
+            paciente,
+            bedId,
+            type: boxModalType,
+          })
+
+          // TODO: llamar endpoint para asignar/cambiar box
+        }}
       />
     </>
   );
