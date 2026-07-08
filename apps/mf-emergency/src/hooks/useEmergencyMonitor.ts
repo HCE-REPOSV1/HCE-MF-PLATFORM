@@ -65,8 +65,8 @@ export function useEmergencyMonitor({
     // la grilla seguía mostrando el conteo anterior hasta un reload completo).
     fetch(url, {
       method: "GET",
-      credentials: "include",
-      cache: "no-store",
+      credentials: "include"
+      //cache: "no-store",
     })
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
