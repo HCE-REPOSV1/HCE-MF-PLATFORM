@@ -520,16 +520,6 @@ export function Triage({
     onClose();
   }
 
-  // flexWrap solo por debajo de "md": en pantalla normal (md+) se mantiene la fila
-  // única exacta de siempre; en pantallas chicas los campos se reordenan en vez de
-  // aplastarse (antes no envolvía en absoluto).
-  const FIELD_ROW = {
-    display: "flex",
-    flexWrap: { xs: "wrap", md: "nowrap" },
-    gap: 2,
-    alignItems: "flex-end",
-  } as const;
-
   return (
     <Box>
       <CSFLoading
@@ -737,15 +727,25 @@ export function Triage({
             </Box>
 
             {/* Campos del paciente */}
+            {/* Grid con size={{xs,sm,md}} en vez de flex+minWidth: con flex, cada campo tenía
+                un ratio pensado solo para la fila de escritorio, así que al envolver en
+                pantalla chica quedaban con anchos dispares y desordenados. Con Grid, cada
+                campo pasa a ocupar una fracción prolija y predecible por breakpoint (1 por
+                fila en mobile, 2 por fila en tablet), preservando en md las mismas
+                proporciones visuales que tenía la fila de escritorio original. */}
             {form.noIdentificado ? (
-              <Box sx={FIELD_ROW}>
-                <FieldCol label="Documento" flex={1} minWidth={110}>
-                  <TextInput value="NI" disabled onChange={() => {}} />
-                </FieldCol>
-                <FieldCol label="Número de documento" flex={1.5} minWidth={140}>
-                  <TextInput value="XXXXXXXX" disabled onChange={() => {}} />
-                </FieldCol>
-                <Box sx={{ flex: 1.5, minWidth: 160 }}>
+              <Grid container columns={24} spacing={2} sx={{ width: "100%", alignItems: "flex-end" }}>
+                <Grid size={{ xs: 24, sm: 12, md: 4 }}>
+                  <FieldCol label="Documento">
+                    <TextInput value="NI" disabled onChange={() => {}} />
+                  </FieldCol>
+                </Grid>
+                <Grid size={{ xs: 24, sm: 12, md: 6 }}>
+                  <FieldCol label="Número de documento">
+                    <TextInput value="XXXXXXXX" disabled onChange={() => {}} />
+                  </FieldCol>
+                </Grid>
+                <Grid size={{ xs: 24, sm: 12, md: 6 }}>
                   <SelectField
                     label="Sexo *"
                     value={form.sexo}
@@ -753,8 +753,8 @@ export function Triage({
                     options={genderOptions}
                     placeholder="-Seleccionar opción-"
                   />
-                </Box>
-                <Box sx={{ flex: 2, minWidth: 200 }}>
+                </Grid>
+                <Grid size={{ xs: 24, sm: 12, md: 8 }}>
                   <SelectField
                     label="Grupo etario estimado *"
                     value={form.grupoEtario}
@@ -762,39 +762,47 @@ export function Triage({
                     options={ageGroupOptions}
                     placeholder="-Seleccionar opción-"
                   />
-                </Box>
-              </Box>
+                </Grid>
+              </Grid>
             ) : (
-              <Box sx={FIELD_ROW}>
-                <FieldCol label="Nombres" flex={2} minWidth={160}>
-                  <TextInput
-                    value={form.nombres}
-                    onChange={(v) => set("nombres", v)}
-                    placeholder="Ingrese datos"
-                  />
-                </FieldCol>
-                <FieldCol label="Apellido Paterno" flex={1.5} minWidth={140}>
-                  <TextInput
-                    value={form.apellidoPaterno}
-                    onChange={(v) => set("apellidoPaterno", v)}
-                    placeholder="Ingrese datos"
-                  />
-                </FieldCol>
-                <FieldCol label="Apellido Materno" flex={1.5} minWidth={140}>
-                  <TextInput
-                    value={form.apellidoMaterno}
-                    onChange={(v) => set("apellidoMaterno", v)}
-                    placeholder="Ingrese datos"
-                  />
-                </FieldCol>
-                <FieldCol label="Fecha de nacimiento" flex="0 0 160px">
-                  <TextInput
-                    value={form.fechaNacimiento}
-                    onChange={(v) => set("fechaNacimiento", v)}
-                    placeholder="dd-mm-yyyy"
-                  />
-                </FieldCol>
-                <Box sx={{ flex: 1.5, minWidth: 160 }}>
+              <Grid container columns={24} spacing={2} sx={{ width: "100%", alignItems: "flex-end" }}>
+                <Grid size={{ xs: 24, sm: 12, md: 6 }}>
+                  <FieldCol label="Nombres">
+                    <TextInput
+                      value={form.nombres}
+                      onChange={(v) => set("nombres", v)}
+                      placeholder="Ingrese datos"
+                    />
+                  </FieldCol>
+                </Grid>
+                <Grid size={{ xs: 24, sm: 12, md: 5 }}>
+                  <FieldCol label="Apellido Paterno">
+                    <TextInput
+                      value={form.apellidoPaterno}
+                      onChange={(v) => set("apellidoPaterno", v)}
+                      placeholder="Ingrese datos"
+                    />
+                  </FieldCol>
+                </Grid>
+                <Grid size={{ xs: 24, sm: 12, md: 5 }}>
+                  <FieldCol label="Apellido Materno">
+                    <TextInput
+                      value={form.apellidoMaterno}
+                      onChange={(v) => set("apellidoMaterno", v)}
+                      placeholder="Ingrese datos"
+                    />
+                  </FieldCol>
+                </Grid>
+                <Grid size={{ xs: 24, sm: 12, md: 4 }}>
+                  <FieldCol label="Fecha de nacimiento">
+                    <TextInput
+                      value={form.fechaNacimiento}
+                      onChange={(v) => set("fechaNacimiento", v)}
+                      placeholder="dd-mm-yyyy"
+                    />
+                  </FieldCol>
+                </Grid>
+                <Grid size={{ xs: 24, sm: 12, md: 4 }}>
                   <SelectField
                     label="Sexo"
                     value={form.sexo}
@@ -802,8 +810,8 @@ export function Triage({
                     options={genderOptions}
                     placeholder="-Seleccionar opción-"
                   />
-                </Box>
-              </Box>
+                </Grid>
+              </Grid>
             )}
           </Box>
 
@@ -863,16 +871,18 @@ export function Triage({
                     />
                   </Grid>
                   <Grid size={{ xs: 24, sm: 12, md: 6 }}>
+                    {/* minWidth:0 (no un valor fijo como 220) — un mínimo fijo mayor al ancho
+                        real de la celda del Grid en ciertos breakpoints la desbordaba, tapando
+                        "T. de enfermedad". El Toggle mantiene su ancho fijo y el FieldCol con
+                        flex:1 1 0 ya se encarga de que el DatePicker ocupe el espacio restante
+                        real de la celda, sin forzar un piso que no siempre entra. */}
                     <Box
                       sx={{
                         display: "flex",
                         alignItems: "flex-end",
                         gap: 1,
                         width: "100%",
-                        // minWidth propio (no 0): con el Toggle al lado, dejar que el
-                        // DatePicker se achique sin límite lo volvía ilegible en vez de
-                        // simplemente pasar a su propia fila como los demás campos.
-                        minWidth: 220,
+                        minWidth: 0,
                       }}
                     >
                       <Toggle
