@@ -37,6 +37,7 @@ export default defineConfig(({ mode }) => {
       exposes: {
         "./Emergency":   "./src/Emergency.tsx",
         "./menuConfig":  "./src/menuConfig.ts",
+        "./EmergencyTV": "./src/pages/EmergencyTvPage.tsx"
       },
       shared: [
         "react", "react-dom", "react-router-dom", "lucide-react",

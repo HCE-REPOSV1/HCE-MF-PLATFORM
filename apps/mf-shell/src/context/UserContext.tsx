@@ -80,6 +80,13 @@ interface UserContextValue {
   sede:                   string
   /** Sede activa con id + nombre — null mientras carga o si no hay sede seleccionada */
   sedeActual:             SedeInfo | null
+  /**
+   * location_uuid de la sede activa — null mientras carga o si no hay sede seleccionada.
+   * Campo aditivo, independiente de sedeActual.id (que sigue siendo el location_id secuencial
+   * y no debe cambiar: otros módulos, ej. triage, lo consumen tal cual). Pensado para el monitor
+   * público de emergencias, que requiere un identificador de sede no adivinable.
+   */
+  sedeActualUuid:         string | null
   /** Lista de sedes disponibles para el usuario (filtradas por MAC + mapeadas al nuevo sistema) */
   sucursalesDisponibles:  SedeInfo[]
   loading:                boolean
@@ -95,6 +102,7 @@ const UserContext = createContext<UserContextValue>({
   opciones:              [],
   sede:                  '',
   sedeActual:            null,
+  sedeActualUuid:        null,
   sucursalesDisponibles: [],
   loading:               true,
   hasPermission:         () => false,
@@ -133,6 +141,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
     () => sucursalesDisponibles.find(s => s.id === sede) ?? null,
     [sucursalesDisponibles, sede]
   )
+
+  // location_uuid de la sede activa (aditivo, ver comentario en UserContextValue).
+  const sedeActualUuid = useMemo(() => {
+    if (!sedeActual) return null
+    const loc = orgLocations.find(l => String(l.location_id) === sedeActual.id)
+    return loc?.location_uuid ?? null
+  }, [sedeActual, orgLocations])
 
   // Auto-selecciona la primera sede disponible (con location_id del nuevo sistema)
   // cuando aún no hay sede activa y ya llegaron los datos de la organización.
@@ -251,7 +266,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <UserContext.Provider value={{ user, permisos, opciones, sede, sedeActual, sucursalesDisponibles, loading, hasPermission, refetch: fetchMe, logout, setSede }}>
+    <UserContext.Provider value={{ user, permisos, opciones, sede, sedeActual, sedeActualUuid, sucursalesDisponibles, loading, hasPermission, refetch: fetchMe, logout, setSede }}>
       {children}
     </UserContext.Provider>
   )

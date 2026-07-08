@@ -1,7 +1,10 @@
-import { useState, useEffect } from "react";
-import { HceHeader } from "@hce/design-system";
+import { useState, useEffect, useMemo } from "react";
+import { HceBreadcrumb, HceHeader } from "@hce/design-system";
 import { useUser } from "shell/UserContext";
 import { usePractitioner } from "./hooks/usePractitioner";
+
+import { useLocation, useNavigate } from "react-router-dom";
+
 
 interface Sucursal {
   id: string | number;
@@ -25,6 +28,18 @@ type CommittedData = {
   role:   string | null  // subtítulo a mostrar (null = ocultar)
   prefix: string | null  // prefijo del nombre (Dr., Dra., etc.) o null
 } | undefined
+
+
+
+
+const BREADCRUMB_LABELS: Record<string, string> = {
+  home: "Home",
+  emergencia:  "Monitor de emergencia",
+  historiacli: "Historia clínica",
+  hospital: "Hospital",
+  ambulatorio: "Ambulatorio",
+  auditoria: "Auditoría",
+}
 
 export default function Header({
   sede,
@@ -74,8 +89,35 @@ export default function Header({
 
   const userRole = committed?.role ?? undefined
 
+
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  const breadcrumbItems = useMemo(() => {
+    const segments = location.pathname
+      .split("/")
+      .filter(Boolean)
+
+    if (segments.length <= 1 && segments[0] === "home") {
+      return []
+    }
+
+    return segments.map((segment, index) => {
+      const href = `/${segments.slice(0, index + 1).join("/")}`
+
+      return {
+        label: BREADCRUMB_LABELS[segment] ?? segment,
+        href,
+      }
+    })
+  }, [location.pathname])
+
+  const showBreadcrumb = breadcrumbItems.length > 0
+
+  
+
   return (
-    <div>
+    <div    style={{ display: "flex", flexDirection: "column", gap: 20, width: "100%" }}>
       <HceHeader
         floating
         sede={sede}
@@ -87,6 +129,24 @@ export default function Header({
         onLogout={onLogout}
         onMenuClick={onMenuClick}
       />
+    
+
+    
+     {showBreadcrumb && (
+          <div style={{ flex: 1, overflow: "auto", padding: "0 0 0 20px" }}>
+            <HceBreadcrumb
+              items={breadcrumbItems}
+              onItemClick={(item) => {
+                if (item.href) {
+                  navigate(item.href)
+                }
+              }}
+            />
+          </div>
+        )}
+
     </div>
+    
+  
   );
 }

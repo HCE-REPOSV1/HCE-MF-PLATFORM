@@ -4,8 +4,12 @@ if (!AG_WEB_EMERGENCY) throw new Error('[mf-emergency] VITE_APIGW_CNL_WEB_EMERGE
 export const ENDPOINTS = {
 
   emergencyMonitor: {
-    public: (sedeId: string, page: number, limit: number) =>
-      `${AG_WEB_EMERGENCY}/api/v1/emergency-monitor/public?sede=${sedeId}&page=${page}&limit=${limit}`,
+    /** Pantalla pública (TV sala de espera) — sin sesión, respuesta cifrada AES-GCM. */
+    public: (locationUuid: string, page: number, limit: number) =>
+      `${AG_WEB_EMERGENCY}/api/v1/emergency-monitor/public?location_uuid=${locationUuid}&page=${page}&limit=${limit}`,
+    /** Dashboard logueado — requiere sesión (JwtAuthGuard), respuesta plana sin cifrar. */
+    porSede: (locationUuid: string, page: number, limit: number) =>
+      `${AG_WEB_EMERGENCY}/api/v1/emergency-monitor/por-sede?location_uuid=${locationUuid}&page=${page}&limit=${limit}`,
   },
 
 } as const
