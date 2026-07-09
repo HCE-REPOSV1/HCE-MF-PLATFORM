@@ -10,6 +10,7 @@ import {
   MonitoActionBar,
   EmergencyPagination,
   BedAvailabilityDrawerV2,
+  HceModal,
 
 } from "@hce/design-system";
 
@@ -18,7 +19,7 @@ import { AditionalInfoModal } from "../components/AditionalInfoModal";
 import { useBedBoard } from "../hooks/useBedBoard";
 import { mapBedApiItemToAvailabilityItem } from "../mapper/bed.mapper";
 
-import type {  GenericTableColumn } from "@hce/design-system";
+import {  UiWarningIcon, type GenericTableColumn } from "@hce/design-system";
 
 import { usePermiso } from "../hooks/usePermiso";
 import { PERMISOS_EMERGENCY } from "../config/permisos";
@@ -223,6 +224,7 @@ export default function MonitorPage() {
   const [selectedBoxPatient, setSelectedBoxPatient] =
     useState<MonitorTableRow | null>(null)  
   const [disponibilidadOpen, setDisponibilidadOpen] = useState(false);
+  const [attentionWarningOpen, setAttentionWarningOpen] = useState(false)
 
   const sede = useSede()
   const {
@@ -321,10 +323,7 @@ export default function MonitorPage() {
     const stage = row.box.stage
 
     if (stage === "ESPERA") {
-      console.info(
-        "[MonitorPage] Paciente aún no cuenta con atención. Comunicarse con el counter de emergencia.",
-        row,
-      )
+      setAttentionWarningOpen(true)
       return
     }
 
@@ -382,6 +381,9 @@ export default function MonitorPage() {
 
   return (
     <>
+
+
+  
       <Box
         sx={{
           inset: 0,
@@ -531,6 +533,20 @@ export default function MonitorPage() {
         refetchMonitor()
       }}
     />
+
+
+   {/* Modal de Box - ESPERA */}
+    <HceModal
+  maxWidth={460}
+  open={attentionWarningOpen}
+  title="Paciente aún no cuenta con atención"
+  description="Por favor comunicarse con el medico."
+  icon= {<UiWarningIcon/>}
+  confirmButton={{
+    label: "Aceptar",
+    onClick: () => setAttentionWarningOpen(false),
+  }}
+/>
     </>
   );
 }
