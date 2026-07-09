@@ -34,6 +34,7 @@ import type { MonitorSummary, MonitorTableRow } from "../types/monitor.table.typ
 import type { MonitorApiResponse } from "../types/monitor.api.types";
 import { mapMonitorApiItemToTableRow, mapMonitorApiSummaryToSummary } from "../mapper/monitor.mapper";
 import { monitorSortComparator } from "../../src/utils/monitorSort"
+import { BoxModal } from "../components/BoxModal";
 
 
 const PAGE_SIZE = 10
@@ -69,7 +70,7 @@ const PAGE_SIZE = 10
     clickable: true,
     // Solo se puede abrir el triaje (modo lectura) desde este campo, y solo si la fila
     // ya tiene un triage_id vinculado — sin eso no hay nada que cargar.
-    disabledGetter: (row) => !canReadTriage || row.triage_id == null,
+    disabledGetter: (row) => !canReadTriage || row.triage_id == null || row.priority=='none',
     onClick: (row) => onOpenTriage(row),
   },
   {
@@ -217,6 +218,10 @@ export default function MonitorPage() {
   const [selectedTriageId, setSelectedTriageId] = useState<number | undefined>(undefined);
   const [medicoOpen, setMedicoOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [boxModalOpen, setBoxModalOpen] = useState(false)
+  const [boxModalType, setBoxModalType] = useState<"change" | "assign">("assign")
+  const [selectedBoxPatient, setSelectedBoxPatient] =
+    useState<MonitorTableRow | null>(null)  
   const [disponibilidadOpen, setDisponibilidadOpen] = useState(false);
 
   const sede = useSede()
@@ -296,7 +301,12 @@ export default function MonitorPage() {
         console.info("[MonitorPage] La fila no tiene triaje vinculado todavía:", row)
         return
       }
+      if (row.priority == null || row.priority== 'none') {
+        console.info("[MonitorPage] El paciente no tiene prioridad todavía:", row)
+        return
+      }
 
+      
       setSelectedPatientId(row.id)
       setSelectedTriageId(row.triage_id)
       setTriajeModo("read")
@@ -318,12 +328,16 @@ export default function MonitorPage() {
       return
     }
 
+    setSelectedBoxPatient(row)
+
     if (stage === "SALA_D") {
-      console.info("[MonitorPage] Abrir asignación de BOX:", row)
+      setBoxModalType("assign")
+      setBoxModalOpen(true)
       return
     }
 
-    console.info("[MonitorPage] Abrir cambio de BOX:", row)
+    setBoxModalType("change")
+    setBoxModalOpen(true)
   }, [])
 
   const handleInfo = useCallback((row: MonitorTableRow) => {
@@ -406,19 +420,20 @@ export default function MonitorPage() {
             />
           </Box>
 
-         <Box sx={{ flex: 1, overflow: "hidden", minHeight: 300,  }}>
+         <Box sx={{ flex: 1, overflow: "hidden", minHeight: 'fit-content' }}>
           {monitorLoading ? (
             <Box sx={{ p: 2 }}>Cargando monitor...</Box>
           ) : monitorError ? (
             <Box sx={{ p: 2 }}>Error: {monitorError}</Box>
           ) : (
-            <Box sx={{ flex: 1, overflowX:"auto", maxHeight: "65vh" }}>
+            <Box sx={{ flex: 1, overflowX:"auto", height: "100%", marginBottom: '10px' }}>
             <GenericTable
               rows={rows}
               columns={columns}
               getRowId={(row) => row.id}
               maxHeight="45vh"
               rowAlertGetter={(row) => row.row_alert_color === "red"}
+              
             />
             </Box>
           )}
@@ -504,6 +519,18 @@ export default function MonitorPage() {
         paciente={selectedPatient ?? undefined}
         onSaveChanges={handleSaveAdditionalInfo}
       />
+
+
+   {/* Modal de Box */}
+    <BoxModal
+      open={boxModalOpen}
+      onClose={() => setBoxModalOpen(false)}
+      paciente={selectedBoxPatient ?? undefined}
+      type={boxModalType}
+      onSaved={async () => {
+        refetchMonitor()
+      }}
+    />
     </>
   );
 }
