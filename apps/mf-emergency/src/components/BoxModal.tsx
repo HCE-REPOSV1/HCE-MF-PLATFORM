@@ -5,6 +5,8 @@ import {
   hceColors,
   hceTypography,
   Typography,
+  HceModal,
+  UiCheckedIcon,
 } from "@hce/design-system"
 import {
   FormControl,
@@ -49,6 +51,7 @@ export function BoxModal({
   const [selectedBedId, setSelectedBedId] = useState("")
   const [loadingBeds, setLoadingBeds] = useState(false)
   const [saving, setSaving] = useState(false)
+    const [confirm, setConfirm] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const sede = useSede()
@@ -137,39 +140,45 @@ export function BoxModal({
   }, [onClose, saving])
 
   const handleSave = useCallback(async () => {
-    if (!localPaciente || !selectedBedId) return
+  if (!localPaciente || !selectedBedId) return
 
-    try {
-        setSaving(true)
-        setError(null)
+  try {
+    setSaving(true)
+    setError(null)
 
-        console.log(localPaciente.encounter_id)
-            
-        await reassignBed({
-        encounter_id: Number(localPaciente.encounter_id),
-        bed_id: Number(selectedBedId),
-        assigned_by: user,
-        user_create: user,
-        })
+    await reassignBed({
+      encounter_id: Number(localPaciente.encounter_id),
+      bed_id: Number(selectedBedId),
+      assigned_by: user,
+      user_create: user,
+    })
 
-        onClose()
-        void onSaved?.()
-    } catch (err) {
-        setError(
-        err instanceof Error
-            ? err.message
-            : "No se pudo asignar la cama",
-        )
-    } finally {
-        setSaving(false)
-    }
-    }, [
-    localPaciente,
-    selectedBedId,
-    user,
-    onSaved,
-    onClose,
-    ])
+    setConfirm(true)
+  } catch (err) {
+    setSaving(false)
+    setError(
+      err instanceof Error
+        ? err.message
+        : "No se pudo asignar la cama",
+    )
+  }
+}, [localPaciente, selectedBedId, user])
+
+const handleConfirm = useCallback(async () => {
+  try {
+    setConfirm(false)
+    onClose()
+    await onSaved?.()
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : "No se pudo refrescar la información",
+    )
+  } finally {
+    setSaving(false)
+  }
+}, [onSaved, onClose])
 
   const isSaveDisabled =
     !selectedBedId ||
@@ -179,7 +188,20 @@ export function BoxModal({
     Boolean(error)
 
   return (
-    <HceFormModal
+ <>
+    <HceModal
+      maxWidth={400}
+      open={confirm}
+      title="Cambio guardado con éxito"
+      icon={<UiCheckedIcon />}
+      confirmButton={{
+        label: "Aceptar",
+        onClick: handleConfirm,
+      }}
+    />
+    
+  {!confirm && (
+      <HceFormModal
       open={open}
       onClose={handleCancel}
       title={modalTitle}
@@ -329,6 +351,7 @@ export function BoxModal({
                 </Select>
               </FormControl>
             </Box>
+          
 
             {error && (
               <Typography
@@ -343,9 +366,9 @@ export function BoxModal({
                 {error}
               </Typography>
             )}
-          </>
-        )}
-      </Box>
-    </HceFormModal>
-  )
-}
+            </>
+          )}
+        </Box>
+      </HceFormModal>
+    )}
+  </>)}
