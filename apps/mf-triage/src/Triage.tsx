@@ -104,7 +104,7 @@ function mapTriageFullToForm(full: TriageFullData): Partial<TriajeForm> {
           : "N",
     gestante: triage.is_pregnant == null ? "" : triage.is_pregnant ? "S" : "N",
     furEnabled: Boolean(triage.fur_enabled),
-    fur: triage.fur_date ?? "",
+    fur: triage.fur_date?.split("T")[0] ?? "",
     tiempoEnfermedad:
       triage.illness_duration != null ? String(triage.illness_duration) : "",
     tiempoUnidad: triage.illness_duration_unit ?? "",
@@ -657,6 +657,8 @@ export function Triage({
           }
         : {}),
       vitalSign: {
+        height_cm: Number(form.peso),
+        weight_kg: Number(form.talla),
         systolic_pressure: form.pSistolica
           ? Number(form.pSistolica)
           : undefined,
@@ -1579,13 +1581,18 @@ export function Triage({
                       options={opcionesRadioAlergia}
                       onChange={(v) => {
                         set("tieneAlergia", v);
+                        if(v=='N'){
+                          setValuePrincipioActivo([])
+                          set("alimentos","")
+                          set("otrosAlergias","")
+                        }
                       }}
                     />
                   </Grid>
 
                   <Grid size={{ xs: 12, sm: 8, md: 8 }}>
                     <MultiSelect
-                      disabled={!canAlergiasTriage || !enabledAlergiasTriage}
+                      disabled={!canAlergiasTriage || !enabledAlergiasTriage || form.tieneAlergia == 'N'}
                       options={optionsActivePrinciples}
                       label="Principio activo"
                       value={valuePrincipioActivo}
@@ -1599,7 +1606,7 @@ export function Triage({
                   onChange={(v) => set("alimentos", v)}
                   maxLength={100}
                   placeholder="Describa alergias alimentarias"
-                  disabled={!canAlergiasTriage || !enabledAlergiasTriage}
+                  disabled={!canAlergiasTriage || !enabledAlergiasTriage || form.tieneAlergia == 'N'}
                 />
                 <TextareaField
                   label="Otros"
@@ -1607,7 +1614,7 @@ export function Triage({
                   onChange={(v) => set("otrosAlergias", v)}
                   maxLength={100}
                   placeholder="Otros tipos de alergia"
-                  disabled={!canAlergiasTriage || !enabledAlergiasTriage}
+                  disabled={!canAlergiasTriage || !enabledAlergiasTriage || form.tieneAlergia == 'N'}
                 />
               </Box>
             )}
