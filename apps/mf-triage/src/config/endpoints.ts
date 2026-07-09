@@ -40,6 +40,8 @@ export const ENDPOINTS = {
   catalogs: {
     CieSearch: (text: string, column: string) =>
       `${AG_CLN_CROSS}/api/v1/catalogs/cie/search?text=${encodeURIComponent(text)}&column=${encodeURIComponent(column)}`,
+    CieById: (id: number) =>
+      `${AG_CLN_CROSS}/api/v1/catalogs/cie/${id}`,
     // Catálogo genérico de valores predeterminados del sistema (tabla code-system-values)
     CodeSystemValues: (codeSystemId: string | number) =>
       `${AG_CLN_CROSS}/api/v1/catalogs/code-system-values?code_system_id=${codeSystemId}`,

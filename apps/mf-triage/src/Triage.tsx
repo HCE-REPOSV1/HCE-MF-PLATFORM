@@ -46,6 +46,8 @@ import type {
   EstimatedAgeGroup,
   TriageFullData,
 } from "./types/triage.types";
+import { PERMISOS_EMERGENCY } from "./config/permisos";
+import { usePermiso } from "./hooks/usePermiso";
 
 const TRIAGE_LEVEL_MAP: Record<TriagePriority, number> = {
   I: 1,
@@ -93,10 +95,7 @@ function mapTriageFullToForm(full: TriageFullData): Partial<TriajeForm> {
     sexo: patient?.gender ?? "",
     grupoEtario: patient?.estimated_age_group ?? "",
 
-    motivoQuery:
-      triage.chief_complaint_code != null
-        ? String(triage.chief_complaint_code)
-        : "",
+    motivoQuery: triage.cie_description != null ? triage.cie_description : "",
     aislamiento:
       triage.isolation_required == null
         ? ""
@@ -281,6 +280,33 @@ export function Triage({
   const [buscandoPaciente, setBuscandoPaciente] = useState(false);
   const [pacienteNoEncontrado, setPacienteNoEncontrado] = useState(false);
 
+  /* Control de permisos */
+  const canDatosPacienteTriage = usePermiso(
+    PERMISOS_EMERGENCY.triage.campos.datosPaciente,
+  );
+  const canDatosClinicosTriage = usePermiso(
+    PERMISOS_EMERGENCY.triage.campos.datosClinicos,
+  );
+  const canSignosVitalesTriage = usePermiso(
+    PERMISOS_EMERGENCY.triage.campos.signosVitales,
+  );
+  const canAlergiasTriage = usePermiso(
+    PERMISOS_EMERGENCY.triage.campos.alergias,
+  );
+  const canEvaTriage = usePermiso(
+    PERMISOS_EMERGENCY.triage.campos.eva,
+  );
+  const canClasificacionTriage = usePermiso(
+    PERMISOS_EMERGENCY.triage.campos.clasificacion,
+  );
+
+  const [enabledPacienteTriage, setEnabledPacienteTriage] = useState(true);
+  const [enabledDatosClinicosTriage, setEnabledDatosClinicosTriage] = useState(true);
+  const [enabledSignosVitalesTriage, setEnabledSignosVitalesTriage] = useState(true);
+  const [enabledAlergiasTriage, setEnabledAlergiasTriage] = useState(true);
+  const [enabledEvaTriage, setEnabledEvaTriage] = useState(true);
+  const [enabledClasificacionTriage, setEnabledClasificacionTriage] = useState(true);
+
   // Secciones expandibles
   const [expDatosClinicos, setExpDatosClinicos] = useState(true);
   const [expSignosVitales, setExpSignosVitales] = useState(true);
@@ -344,6 +370,7 @@ export function Triage({
   const {
     fetchCodeSystemValues,
     fetchCatalogCie,
+    fetchCatalogCieById,
     fetchCatalogActivePrinciples,
     fetchIdentifierTypes,
     fetchTimeUnits,
@@ -470,12 +497,24 @@ export function Triage({
     if (!open || !readOnly || !triageId) return;
 
     let cancelled = false;
-    fetchTriageFull(triageId).then((full) => {
+    fetchTriageFull(triageId).then(async (full) => {
       if (cancelled) return;
       if (!full) {
         setLoadError("No se pudo cargar el triaje solicitado.");
         return;
       }
+      if (full.triage) {
+        setEnabledPacienteTriage(false);
+        setEnabledDatosClinicosTriage(false);
+        setEnabledSignosVitalesTriage(false);
+        setEnabledAlergiasTriage(false);
+        setEnabledEvaTriage(false);
+        setEnabledClasificacionTriage(false);
+        full.triage.cie_description = await handleSearchMotivoById(
+          full.triage.cie_id!,
+        );
+      }
+
       setForm((f) => ({ ...f, ...mapTriageFullToForm(full) }));
     });
 
@@ -509,6 +548,21 @@ export function Triage({
     setBuscandoPaciente(false);
   }
 
+  //Buscar motivo de ingreso por Id ( para modo lectura)
+  async function handleSearchMotivoById(id: number) {
+    setLoadingSearchMotivo(true);
+    try {
+      const results = await fetchCatalogCieById(id);
+      if (results) {
+        set("motivoQuery", results.cie_description);
+        return results.cie_description;
+      }
+    } catch (err) {
+      set("motivoQuery", "");
+    } finally {
+      setLoadingSearchMotivo(false);
+    }
+  }
   // Buscar motivo de ingreso
   async function handleSearchMotivo(query: string, mode: SearchMode) {
     setLoadingSearchMotivo(true);
@@ -772,7 +826,7 @@ export function Triage({
                   onChange={(v) => set("tipoDoc", v)}
                   options={tipoDocOptions}
                   placeholder="-Seleccionar opción-"
-                  disabled={form.noIdentificado}
+                  disabled={form.noIdentificado || !canDatosPacienteTriage || !enabledPacienteTriage}
                 />
               </Box>
               <Box sx={{ flex: 1, minWidth: 140 }}>
@@ -781,7 +835,7 @@ export function Triage({
                   value={form.numeroDoc}
                   onChange={(v) => set("numeroDoc", v)}
                   placeholder="Ingrese documento"
-                  disabled={form.noIdentificado}
+                  disabled={form.noIdentificado || !canDatosPacienteTriage || !enabledPacienteTriage}
                 />
               </Box>
               {/* Botón buscar  */}
@@ -794,7 +848,9 @@ export function Triage({
                   form.noIdentificado ||
                   buscandoPaciente ||
                   !form.tipoDoc ||
-                  !form.numeroDoc
+                  !form.numeroDoc ||
+                  !canDatosPacienteTriage ||
+                  !enabledPacienteTriage
                 }
                 sx={{
                   width: 45,
@@ -845,6 +901,7 @@ export function Triage({
                 }}
               >
                 <Checkbox
+                  disabled={!canDatosPacienteTriage || !enabledPacienteTriage}
                   label="No identificado"
                   sideLabel="end"
                   checked={form.noIdentificado}
@@ -1010,6 +1067,7 @@ export function Triage({
                     set("motivoQuery", opt.label);
                     setMotivoOpts([]);
                   }}
+                  disabled={!canDatosClinicosTriage || !enabledDatosClinicosTriage}
                 />
 
                 {/* Aislamiento + Gestante + FUR + Tiempo de enfermedad.
@@ -1028,6 +1086,7 @@ export function Triage({
                       value={form.aislamiento}
                       options={opcionesRadio}
                       onChange={(v) => set("aislamiento", v)}
+                      disabled={!canDatosClinicosTriage || !enabledDatosClinicosTriage}
                     />
                   </Grid>
                   <Grid size={{ xs: 24, sm: 12, md: 5 }}>
@@ -1036,7 +1095,7 @@ export function Triage({
                       value={form.gestante}
                       options={opcionesRadio}
                       onChange={(v) => set("gestante", v)}
-                      disabled={form.sexo === "male"}
+                      disabled={form.sexo === "male" || !canDatosClinicosTriage || !enabledDatosClinicosTriage}
                     />
                   </Grid>
                   <Grid size={{ xs: 24, sm: 12, md: 8 }}>
@@ -1056,7 +1115,9 @@ export function Triage({
                     >
                       <Toggle
                         checked={form.furEnabled}
-                        disabled={form.sexo === "male"}
+                        disabled={
+                          form.sexo === "male" || !canDatosClinicosTriage || !enabledDatosClinicosTriage
+                        }
                         onChange={(v) => {
                           set("furEnabled", v);
                           if (!v) set("fur", "");
@@ -1070,7 +1131,12 @@ export function Triage({
                         <DatePicker
                           value={form.fur}
                           onChange={(v) => set("fur", v)}
-                          disabled={!form.furEnabled || form.sexo === "male"}
+                          disabled={
+                            !form.furEnabled ||
+                            form.sexo === "male" ||
+                            !canDatosClinicosTriage ||
+                            !enabledDatosClinicosTriage
+                          }
                         />
                       </FieldCol>
                     </Box>
@@ -1105,6 +1171,7 @@ export function Triage({
                               fontFamily: hceTypography.fontFamily,
                               fontSize: "0.875rem",
                             }}
+                            disabled={!canDatosClinicosTriage || !enabledDatosClinicosTriage}
                           />
 
                           <Box
@@ -1122,10 +1189,12 @@ export function Triage({
                               fontWeight: 600,
                               fontSize: "0.78rem",
                               whiteSpace: "nowrap",
-                              cursor: "pointer",
+                              cursor: (!canDatosClinicosTriage || !enabledDatosClinicosTriage)
+                                ? "not-allowed"
+                                : "pointer",
                             }}
                             onClick={() => {
-                              if (!timeUnitOptions.length) return;
+                              if (!canDatosClinicosTriage || !enabledDatosClinicosTriage || !timeUnitOptions.length) return;
                               const idx = timeUnitOptions.findIndex(
                                 (u) => u.time_unit_code === form.tiempoUnidad,
                               );
@@ -1153,6 +1222,7 @@ export function Triage({
                   onChange={(v) => set("comentarios", v)}
                   maxLength={100}
                   placeholder="Ingrese comentarios"
+                  disabled={!canDatosClinicosTriage || !enabledDatosClinicosTriage}
                 />
               </Box>
             )}
@@ -1184,6 +1254,7 @@ export function Triage({
                       onChange={(v) => {
                         set("traumaShock", v);
                       }}
+                      disabled={!canSignosVitalesTriage || !enabledSignosVitalesTriage}
                     />
                   </Grid>
                   <Grid size={{ xs: 8, md: 3 }}>
@@ -1193,6 +1264,7 @@ export function Triage({
                       onChange={(v) => set("peso", v)}
                       suffix="Kg"
                       numberType="decimal"
+                      disabled={!canSignosVitalesTriage || !enabledSignosVitalesTriage}
                     />
                   </Grid>
                   <Grid size={{ xs: 8, md: 3 }}>
@@ -1202,10 +1274,17 @@ export function Triage({
                       onChange={(v) => set("talla", v)}
                       suffix="cm"
                       numberType="natural"
+                      disabled={!canSignosVitalesTriage || !enabledSignosVitalesTriage}
                     />
                   </Grid>
                   <Grid size={{ xs: 8, md: 4 }}>
-                    <NumericField label="IMC" value={imc} suffix="" readOnly />
+                    <NumericField
+                      label="IMC"
+                      value={imc}
+                      suffix=""
+                      readOnly
+                      disabled={!canSignosVitalesTriage || !enabledSignosVitalesTriage}
+                    />
                   </Grid>
                 </Grid>
                 {/* Fila 2: Signos */}
@@ -1266,6 +1345,7 @@ export function Triage({
                           set(f.key as keyof TriajeForm, v as any)
                         }
                         suffix={f.suffix}
+                        disabled={!canSignosVitalesTriage || !enabledSignosVitalesTriage}
                       />
                     </Grid>
                   ))}
@@ -1316,6 +1396,7 @@ export function Triage({
                       {(["ocular", "verbal", "motora"] as const).map((key) => (
                         <Grid key={key} size={{ xs: 12, sm: 6, md: 3 }}>
                           <SelectField
+                            disabled={!canSignosVitalesTriage || !enabledSignosVitalesTriage}
                             label={
                               {
                                 ocular: "R. Ocular",
@@ -1392,6 +1473,7 @@ export function Triage({
                         (key) => (
                           <Grid key={key} size={{ xs: 12, sm: 6, md: 3 }}>
                             <SelectField
+                              disabled={!canSignosVitalesTriage || !enabledSignosVitalesTriage}
                               label={
                                 {
                                   cara: "Cara",
@@ -1441,6 +1523,7 @@ export function Triage({
                 >
                   <Grid size={{ xs: 12, sm: 4, md: 4 }}>
                     <RadioGroup
+                      disabled={!canAlergiasTriage || !enabledAlergiasTriage}
                       value={form.tieneAlergia}
                       options={opcionesRadioAlergia}
                       onChange={(v) => {
@@ -1451,6 +1534,7 @@ export function Triage({
 
                   <Grid size={{ xs: 12, sm: 8, md: 8 }}>
                     <MultiSelect
+                      disabled={!canAlergiasTriage || !enabledAlergiasTriage}
                       options={optionsActivePrinciples}
                       label="Principio activo"
                       value={valuePrincipioActivo}
@@ -1464,6 +1548,7 @@ export function Triage({
                   onChange={(v) => set("alimentos", v)}
                   maxLength={100}
                   placeholder="Describa alergias alimentarias"
+                  disabled={!canAlergiasTriage || !enabledAlergiasTriage}
                 />
                 <TextareaField
                   label="Otros"
@@ -1471,6 +1556,7 @@ export function Triage({
                   onChange={(v) => set("otrosAlergias", v)}
                   maxLength={100}
                   placeholder="Otros tipos de alergia"
+                  disabled={!canAlergiasTriage || !enabledAlergiasTriage}
                 />
               </Box>
             )}
@@ -1486,6 +1572,7 @@ export function Triage({
             {expEva && (
               <Box sx={{ mt: 2, px: 1 }}>
                 <EvaScale
+                  readOnly={!canEvaTriage || !enabledEvaTriage}
                   value={form.dolEva}
                   onChange={(v) => set("dolEva", v)}
                 />
@@ -1505,6 +1592,7 @@ export function Triage({
                 sx={{ mt: 2, px: 1, display: "flex", justifyContent: "center" }}
               >
                 <TriagePriorityDisplay
+                  readOnly={!canClasificacionTriage || !enabledClasificacionTriage}
                   selected={form.prioridad}
                   onSelect={(p) => set("prioridad", p)}
                 />

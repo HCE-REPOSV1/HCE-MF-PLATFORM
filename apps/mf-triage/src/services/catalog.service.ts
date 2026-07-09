@@ -20,6 +20,7 @@ import type {
   CatalogAgeGroupResponse,
   CatalogCie,
   CatalogCieResponse,
+  CatalogCieResponseData,
   CatalogCodeSystemValue,
   CatalogCodeSystemValueResponse,
   CatalogIdentifierType,
@@ -38,6 +39,21 @@ export async function getCatalogCieSearch(
     throw new Error(`Error ${res.status} al obtener datos del Catalog Cie`);
 
   const json = (await res.json()) as CatalogCieResponse;
+  if (!json.success) return null;
+  return json.data;
+}
+
+export async function getCatalogCieById(
+  id: number,
+): Promise<CatalogCie | null> {
+  const res = await apiFetch(ENDPOINTS.catalogs.CieById(id));
+  if (res.status === 404) return null;
+  if (!res.ok)
+    throw new Error(
+      `Error ${res.status} al obtener datos del Catalog Cie por Id`,
+    );
+
+  const json = (await res.json()) as CatalogCieResponseData;
   if (!json.success) return null;
   return json.data;
 }

@@ -7,6 +7,7 @@ import {
   getIdentifierTypes,
   getTimeUnits,
   getAgeGroups,
+  getCatalogCieById,
 } from "../services/catalog.service";
 import type {
   CatalogActivePrinciples,
@@ -29,6 +30,7 @@ function useResourceState<T>() {
 
 export function useCatalog() {
   const catalogCie = useResourceState<CatalogCie[]>();
+  const catalogCieById = useResourceState<CatalogCie>();
   const catalogCodeSystemValue = useResourceState<CatalogCodeSystemValue[]>();
   const catalogActivePrinciples = useResourceState<CatalogActivePrinciples[]>();
   const identifierTypes = useResourceState<CatalogIdentifierType[]>();
@@ -58,6 +60,28 @@ export function useCatalog() {
     }
   };
 
+  const fetchCatalogCieById = async (
+    id: number,
+  ): Promise<CatalogCie | null> => {
+    catalogCieById.setLoading(true);
+    catalogCieById.setError(null);
+    try {
+      const response = await getCatalogCieById(id);
+      catalogCieById.setData(response);
+      return response;
+    } catch (err) {
+      catalogCieById.setError(
+        err instanceof Error
+          ? err.message
+          : "Error al cargar perfil del catalog cie por Id",
+      );
+      catalogCieById.setData(null);
+      return null;
+    } finally {
+      catalogCieById.setLoading(false);
+    }
+  };
+
   const fetchCodeSystemValues = async (
     codeSystemId: string | number,
   ): Promise<CatalogCodeSystemValue[] | null> => {
@@ -80,26 +104,27 @@ export function useCatalog() {
     }
   };
 
-  const fetchCatalogActivePrinciples =
-    async (): Promise<CatalogActivePrinciples[] | null> => {
-      catalogActivePrinciples.setLoading(true);
-      catalogActivePrinciples.setError(null);
-      try {
-        const response = await getActivePrinciples();
-        catalogActivePrinciples.setData(response);
-        return response;
-      } catch (err) {
-        catalogActivePrinciples.setError(
-          err instanceof Error
-            ? err.message
-            : "Error al cargar perfil del catalog cie",
-        );
-        catalogActivePrinciples.setData(null);
-        return null;
-      } finally {
-        catalogActivePrinciples.setLoading(false);
-      }
-    };
+  const fetchCatalogActivePrinciples = async (): Promise<
+    CatalogActivePrinciples[] | null
+  > => {
+    catalogActivePrinciples.setLoading(true);
+    catalogActivePrinciples.setError(null);
+    try {
+      const response = await getActivePrinciples();
+      catalogActivePrinciples.setData(response);
+      return response;
+    } catch (err) {
+      catalogActivePrinciples.setError(
+        err instanceof Error
+          ? err.message
+          : "Error al cargar perfil del catalog cie",
+      );
+      catalogActivePrinciples.setData(null);
+      return null;
+    } finally {
+      catalogActivePrinciples.setLoading(false);
+    }
+  };
 
   const fetchCatalogActivePrinciplesSearch = async (
     text: string,
@@ -174,9 +199,7 @@ export function useCatalog() {
       return response;
     } catch (err) {
       ageGroups.setError(
-        err instanceof Error
-          ? err.message
-          : "Error al cargar grupos etarios",
+        err instanceof Error ? err.message : "Error al cargar grupos etarios",
       );
       ageGroups.setData(null);
       return null;
@@ -187,6 +210,7 @@ export function useCatalog() {
 
   return {
     fetchCatalogCie,
+    fetchCatalogCieById,
     fetchCodeSystemValues,
     fetchCatalogActivePrinciples,
     fetchCatalogActivePrinciplesSearch,
@@ -194,6 +218,7 @@ export function useCatalog() {
     fetchTimeUnits,
     fetchAgeGroups,
     dataCatalogCie: catalogCie.data,
+    dataCatalogCieById: catalogCieById.data,
     dataCatalogCodeSystemValue: catalogCodeSystemValue.data,
     dataCatalogActivePrinciples: catalogActivePrinciples.data,
     dataIdentifierTypes: identifierTypes.data,
@@ -201,6 +226,8 @@ export function useCatalog() {
     dataAgeGroups: ageGroups.data,
     loadingCatalogCie: catalogCie.loading,
     errorCatalogCie: catalogCie.error,
+    loadingCatalogCieById: catalogCie.loading,
+    errorCatalogCieById: catalogCie.error,
     loadingCodeSystemValues: catalogCodeSystemValue.loading,
     errorCodeSystemValues: catalogCodeSystemValue.error,
     loadingCatalogActivePrinciples: catalogActivePrinciples.loading,
