@@ -1,52 +1,47 @@
-
-import type {  MonitorTableRow } from "../types/monitor.table.types"
-
+import { useCallback, useEffect, useMemo, useState } from "react"
 import {
-  HceFormModal,
-  hceColors, hceTypography, Typography,
-  
   Box,
-  
- 
+  HceFormModal,
+  hceColors,
+  hceTypography,
+  Typography,
 } from "@hce/design-system"
-import { FormControl, MenuItem, Select, type SelectChangeEvent } from "@mui/material";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  FormControl,
+  MenuItem,
+  Select,
+  type SelectChangeEvent,
+} from "@mui/material"
 
-
-interface BedOption {
-  id: string
-  label: string
-}
-
-const MOCK_BED_OPTIONS: BedOption[] = [
-  { id: "BOX-01", label: "Box 01" },
-  { id: "BOX-02", label: "Box 02" },
-  { id: "BOX-03", label: "Box 03" },
-  { id: "BOX-04", label: "Box 04" },
-]
+import type { MonitorTableRow } from "../types/monitor.table.types"
+import { useSede } from "../hooks/useSede"
+import {
+  getAvailableBeds,
+  reassignBed,
+  type BedOption,
+} from "../services/bedManagement.service"
+import { useUser } from "shell/UserContext"
 
 export interface BoxModalProps {
-open: boolean
+  open: boolean
   onClose: () => void
   paciente?: MonitorTableRow
   title?: string
   type: "change" | "assign"
-  onSaveChanges?: (
-    paciente: MonitorTableRow,
-    bedId: string,
-  ) => void | Promise<void>
- 
+
+  onSaved?: () => void | Promise<void>
 }
 
-
-
-
-
-export function BoxModal({ open, onClose, paciente,onSaveChanges,title,type }: BoxModalProps) { 
-
+export function BoxModal({
+  open,
+  onClose,
+  paciente,
+  title,
+  type,
  
-
-    const [localPaciente, setLocalPaciente] = useState<MonitorTableRow | null>(
+  onSaved,
+}: BoxModalProps) {
+  const [localPaciente, setLocalPaciente] = useState<MonitorTableRow | null>(
     paciente ?? null,
   )
 
@@ -54,89 +49,155 @@ export function BoxModal({ open, onClose, paciente,onSaveChanges,title,type }: B
   const [selectedBedId, setSelectedBedId] = useState("")
   const [loadingBeds, setLoadingBeds] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
+  const sede = useSede()
 
+  const user: string = useUser().user?.username ?? ""
+  const locationId = sede?.id
 
   useEffect(() => {
-        if (!open) return
+    if (!open) return
 
-        setLocalPaciente(paciente ? { ...paciente } : null)
-        setSelectedBedId("")
-        setSaving(false)
-    }, [open, paciente])
+    setLocalPaciente(paciente ? { ...paciente } : null)
+    setSelectedBedId("")
+    setBedOptions([])
+    setSaving(false)
+    setLoadingBeds(false)
+    setError(null)
+  }, [open, paciente])
 
-   useEffect(() => {
-        if (!open) return
+  useEffect(() => {
+    if (!open) return
 
+    if (!locationId) {
+      setBedOptions([])
+      setLoadingBeds(false)
+      setError("No se encontró la sede para cargar camas disponibles")
+      return
+    }
+
+    let cancelled = false
+
+    const loadBeds = async () => {
+      try {
         setLoadingBeds(true)
+        setError(null)
 
-        // TODO: reemplazar por llamada real al endpoint.
-        // Ejemplo futuro:
-        // bedService.listAvailableBeds().then(setBedOptions)
-        setBedOptions(MOCK_BED_OPTIONS)
+        const beds = await getAvailableBeds(locationId)
 
-        setLoadingBeds(false)
-    }, [open])
+        if (!cancelled) {
+          setBedOptions(beds)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setBedOptions([])
+          setError(
+            err instanceof Error
+              ? err.message
+              : "No se pudieron cargar las camas disponibles",
+          )
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingBeds(false)
+        }
+      }
+    }
+
+    void loadBeds()
+
+    return () => {
+      cancelled = true
+    }
+  }, [open, locationId])
 
   const modalTitle = useMemo(() => {
-        if (title) return title
+    if (title) return title
 
-        return type === "assign" ? "Asignación de box" : "Cambio de box"
-    }, [title, type])
+    return type === "assign" ? "Asignación de box" : "Cambio de box"
+  }, [title, type])
 
   const contentTitle = useMemo(() => {
-        if (type === "assign") return null
+    if (type === "assign") return null
 
-        return "Cambio de camas entre servicio"
-    }, [type])
+    return "Cambio de camas entre servicio"
+  }, [type])
+
   const patientName = localPaciente?.patient_name ?? "-"
 
   const handleSelectBed = (event: SelectChangeEvent<string>) => {
-        setSelectedBedId(event.target.value)
-    }
+    setSelectedBedId(event.target.value)
+  }
 
   const handleCancel = useCallback(() => {
+    if (saving) return
+
     onClose()
-  }, [onClose])
+  }, [onClose, saving])
 
   const handleSave = useCallback(async () => {
     if (!localPaciente || !selectedBedId) return
 
     try {
-      setSaving(true)
-      await onSaveChanges?.(localPaciente, selectedBedId)
-      onClose()
+        setSaving(true)
+        setError(null)
+
+        console.log(localPaciente.encounter_id)
+            
+        await reassignBed({
+        encounter_id: Number(localPaciente.encounter_id),
+        bed_id: Number(selectedBedId),
+        assigned_by: user,
+        user_create: user,
+        })
+
+        onClose()
+        void onSaved?.()
+    } catch (err) {
+        setError(
+        err instanceof Error
+            ? err.message
+            : "No se pudo asignar la cama",
+        )
     } finally {
-      setSaving(false)
+        setSaving(false)
     }
-  }, [localPaciente, selectedBedId, onClose, onSaveChanges])
+    }, [
+    localPaciente,
+    selectedBedId,
+    user,
+    onSaved,
+    onClose,
+    ])
 
-  
-const isSaveDisabled = !selectedBedId || loadingBeds || saving || !localPaciente
-  
-    return(
+  const isSaveDisabled =
+    !selectedBedId ||
+    loadingBeds ||
+    saving ||
+    !localPaciente ||
+    Boolean(error)
 
+  return (
     <HceFormModal
       open={open}
       onClose={handleCancel}
       title={modalTitle}
       maxWidth={420}
       buttonAlign="right"
-      primaryButton= {{
-                label: "Guardar",
-                onClick: handleSave,
-                color: hceColors.primary.green[600],
-                disabled:
-                  isSaveDisabled,
-              }}
-        secondaryButton= {{
-          label:   "Cancelar",
-          onClick: handleCancel,
-          disabled: saving,
-        }}
-        >
-        {/* El HceModal acepta children opcionales — aquí metemos el select */}
-       <Box sx={{ textAlign: "left", mt: 1 }}>
+      primaryButton={{
+        label: saving ? "Guardando..." : "Guardar",
+        onClick: handleSave,
+        color: hceColors.primary.green[600],
+        disabled: isSaveDisabled,
+      }}
+      secondaryButton={{
+        label: "Cancelar",
+        onClick: handleCancel,
+        disabled: saving,
+      }}
+    >
+      <Box sx={{ textAlign: "left", mt: 1 }}>
         {!localPaciente ? (
           <Box
             sx={{
@@ -201,7 +262,7 @@ const isSaveDisabled = !selectedBedId || loadingBeds || saving || !localPaciente
               </Typography>
             </Box>
 
-            <Box sx={{ mb: 3 }}>
+            <Box sx={{ mb: error ? 1.5 : 3 }}>
               <Typography
                 sx={{
                   mb: "4px",
@@ -219,7 +280,7 @@ const isSaveDisabled = !selectedBedId || loadingBeds || saving || !localPaciente
                   value={selectedBedId}
                   onChange={handleSelectBed}
                   displayEmpty
-                  disabled={loadingBeds}
+                  disabled={loadingBeds || saving || !locationId}
                   sx={{
                     height: 36,
                     borderRadius: "7px",
@@ -254,18 +315,37 @@ const isSaveDisabled = !selectedBedId || loadingBeds || saving || !localPaciente
                     -Seleccionar opción-
                   </MenuItem>
 
-                  {bedOptions.map((bed) => (
-                    <MenuItem key={bed.id} value={bed.id}>
-                      {bed.label}
+                  {bedOptions.length === 0 && !loadingBeds ? (
+                    <MenuItem value="" disabled>
+                      No hay camas disponibles
                     </MenuItem>
-                  ))}
+                  ) : (
+                    bedOptions.map((bed) => (
+                      <MenuItem key={bed.id} value={bed.id}>
+                        {bed.label}
+                      </MenuItem>
+                    ))
+                  )}
                 </Select>
               </FormControl>
             </Box>
+
+            {error && (
+              <Typography
+                sx={{
+                  mb: 2,
+                  color: hceColors.alert.error[600],
+                  fontFamily: hceTypography.fontFamily,
+                  fontSize: "0.75rem",
+                  fontWeight: hceTypography.weight.medium,
+                }}
+              >
+                {error}
+              </Typography>
+            )}
           </>
         )}
       </Box>
     </HceFormModal>
-    )
-
+  )
 }

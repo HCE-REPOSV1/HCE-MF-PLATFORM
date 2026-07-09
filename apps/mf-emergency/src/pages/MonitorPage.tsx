@@ -301,6 +301,10 @@ export default function MonitorPage() {
         console.info("[MonitorPage] La fila no tiene triaje vinculado todavía:", row)
         return
       }
+      if (row.priority == null) {
+        console.info("[MonitorPage] El pacienete no tiene tprioridad todavía:", row)
+        return
+      }
 
       setSelectedPatientId(row.id)
       setSelectedTriageId(row.triage_id)
@@ -516,21 +520,15 @@ export default function MonitorPage() {
 
 
    {/* Modal de Box */}
-      <BoxModal
-        open={boxModalOpen}
-        onClose={() => setBoxModalOpen(false)}
-        paciente={selectedBoxPatient ?? undefined}
-        type={boxModalType}
-        onSaveChanges={async (paciente, bedId) => {
-          console.info("Guardar box:", {
-            paciente,
-            bedId,
-            type: boxModalType,
-          })
-
-          // TODO: llamar endpoint para asignar/cambiar box
-        }}
-      />
+    <BoxModal
+      open={boxModalOpen}
+      onClose={() => setBoxModalOpen(false)}
+      paciente={selectedBoxPatient ?? undefined}
+      type={boxModalType}
+      onSaved={async () => {
+        refetchMonitor()
+      }}
+    />
     </>
   );
 }
