@@ -157,7 +157,6 @@ function mapTriageFullToForm(full: TriageFullData): Partial<TriajeForm> {
     tieneAlergia: allergyIntolerance ? allergyIntolerance.has_allergies : "",
     alimentos: allergyIntolerance?.food_allergies ?? "",
     otrosAlergias: allergyIntolerance?.other_allergies ?? "",
-
     dolEva: triage.pain_scale_eva ?? null,
     prioridad:
       triage.triage_level != null
@@ -511,6 +510,7 @@ export function Triage({
         setEnabledAlergiasTriage(false);
         setEnabledEvaTriage(false);
         setEnabledClasificacionTriage(false);
+        setValuePrincipioActivo(full.allergySubstances.map(i => String(i.active_principle_id)))
         full.triage.cie_description = await handleSearchMotivoById(
           full.triage.cie_id!,
         );
