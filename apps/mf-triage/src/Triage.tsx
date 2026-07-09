@@ -72,54 +72,98 @@ function formatBirthDate(isoDate: string): string {
 
 /** GET /triage/:id/full -> TriajeForm, para precarga en modo lectura. */
 function mapTriageFullToForm(full: TriageFullData): Partial<TriajeForm> {
-  const { triage, vitalSign, glasgowScale, fastScale, patient, allergyIntolerance } = full;
+  const {
+    triage,
+    vitalSign,
+    glasgowScale,
+    fastScale,
+    patient,
+    allergyIntolerance,
+  } = full;
 
   return {
-    tipoDoc:          patient?.document_type ?? "",
-    numeroDoc:        patient?.document_number ?? "",
-    nombres:          patient?.first_name ?? "",
-    apellidoPaterno:  patient?.last_name_father ?? "",
-    apellidoMaterno:  patient?.last_name_mother ?? "",
-    fechaNacimiento:  patient?.birth_date ? formatBirthDate(patient.birth_date) : "",
-    sexo:             patient?.gender ?? "",
-    grupoEtario:      patient?.estimated_age_group ?? "",
+    tipoDoc: patient?.document_type ?? "",
+    numeroDoc: patient?.document_number ?? "",
+    nombres: patient?.first_name ?? "",
+    apellidoPaterno: patient?.last_name_father ?? "",
+    apellidoMaterno: patient?.last_name_mother ?? "",
+    fechaNacimiento: patient?.birth_date
+      ? formatBirthDate(patient.birth_date)
+      : "",
+    sexo: patient?.gender ?? "",
+    grupoEtario: patient?.estimated_age_group ?? "",
 
-    motivoQuery:      triage.chief_complaint_code != null ? String(triage.chief_complaint_code) : "",
-    aislamiento:      triage.isolation_required == null ? "" : (triage.isolation_required ? "S" : "N"),
-    gestante:         triage.is_pregnant == null ? "" : (triage.is_pregnant ? "S" : "N"),
-    furEnabled:       Boolean(triage.fur_enabled),
-    fur:              triage.fur_date ?? "",
-    tiempoEnfermedad: triage.illness_duration != null ? String(triage.illness_duration) : "",
-    tiempoUnidad:     triage.illness_duration_unit ?? "",
-    comentarios:      triage.comments ?? "",
+    motivoQuery:
+      triage.chief_complaint_code != null
+        ? String(triage.chief_complaint_code)
+        : "",
+    aislamiento:
+      triage.isolation_required == null
+        ? ""
+        : triage.isolation_required
+          ? "S"
+          : "N",
+    gestante: triage.is_pregnant == null ? "" : triage.is_pregnant ? "S" : "N",
+    furEnabled: Boolean(triage.fur_enabled),
+    fur: triage.fur_date ?? "",
+    tiempoEnfermedad:
+      triage.illness_duration != null ? String(triage.illness_duration) : "",
+    tiempoUnidad: triage.illness_duration_unit ?? "",
+    comentarios: triage.comments ?? "",
 
-    traumaShock:    Boolean(vitalSign?.trauma_shock_flag),
-    peso:           vitalSign?.weight_kg != null ? String(vitalSign.weight_kg) : "",
-    talla:          vitalSign?.height_cm != null ? String(vitalSign.height_cm) : "",
-    frCardiaca:     vitalSign?.heart_rate != null ? String(vitalSign.heart_rate) : "",
-    frRespiratoria: vitalSign?.respiratory_rate != null ? String(vitalSign.respiratory_rate) : "",
-    pSistolica:     vitalSign?.systolic_pressure != null ? String(vitalSign.systolic_pressure) : "",
-    pDiastolica:    vitalSign?.diastolic_pressure != null ? String(vitalSign.diastolic_pressure) : "",
-    temperatura:    vitalSign?.temperature_c != null ? String(vitalSign.temperature_c) : "",
-    saturacionO2:   vitalSign?.oxygen_saturation != null ? String(vitalSign.oxygen_saturation) : "",
+    traumaShock: Boolean(vitalSign?.trauma_shock_flag),
+    peso: vitalSign?.weight_kg != null ? String(vitalSign.weight_kg) : "",
+    talla: vitalSign?.height_cm != null ? String(vitalSign.height_cm) : "",
+    frCardiaca:
+      vitalSign?.heart_rate != null ? String(vitalSign.heart_rate) : "",
+    frRespiratoria:
+      vitalSign?.respiratory_rate != null
+        ? String(vitalSign.respiratory_rate)
+        : "",
+    pSistolica:
+      vitalSign?.systolic_pressure != null
+        ? String(vitalSign.systolic_pressure)
+        : "",
+    pDiastolica:
+      vitalSign?.diastolic_pressure != null
+        ? String(vitalSign.diastolic_pressure)
+        : "",
+    temperatura:
+      vitalSign?.temperature_c != null ? String(vitalSign.temperature_c) : "",
+    saturacionO2:
+      vitalSign?.oxygen_saturation != null
+        ? String(vitalSign.oxygen_saturation)
+        : "",
     glasgow: {
-      ocular: glasgowScale?.ocular_response != null ? String(glasgowScale.ocular_response) : "1",
-      verbal: glasgowScale?.verbal_response != null ? String(glasgowScale.verbal_response) : "1",
-      motora: glasgowScale?.motor_response != null ? String(glasgowScale.motor_response) : "1",
+      ocular:
+        glasgowScale?.ocular_response != null
+          ? String(glasgowScale.ocular_response)
+          : "1",
+      verbal:
+        glasgowScale?.verbal_response != null
+          ? String(glasgowScale.verbal_response)
+          : "1",
+      motora:
+        glasgowScale?.motor_response != null
+          ? String(glasgowScale.motor_response)
+          : "1",
     },
     fast: {
-      cara:   fastScale?.face_flag ? "Sí" : "No",
+      cara: fastScale?.face_flag ? "Sí" : "No",
       brazos: fastScale?.arm_flag ? "Sí" : "No",
-      habla:  fastScale?.speech_flag ? "Sí" : "No",
+      habla: fastScale?.speech_flag ? "Sí" : "No",
       tiempo: fastScale?.time_flag ? "Sí" : "No",
     },
 
-    tieneAlergia:  allergyIntolerance ? allergyIntolerance.has_allergies : "",
-    alimentos:     allergyIntolerance?.food_allergies ?? "",
+    tieneAlergia: allergyIntolerance ? allergyIntolerance.has_allergies : "",
+    alimentos: allergyIntolerance?.food_allergies ?? "",
     otrosAlergias: allergyIntolerance?.other_allergies ?? "",
 
-    dolEva:    triage.pain_scale_eva ?? null,
-    prioridad: triage.triage_level != null ? TRIAGE_LEVEL_MAP_REVERSE[triage.triage_level] : null,
+    dolEva: triage.pain_scale_eva ?? null,
+    prioridad:
+      triage.triage_level != null
+        ? TRIAGE_LEVEL_MAP_REVERSE[triage.triage_level]
+        : null,
   };
 }
 
@@ -312,7 +356,7 @@ export function Triage({
     loadingAgeGroups,
   } = useCatalog();
   //Registro de Triaje
-  const { createTriage,loading: guardandoTriaje } = useTriage();
+  const { createTriage, loading: guardandoTriaje } = useTriage();
   //Precarga del triaje completo (modo lectura)
   const { fetchTriageFull, loading: loadingTriageFull } = useTriageFull();
   // Overlay unificado: cualquier llamada en curso del formulario (catálogos, búsqueda de
@@ -329,7 +373,6 @@ export function Triage({
     loadingAgeGroups;
   //Usuario y sede activa (federados desde mf-shell)
   const { user, sedeActual } = useUser();
-
   const opcionesRadio = [
     { value: "S", label: "Si" },
     { value: "N", label: "No" },
@@ -342,6 +385,8 @@ export function Triage({
     { value: true, label: "Trauma Shock" },
     { value: false, label: "No es posible tomar signos vitales" },
   ];
+
+  const [loadingSearchMotivo, setLoadingSearchMotivo] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -434,7 +479,9 @@ export function Triage({
       setForm((f) => ({ ...f, ...mapTriageFullToForm(full) }));
     });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, readOnly, triageId]);
 
@@ -464,17 +511,28 @@ export function Triage({
 
   // Buscar motivo de ingreso
   async function handleSearchMotivo(query: string, mode: SearchMode) {
-    const results = await fetchCatalogCie(query, mode);
-    // const results = buscarDiagnosticoMock(query, mode);
-    setMotivoOpts(
-      results
-        ? results.map((d) => ({
-            value: d.cie_id,
-            label: d.cie_description,
-            secondary: d.cie_code,
-          }))
-        : [],
-    );
+    setLoadingSearchMotivo(true);
+    if (query.trim().length < 3) {
+      setLoadingSearchMotivo(false);
+      setMotivoOpts([]);
+      return;
+    }
+    try {
+      const results = await fetchCatalogCie(query, mode);
+      setMotivoOpts(
+        results
+          ? results.map((d) => ({
+              value: d.cie_id,
+              label: d.cie_description,
+              secondary: d.cie_code,
+            }))
+          : [],
+      );
+    } catch (err) {
+      setMotivoOpts([]);
+    } finally {
+      setLoadingSearchMotivo(false);
+    }
   }
 
   async function handleGuardar() {
@@ -821,7 +879,12 @@ export function Triage({
                 fila en mobile, 2 por fila en tablet), preservando en md las mismas
                 proporciones visuales que tenía la fila de escritorio original. */}
             {form.noIdentificado ? (
-              <Grid container columns={24} spacing={2} sx={{ width: "100%", alignItems: "flex-end" }}>
+              <Grid
+                container
+                columns={24}
+                spacing={2}
+                sx={{ width: "100%", alignItems: "flex-end" }}
+              >
                 <Grid size={{ xs: 24, sm: 12, md: 4 }}>
                   <FieldCol label="Documento">
                     <TextInput value="NI" disabled onChange={() => {}} />
@@ -852,13 +915,19 @@ export function Triage({
                 </Grid>
               </Grid>
             ) : (
-              <Grid container columns={24} spacing={2} sx={{ width: "100%", alignItems: "flex-end" }}>
+              <Grid
+                container
+                columns={24}
+                spacing={2}
+                sx={{ width: "100%", alignItems: "flex-end" }}
+              >
                 <Grid size={{ xs: 24, sm: 12, md: 6 }}>
                   <FieldCol label="Nombres">
                     <TextInput
                       value={form.nombres}
                       onChange={(v) => set("nombres", v)}
                       placeholder="Ingrese datos"
+                      disabled={!pacienteNoEncontrado}
                     />
                   </FieldCol>
                 </Grid>
@@ -868,6 +937,7 @@ export function Triage({
                       value={form.apellidoPaterno}
                       onChange={(v) => set("apellidoPaterno", v)}
                       placeholder="Ingrese datos"
+                      disabled={!pacienteNoEncontrado}
                     />
                   </FieldCol>
                 </Grid>
@@ -877,6 +947,7 @@ export function Triage({
                       value={form.apellidoMaterno}
                       onChange={(v) => set("apellidoMaterno", v)}
                       placeholder="Ingrese datos"
+                      disabled={!pacienteNoEncontrado}
                     />
                   </FieldCol>
                 </Grid>
@@ -886,6 +957,7 @@ export function Triage({
                       value={form.fechaNacimiento}
                       onChange={(v) => set("fechaNacimiento", v)}
                       placeholder="dd-mm-yyyy"
+                      disabled={!pacienteNoEncontrado}
                     />
                   </FieldCol>
                 </Grid>
@@ -900,6 +972,7 @@ export function Triage({
                     onChange={(v) => set("sexo", v)}
                     options={genderOptions}
                     placeholder="-Seleccionar opción-"
+                    disabled={!pacienteNoEncontrado}
                   />
                 </Grid>
               </Grid>
@@ -919,6 +992,7 @@ export function Triage({
               >
                 {/* Motivo de ingreso con SearchComboInput */}
                 <SearchComboInput
+                  loading={loadingSearchMotivo}
                   label="Motivo de ingreso *"
                   searchMode={form.modoMotivo}
                   onSearchModeChange={(m) => {
@@ -1146,7 +1220,12 @@ export function Triage({
                   }}
                 >
                   {[
-                    { key: "frCardiaca", label: "Fr. Cardiaca", suffix: "LPM", numberType: "natural" as const },
+                    {
+                      key: "frCardiaca",
+                      label: "Fr. Cardiaca",
+                      suffix: "LPM",
+                      numberType: "natural" as const,
+                    },
                     {
                       key: "frRespiratoria",
                       label: "Fr. Respiratoria",
@@ -1165,7 +1244,12 @@ export function Triage({
                       suffix: "mmHg",
                       numberType: "natural" as const,
                     },
-                    { key: "temperatura", label: "Temperatura", suffix: "°C", numberType: "decimal" as const },
+                    {
+                      key: "temperatura",
+                      label: "Temperatura",
+                      suffix: "°C",
+                      numberType: "decimal" as const,
+                    },
                     {
                       key: "saturacionO2",
                       label: "Saturación O2",
@@ -1191,7 +1275,14 @@ export function Triage({
 
                 {/* En pantalla normal (md+) van lado a lado como siempre; en pantallas
                     chicas se apilan en vez de aplastar los dos fieldsets uno junto al otro. */}
-                <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2, mt: 2 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: { xs: "column", md: "row" },
+                    gap: 2,
+                    mt: 2,
+                  }}
+                >
                   {/* Glasgow */}
                   <Box
                     component="fieldset"
@@ -1336,7 +1427,9 @@ export function Triage({
               onToggle={() => setExpAlergias((e) => !e)}
             />
             {expAlergias && (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
+              <Box
+                sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}
+              >
                 <Grid
                   container
                   columns={12}
