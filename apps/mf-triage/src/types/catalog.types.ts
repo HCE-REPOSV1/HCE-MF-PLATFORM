@@ -24,6 +24,12 @@ export interface CatalogCieResponse {
   data:     CatalogCie[];
 }
 
+export interface CatalogCieResponseData {
+  success:  boolean;
+  message:  string;
+  data:     CatalogCie;
+}
+
 export interface CatalogCodeSystemValue {
     value_id:       number,
     value_uuid:     string,
