@@ -206,10 +206,6 @@ export default function MonitorPage() {
   const canReadInfo = true
   
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
-    null,
-  );
-
   const [selectedPatient, setSelectedPatient] = useState<MonitorTableRow | null>(
     null,
   );
@@ -291,7 +287,6 @@ export default function MonitorPage() {
   }, [])
 
   const handlePatientClick = useCallback((row: MonitorTableRow) => {
-    setSelectedPatientId((prev) => (prev === row.id ? null : row.id))
     console.info("[MonitorPage] Abrir HCE:", row)
   }, [])
 
@@ -310,8 +305,6 @@ export default function MonitorPage() {
         return
       }
 
-      
-      setSelectedPatientId(row.id)
       setSelectedTriageId(row.triage_id)
       setTriajeModo("read")
       setTriajeOpen(true)
@@ -460,7 +453,6 @@ export default function MonitorPage() {
               totalPages={totalPages}
               onPageChange={(page) => {
                 setCurrentPage(page)
-                setSelectedPatientId(null)
               }}
             />
           </Box>
