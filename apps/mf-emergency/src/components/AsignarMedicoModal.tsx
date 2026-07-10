@@ -69,7 +69,7 @@ export function AsignarMedicoModal({ open, onClose, onAsignar }: AsignarMedicoMo
        primaryButton={{
         label: "Cancelar",
         onClick: onClose,
-        
+        color: hceColors.primary.blue[600],
       }}
       secondaryButton={{
         
