@@ -225,6 +225,7 @@ export default function MonitorPage() {
     useState<MonitorTableRow | null>(null)  
   const [disponibilidadOpen, setDisponibilidadOpen] = useState(false);
   const [attentionWarningOpen, setAttentionWarningOpen] = useState(false)
+  const [noPacienteWarningOpen, setNoPacienteWarningOpen] = useState(false)
 
   const sede = useSede()
   const {
@@ -277,8 +278,16 @@ export default function MonitorPage() {
   }, [])
 
   const handleOpenAsignarMedicos = useCallback(() => {
+    // La asignación de médico requiere un paciente seleccionado en la tabla
+    // (el mismo `selectedPatientId` que se usa para resolver `paciente` más abajo
+    // al montar <AsignarMedicoModal>). Sin esto, el click no debe fallar en
+    // silencio: se avisa al usuario en vez de abrir el modal sin paciente.
+    if (!selectedPatientId) {
+      setNoPacienteWarningOpen(true)
+      return
+    }
     setMedicoOpen(true)
-  }, [])
+  }, [selectedPatientId])
 
   const handleReportes = useCallback(() => {
     console.info("[MonitorPage] Reportes")
@@ -545,6 +554,19 @@ export default function MonitorPage() {
   confirmButton={{
     label: "Aceptar",
     onClick: () => setAttentionWarningOpen(false),
+  }}
+/>
+
+   {/* Aviso: Asignar médico requiere un paciente seleccionado primero */}
+    <HceModal
+  maxWidth={460}
+  open={noPacienteWarningOpen}
+  title="Debe seleccionar un paciente"
+  description="Debe seleccionar un paciente para realizar la asignación de médico."
+  icon= {<UiWarningIcon/>}
+  confirmButton={{
+    label: "Aceptar",
+    onClick: () => setNoPacienteWarningOpen(false),
   }}
 />
     </>

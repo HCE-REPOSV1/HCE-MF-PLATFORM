@@ -67,18 +67,15 @@ export function AsignarMedicoModal({ open, onClose, onAsignar }: AsignarMedicoMo
       iconClose={false}
        maxWidth={400}
        primaryButton={{
-        label: "Cancelar",
-        onClick: onClose,
-        color: hceColors.primary.blue[600],
-      }}
-      secondaryButton={{
-        
-
         label: "Asignar",
         onClick: handleConfirmar,
         color: hceColors.primary.green[600],
         disabled:!medicoSeleccionado || cargando,
-        
+      }}
+      secondaryButton={{
+        label: "Cancelar",
+        onClick: onClose,
+        color: hceColors.primary.blue[600],
       }}
       buttonAlign="center"
 
