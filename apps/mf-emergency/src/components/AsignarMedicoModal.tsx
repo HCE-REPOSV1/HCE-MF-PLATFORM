@@ -1,62 +1,87 @@
-import { useState, useEffect } from "react"
-import { Box }     from "@mui/material"
+import { useEffect, useState } from "react"
+import { Box, Typography } from "@mui/material"
 import {
   HceFormModal,
   SelectField,
-  hceColors, hceTypography,
+  hceColors,
+  hceTypography,
   RadioGroup,
 } from "@hce/design-system"
-import { getMedicosMock } from "../mock/medicos.mock"
-import type { Medico }    from "../mock/medicos.mock"
+import { useUser } from "shell/UserContext"
+import {
+  getPacientesSinMedicoMock,
+  getPacientesConMedicoMock,
+  type PacienteSinMedico,
+  type PacienteConMedico,
+} from "../mock/pacientesAsignacion.mock"
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 export interface AsignarMedicoModalProps {
-  open:       boolean
-  onClose:    () => void
-  /** Nombre del paciente al que se asigna el médico (opcional, para mostrar en el modal) */
-  paciente?:  string
-  /** Callback al confirmar con el médico seleccionado */
-  onAsignar:  (medico: Medico) => void
+  open:      boolean
+  onClose:   () => void
+  /** Callback al confirmar. encounterId = paciente elegido, username = médico logueado que registra. */
+  onAsignar: (payload: { encounterId: number; username: string }) => void
 }
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
-export function AsignarMedicoModal({ open, onClose, onAsignar }: AsignarMedicoModalProps) {
-  const [medicoId,   setMedicoId]   = useState("")
-  const [medicos,    setMedicos]    = useState<Medico[]>([])
-  const [cargando,   setCargando]   = useState(false)
-   const [value, setValue] = useState<boolean | string>(false);
-  const OPTIONS = [
-  { value: true, label: "Asignar" },
+const OPTIONS = [
+  { value: true,  label: "Asignar" },
   { value: false, label: "Reasignar" },
-];
+]
 
-  // Carga la lista al abrir el modal
-  // TODO: reemplazar getMedicosMock() por fetch al endpoint real
+export function AsignarMedicoModal({ open, onClose, onAsignar }: AsignarMedicoModalProps) {
+  const { user } = useUser()
+  const [encounterId, setEncounterId] = useState("")
+  // true = Asignar (GET /api/pacientes/sin-medico), false = Reasignar (GET /api/pacientes/con-medico)
+  const [modo, setModo] = useState<boolean | string>(true)
+  const [pacientesSinMedico, setPacientesSinMedico] = useState<PacienteSinMedico[]>([])
+  const [pacientesConMedico, setPacientesConMedico] = useState<PacienteConMedico[]>([])
+  const [cargando, setCargando] = useState(false)
+
+  // Cada apertura arranca siempre en modo "Asignar".
   useEffect(() => {
-    if (!open) return
-    setCargando(true)
-    setMedicoId("")
-    const timer = setTimeout(() => {
-      setMedicos(getMedicosMock())
-      setCargando(false)
-    }, 500) // simula latencia de API
-    return () => clearTimeout(timer)
+    if (open) setModo(true)
   }, [open])
 
-  const medicoSeleccionado = medicos.find(m => m.id === medicoId) ?? null
+  // Carga la lista correspondiente al modo activo.
+  // TODO: reemplazar getPacientesSinMedicoMock()/getPacientesConMedicoMock() por
+  // GET /api/pacientes/sin-medico y GET /api/pacientes/con-medico respectivamente.
+  useEffect(() => {
+    if (!open) return
+    setEncounterId("")
+    setCargando(true)
+    const timer = setTimeout(() => {
+      if (modo === true) {
+        setPacientesSinMedico(getPacientesSinMedicoMock())
+      } else {
+        setPacientesConMedico(getPacientesConMedicoMock())
+      }
+      setCargando(false)
+    }, 300) // simula latencia de API
+    return () => clearTimeout(timer)
+  }, [open, modo])
+
+  const pacientesDisponibles = modo === true ? pacientesSinMedico : pacientesConMedico
+
+  const selectOptions = pacientesDisponibles.map((p) => ({
+    value: String(p.encounter_id),
+    label: p.complete_name,
+  }))
+
+  // Solo tiene sentido en modo Reasignar: muestra quién es el médico ya asignado
+  // al paciente elegido.
+  const pacienteConMedicoSeleccionado =
+    modo === false
+      ? pacientesConMedico.find((p) => String(p.encounter_id) === encounterId)
+      : undefined
 
   function handleConfirmar() {
-    if (!medicoSeleccionado) return
-    onAsignar(medicoSeleccionado)
+    if (!encounterId || !user?.username) return
+    onAsignar({ encounterId: Number(encounterId), username: user.username })
     onClose()
   }
-
-  const selectOptions = medicos.map(m => ({
-    value: m.id,
-    label: `${m.nombre}`,
-  }))
 
   return (
     <HceFormModal
@@ -65,12 +90,12 @@ export function AsignarMedicoModal({ open, onClose, onAsignar }: AsignarMedicoMo
       title="Asignar o reasignar médico a paciente"
       borderNone={true}
       iconClose={false}
-       maxWidth={400}
-       primaryButton={{
+      maxWidth={400}
+      primaryButton={{
         label: "Asignar",
         onClick: handleConfirmar,
         color: hceColors.primary.green[600],
-        disabled:!medicoSeleccionado || cargando,
+        disabled: !encounterId || cargando,
       }}
       secondaryButton={{
         label: "Cancelar",
@@ -78,59 +103,49 @@ export function AsignarMedicoModal({ open, onClose, onAsignar }: AsignarMedicoMo
         color: hceColors.primary.blue[600],
       }}
       buttonAlign="center"
-
     >
       {/* El HceModal acepta children opcionales — aquí metemos el select */}
-      <Box sx={{ textAlign: "left", mt: 1}}>
-        {cargando ? (
-          <Box sx={{ py: 1.5, textAlign: "center", fontFamily: hceTypography.fontFamily, fontSize: "0.875rem", color: hceColors.neutro.black[300] }}>
-            Cargando pacientes disponibles…
-          </Box>
-        ) : (
-        <div style={{display:'flex', flexDirection:'column', gap: '10px', margin:'0 20px'}}>
-          <RadioGroup  
-            legend= "Grupo de Radio"
-            options={OPTIONS} 
-            value={value}
-            onChange={(v) => {
-              setValue(v);
-            }}
-           disabled={false}
-
-      />
-
-
-
-
-
-          <SelectField
-            label="Lista de pacientes"
-            value={medicoId}
-            onChange={setMedicoId}
-            options={selectOptions}
-            placeholder="-Seleccionar paciente-"
+      <Box sx={{ textAlign: "left", mt: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '0 20px' }}>
+          <RadioGroup
+            legend="Tipo de asignación"
+            options={OPTIONS}
+            value={modo}
+            onChange={(v) => setModo(v)}
+            disabled={false}
           />
-          </div>
-        )}
 
-        {/* Detalle del médico seleccionado */}
-        {/* {medicoSeleccionado && (
-          <Box sx={{
-            mt:              1.5,
-            px:              1.5,
-            py:              1,
-            backgroundColor: hceColors.primary.blue[50],
-            borderRadius:    "8px",
-            border:          `1px solid ${hceColors.primary.blue[100]}`,
-          }}>
-            <Typography sx={{ fontFamily: hceTypography.fontFamily, fontWeight: 700, fontSize: "0.82rem", color: hceColors.primary.blue[600] }}>
-              {medicoSeleccionado.nombre}
+          {cargando ? (
+            <Box sx={{ py: 1.5, textAlign: "center", fontFamily: hceTypography.fontFamily, fontSize: "0.875rem", color: hceColors.neutro.black[300] }}>
+              Cargando pacientes disponibles…
+            </Box>
+          ) : (
+            <SelectField
+              label="Lista de pacientes"
+              value={encounterId}
+              onChange={setEncounterId}
+              options={selectOptions}
+              placeholder={
+                selectOptions.length === 0
+                  ? "-No hay pacientes disponibles-"
+                  : "-Seleccionar paciente-"
+              }
+              disabled={selectOptions.length === 0}
+            />
+          )}
+
+          {pacienteConMedicoSeleccionado && (
+            <Typography
+              sx={{
+                fontFamily: hceTypography.fontFamily,
+                fontSize:   "0.8rem",
+                color:      hceColors.neutro.black[400],
+              }}
+            >
+              Médico actual asignado: <strong>{pacienteConMedicoSeleccionado.physician_name}</strong>
             </Typography>
-            <Typography sx={{ fontFamily: hceTypography.fontFamily, fontSize: "0.75rem", color: hceColors.neutro.black[400], mt: "2px" }}>
-              {medicoSeleccionado.especialidad} · Turno {medicoSeleccionado.turno}
-            </Typography>
-          </Box>
-        )} */}
+          )}
+        </div>
       </Box>
     </HceFormModal>
   )

@@ -25,7 +25,6 @@ import { usePermiso } from "../hooks/usePermiso";
 import { PERMISOS_EMERGENCY } from "../config/permisos";
 import { useSede } from "../hooks/useSede";
 
-import type { Medico } from "../mock/medicos.mock";
 import type { TriajeForm } from "triage/Triage";
 import {GenericTable} from "@hce/design-system";
 
@@ -225,7 +224,6 @@ export default function MonitorPage() {
     useState<MonitorTableRow | null>(null)  
   const [disponibilidadOpen, setDisponibilidadOpen] = useState(false);
   const [attentionWarningOpen, setAttentionWarningOpen] = useState(false)
-  const [noPacienteWarningOpen, setNoPacienteWarningOpen] = useState(false)
 
   const sede = useSede()
   const {
@@ -278,16 +276,11 @@ export default function MonitorPage() {
   }, [])
 
   const handleOpenAsignarMedicos = useCallback(() => {
-    // La asignación de médico requiere un paciente seleccionado en la tabla
-    // (el mismo `selectedPatientId` que se usa para resolver `paciente` más abajo
-    // al montar <AsignarMedicoModal>). Sin esto, el click no debe fallar en
-    // silencio: se avisa al usuario en vez de abrir el modal sin paciente.
-    if (!selectedPatientId) {
-      setNoPacienteWarningOpen(true)
-      return
-    }
+    // No requiere paciente preseleccionado: el modal muestra la lista de
+    // pacientes disponibles (sin médico, o asignados a otro médico según
+    // el modo Asignar/Reasignar) y el usuario elige de ahí.
     setMedicoOpen(true)
-  }, [selectedPatientId])
+  }, [])
 
   const handleReportes = useCallback(() => {
     console.info("[MonitorPage] Reportes")
@@ -509,18 +502,14 @@ export default function MonitorPage() {
         </Suspense>
       )}
 
-      {/* Modal de Asignar Médico */}
+      {/* Modal de Asignar Médico — trae su propia lista de pacientes candidatos (endpoints dedicados) */}
       <AsignarMedicoModal
         open={medicoOpen}
         onClose={() => setMedicoOpen(false)}
-        paciente={
-          selectedPatientId
-            ? rows.find((p) => p.id === selectedPatientId)?.patient_name
-            : undefined
-        }
-        onAsignar={(medico: Medico) => {
-          console.info("[MonitorPage] Médico asignado:", medico);
-          // TODO: llamar a POST /api/pacientes/{selectedPatientId}/medico con medico.id
+        onAsignar={({ encounterId, username }) => {
+          console.info("[MonitorPage] Asignación médico:", { encounterId, username });
+          // TODO: llamar a POST /api/pacientes/medico con { encounter_id: encounterId, username }
+          // y luego refetchMonitor() para reflejar el nuevo physician_name_display.
         }}
         />
       {/* Modal de Información Adicional */}
@@ -554,19 +543,6 @@ export default function MonitorPage() {
   confirmButton={{
     label: "Aceptar",
     onClick: () => setAttentionWarningOpen(false),
-  }}
-/>
-
-   {/* Aviso: Asignar médico requiere un paciente seleccionado primero */}
-    <HceModal
-  maxWidth={460}
-  open={noPacienteWarningOpen}
-  title="Debe seleccionar un paciente"
-  description="Debe seleccionar un paciente para realizar la asignación de médico."
-  icon= {<UiWarningIcon/>}
-  confirmButton={{
-    label: "Aceptar",
-    onClick: () => setNoPacienteWarningOpen(false),
   }}
 />
     </>
