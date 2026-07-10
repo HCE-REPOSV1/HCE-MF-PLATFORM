@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react"
-import { Box, Typography }     from "@mui/material"
+import { Box }     from "@mui/material"
 import {
-  HceModal,
+  HceFormModal,
   SelectField,
   hceColors, hceTypography,
-  UiDoctorIcon, CloseIcon,
+  RadioGroup,
 } from "@hce/design-system"
 import { getMedicosMock } from "../mock/medicos.mock"
 import type { Medico }    from "../mock/medicos.mock"
@@ -22,10 +22,15 @@ export interface AsignarMedicoModalProps {
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
-export function AsignarMedicoModal({ open, onClose, paciente, onAsignar }: AsignarMedicoModalProps) {
+export function AsignarMedicoModal({ open, onClose, onAsignar }: AsignarMedicoModalProps) {
   const [medicoId,   setMedicoId]   = useState("")
   const [medicos,    setMedicos]    = useState<Medico[]>([])
   const [cargando,   setCargando]   = useState(false)
+   const [value, setValue] = useState<boolean | string>(false);
+  const OPTIONS = [
+  { value: true, label: "Asignar" },
+  { value: false, label: "Reasignar" },
+];
 
   // Carga la lista al abrir el modal
   // TODO: reemplazar getMedicosMock() por fetch al endpoint real
@@ -50,55 +55,69 @@ export function AsignarMedicoModal({ open, onClose, paciente, onAsignar }: Asign
 
   const selectOptions = medicos.map(m => ({
     value: m.id,
-    label: `${m.nombre} — ${m.especialidad} (${m.turno})`,
+    label: `${m.nombre}`,
   }))
 
   return (
-    <HceModal
+    <HceFormModal
       open={open}
       onClose={onClose}
-      title="Asignar médico"
-      icon={<UiDoctorIcon size={28} color="#ffffff" />}
-      iconBgColor={hceColors.primary.blue[600]}
-      description={
-        paciente
-          ? `Selecciona el médico que atenderá a ${paciente}.`
-          : "Selecciona el médico responsable de la atención."
-      }
-      maxWidth={460}
-      confirmButton={{
-        label:    "Asignar",
-        onClick:  handleConfirmar,
-        disabled: !medicoSeleccionado || cargando,
-        color:    hceColors.primary.green[600],
-        icon:     <UiDoctorIcon size={15} color="#ffffff" />,
-      }}
-      cancelButton={{
-        label:   "Cancelar",
+      title="Asignar o reasignar médico a paciente"
+      borderNone={true}
+      iconClose={false}
+       maxWidth={400}
+       primaryButton={{
+        label: "Cancelar",
         onClick: onClose,
-        color:   hceColors.primary.blue[500],
-        icon:    <CloseIcon size={15} color={hceColors.primary.blue[500]} />,
+        
       }}
-      buttonLayout="row"
+      secondaryButton={{
+        
+
+        label: "Asignar",
+        onClick: handleConfirmar,
+        color: hceColors.primary.green[600],
+        disabled:!medicoSeleccionado || cargando,
+        
+      }}
+      buttonAlign="center"
+
     >
       {/* El HceModal acepta children opcionales — aquí metemos el select */}
-      <Box sx={{ textAlign: "left", mt: 1 }}>
+      <Box sx={{ textAlign: "left", mt: 1}}>
         {cargando ? (
           <Box sx={{ py: 1.5, textAlign: "center", fontFamily: hceTypography.fontFamily, fontSize: "0.875rem", color: hceColors.neutro.black[300] }}>
-            Cargando médicos disponibles…
+            Cargando pacientes disponibles…
           </Box>
         ) : (
+        <div style={{display:'flex', flexDirection:'column', gap: '10px', margin:'0 20px'}}>
+          <RadioGroup  
+            legend= "Grupo de Radio"
+            options={OPTIONS} 
+            value={value}
+            onChange={(v) => {
+              setValue(v);
+            }}
+           disabled={false}
+
+      />
+
+
+
+
+
           <SelectField
-            label="Médico disponible"
+            label="Lista de pacientes"
             value={medicoId}
             onChange={setMedicoId}
             options={selectOptions}
-            placeholder="-Seleccionar médico-"
+            placeholder="-Seleccionar paciente-"
           />
+          </div>
         )}
 
         {/* Detalle del médico seleccionado */}
-        {medicoSeleccionado && (
+        {/* {medicoSeleccionado && (
           <Box sx={{
             mt:              1.5,
             px:              1.5,
@@ -114,8 +133,8 @@ export function AsignarMedicoModal({ open, onClose, paciente, onAsignar }: Asign
               {medicoSeleccionado.especialidad} · Turno {medicoSeleccionado.turno}
             </Typography>
           </Box>
-        )}
+        )} */}
       </Box>
-    </HceModal>
+    </HceFormModal>
   )
 }
