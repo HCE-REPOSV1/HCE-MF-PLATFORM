@@ -6,10 +6,6 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "types": ["vite/client"],
-    "paths": {
-      "@design-system":   ["../../packages/design-system"],
-      "@design-system/*": ["../../packages/design-system/*"]
-    },
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,

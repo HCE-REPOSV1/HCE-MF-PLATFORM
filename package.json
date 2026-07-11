@@ -17,20 +17,39 @@
     "clean": "rimraf apps/mf-auth/dist apps/mf-home/dist apps/mf-shell/dist apps/mf-emergency/dist apps/mf-hospital/dist apps/mf-ambulatorio/dist apps/mf-auditoria/dist apps/mf-header/dist apps/mf-sidebar/dist apps/mf-footer/dist apps/mf-triage/dist",
     "start": "npm run clean && npm run build:shell && npm run build:remotes:dev && concurrently -n shell,remotes -c bgGreen,bgBlue \"npm run preview:shell\" \"wait-on http://localhost:10500 && npm run preview:remotes\"",
     "build": "npm run build:shell && npm run build:remotes",
-    "storybook": "npm --workspace packages/design-system run storybook"
+    "storybook": "npm --workspace packages/design-system run storybook",
+    "deps:check": "syncpack list-mismatches",
+    "deps:fix": "syncpack fix-mismatches"
   },
   "dependencies": {
+    "@babel/node": "^7.29.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@hce/design-system": "^1.3.0",
     "@mui/icons-material": "^7.3.9",
     "@mui/material": "^7.3.9",
-    "lucide-react": "^0.577.0"
+    "lucide-react": "^0.577.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-router-dom": "^7.13.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
     "@originjs/vite-plugin-federation": "^1.4.1",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
     "concurrently": "^9.0.0",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
     "rimraf": "^6.0.1",
+    "syncpack": "^15.3.2",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.48.0",
+    "vite": "^7.3.1",
     "wait-on": "^8.0.1"
   }
 }

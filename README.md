@@ -191,6 +191,38 @@ npm install   # instala todas las apps y packages del monorepo
 
 ---
 
+## Gestión de dependencias (npm workspaces)
+
+Cada microfrontend (`apps/mf-*`) es un workspace independiente y el Dockerfile
+de cada uno instala con `npm install --install-strategy=nested` — **no hostea**
+dependencias entre workspaces hermanos. Eso significa dos reglas:
+
+1. **Toda librería que un microfrontend importa debe estar declarada en SU
+   PROPIO `package.json`** (`dependencies` o `devDependencies`), aunque ya
+   esté declarada en el `package.json` raíz o en otro workspace. Si falta,
+   el build local puede funcionar por casualidad (Node resuelve subiendo
+   directorios hasta encontrar el paquete en `node_modules` de la raíz), pero
+   el build de Docker de ese microfrontend puntual puede fallar con
+   `Cannot find module` — así se rompió `mf-header` con `react-router-dom`.
+2. **El `package.json` raíz mantiene el inventario completo** de todas las
+   librerías usadas en cualquier microfrontend del monorepo, no solo las que
+   usa el propio root.
+
+Para detectar y corregir automáticamente versiones desincronizadas de una
+misma librería entre workspaces, se usa [`syncpack`](https://www.npmjs.com/package/syncpack):
+
+```bash
+npm run deps:check   # lista mismatches de versión entre workspaces
+npm run deps:fix      # los corrige automáticamente
+```
+
+> Requiere que `syncpack` esté instalado (`npm install` en la raíz) — como es
+> paquete público, no depende de que Verdaccio esté levantado, salvo que el
+> install completo del monorepo también intente resolver `@hce/design-system`
+> (scope privado), en cuyo caso Verdaccio sí debe estar accesible.
+
+---
+
 ## Levantar la plataforma
 
 ### Desarrollo local (sin Docker)
@@ -378,6 +410,8 @@ el shell externo no necesita el código fuente ni estar en la misma red Docker.
 | `npm run dev:shell` | Levanta el shell en modo dev |
 | `npm run clean` | Borra `dist/` de todas las apps |
 | `npm run storybook` | Storybook del design system (si está linkeado como workspace local) |
+| `npm run deps:check` | Lista mismatches de versión entre workspaces (`syncpack`) |
+| `npm run deps:fix` | Corrige automáticamente esos mismatches |
 
 ---
 
