@@ -16,19 +16,11 @@ ARG VITE_REMOTE_FOOTER=http://localhost:10509/remoteEntry.js
 ARG VITE_REMOTE_TRIAGE=http://localhost:10510/remoteEntry.js
 WORKDIR /app
 
-# Manifests raíz + todos los workspaces (necesario para npm install en monorepo)
+# Manifests raíz + workspace propio (Module Federation resuelve los remotes
+# por URL en runtime, no como dependencia de build — no hace falta el código
+# ni el package.json de los demás microfrontends)
 COPY package*.json .npmrc ./
 COPY apps/mf-shell/package.json       apps/mf-shell/
-COPY apps/mf-auth/package.json        apps/mf-auth/
-COPY apps/mf-home/package.json        apps/mf-home/
-COPY apps/mf-emergency/package.json   apps/mf-emergency/
-COPY apps/mf-hospital/package.json    apps/mf-hospital/
-COPY apps/mf-ambulatorio/package.json apps/mf-ambulatorio/
-COPY apps/mf-auditoria/package.json   apps/mf-auditoria/
-COPY apps/mf-header/package.json      apps/mf-header/
-COPY apps/mf-sidebar/package.json      apps/mf-sidebar/
-COPY apps/mf-footer/package.json      apps/mf-footer/
-COPY apps/mf-triage/package.json      apps/mf-triage/
 
 # Cache mount: reutiliza paquetes descargados entre builds aunque se invalide la capa
 RUN --mount=type=cache,target=/root/.npm \
