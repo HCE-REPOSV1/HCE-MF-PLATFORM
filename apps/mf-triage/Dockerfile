@@ -3,6 +3,10 @@
 FROM node:20-alpine AS builder
 ARG VERDACCIO_URL=http://host.docker.internal:10100
 ARG VITE_REMOTE_SHELL=http://localhost:10500/remoteEntry.js
+ARG VITE_APIGW_WEB_EMERGENCY=http://localhost:10602
+ARG VITE_APIGW_CLN_CROSS=http://localhost:10601
+ARG VITE_CSI_INPUT_TIPO_MOTIVO=24
+ARG VITE_CSI_GENDER=3
 WORKDIR /app
 
 COPY package*.json .npmrc ./
@@ -16,7 +20,12 @@ RUN --mount=type=cache,target=/root/.npm \
  && npm install --install-strategy=nested
 
 COPY apps/mf-triage ./apps/mf-triage
-RUN VITE_REMOTE_SHELL=${VITE_REMOTE_SHELL} npm run build -w apps/mf-triage
+RUN VITE_REMOTE_SHELL=${VITE_REMOTE_SHELL} \
+    VITE_APIGW_WEB_EMERGENCY=${VITE_APIGW_WEB_EMERGENCY} \
+    VITE_APIGW_CLN_CROSS=${VITE_APIGW_CLN_CROSS} \
+    VITE_CSI_INPUT_TIPO_MOTIVO=${VITE_CSI_INPUT_TIPO_MOTIVO} \
+    VITE_CSI_GENDER=${VITE_CSI_GENDER} \
+    npm run build -w apps/mf-triage
 
 # ── Stage 2: Serve ───────────────────────────────────────────
 FROM nginx:alpine

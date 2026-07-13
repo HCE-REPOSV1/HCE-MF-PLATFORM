@@ -4,6 +4,8 @@ FROM node:20-alpine AS builder
 ARG VERDACCIO_URL=http://host.docker.internal:10100
 ARG VITE_REMOTE_SHELL=http://localhost:10500/remoteEntry.js
 ARG VITE_REMOTE_TRIAGE=http://localhost:10510/remoteEntry.js
+ARG VITE_APIGW_CNL_WEB_EMERGENCY=http://localhost:10602
+ARG VITE_EMERGENCY_DECRYPT_KEY
 WORKDIR /app
 
 COPY package*.json .npmrc ./
@@ -19,6 +21,8 @@ RUN --mount=type=cache,target=/root/.npm \
 COPY apps/mf-emergency ./apps/mf-emergency
 RUN VITE_REMOTE_SHELL=${VITE_REMOTE_SHELL} \
     VITE_REMOTE_TRIAGE=${VITE_REMOTE_TRIAGE} \
+    VITE_APIGW_CNL_WEB_EMERGENCY=${VITE_APIGW_CNL_WEB_EMERGENCY} \
+    VITE_EMERGENCY_DECRYPT_KEY=${VITE_EMERGENCY_DECRYPT_KEY} \
     npm run build -w apps/mf-emergency
 
 # ── Stage 2: Serve ───────────────────────────────────────────
