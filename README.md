@@ -317,6 +317,42 @@ docker compose -f docker-compose.dev.yml build
 docker compose -f docker-compose.dev.yml up -d
 ```
 
+> **⚠️ No construyas las 11 imágenes en paralelo en un servidor con poco
+> margen de disco.** `docker compose build` (o `up -d --build`) sin
+> restricción lanza los 11 `npm install` al mismo tiempo — cada uno escribe
+> `node_modules` completo (varios cientos de MB, `@mui/icons-material` en
+> particular son miles de archivos chicos), y el pico de escritura
+> simultánea puede agotar el espacio real del disco aunque el total del
+> repo entre holgado. Se manifiesta como `ENOSPC` / `no space left on
+> device` a mitad de un `npm install`, y **no se arregla moviendo el
+> `data-root` de Docker a otro disco** — el problema es el pico de
+> concurrencia, no la ubicación.
+>
+> Si ves `ENOSPC`, construye **de a 2 como máximo** — probado en el servidor
+> de dev: 2 en simultáneo funciona de forma consistente, 4 en simultáneo
+> vuelve a fallar aunque cada imagen ya instale solo sus propias
+> dependencias:
+> ```bash
+> docker compose -f docker-compose.dev.yml build mf-header mf-sidebar
+> docker compose -f docker-compose.dev.yml build mf-home mf-shell
+> docker compose -f docker-compose.dev.yml build mf-auth mf-auditoria
+> docker compose -f docker-compose.dev.yml build mf-triage mf-footer
+> docker compose -f docker-compose.dev.yml build mf-emergency mf-hospital
+> docker compose -f docker-compose.dev.yml build mf-ambulatorio
+> docker compose -f docker-compose.dev.yml up -d   # sin --build, las imágenes ya existen
+> ```
+> **Importante:** una vez que ya tengas TODAS las imágenes construidas
+> (`docker images | grep hce-mf-platform` debe listar las 11), corré
+> `up -d` sin `-build` — si te faltan imágenes, `up -d` intenta construir
+> todas las que falten **en paralelo** y puede volver a pegar en el mismo
+> límite. Si una tanda de 2 sigue fallando, bajá a una por una. También
+> ayuda correr `docker builder prune -af` antes de reintentar (libera
+> caché de build reclamable, no requiere permisos de sistema) y, si el
+> servidor tiene una partición separada llenándose con archivos ya
+> borrados pero aún retenidos por un proceso vivo, pedirle a alguien con
+> `sudo` que corra `lsof +L1` y reinicie el proceso dueño — eso sí
+> requiere acceso de root y está fuera del alcance de este repo.
+
 **Con Vault (recomendado)** — `docker-compose.yml` no funciona ejecutado solo:
 sus `build.args` son `${VAR}`, sin esas variables exportadas el build queda con
 valores vacíos. Se levanta desde el proyecto `kv-hce-platform-dev`, que lee los

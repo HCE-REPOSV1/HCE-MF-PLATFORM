@@ -2,7 +2,7 @@
 # ── Stage 1: Build ──────────────────────────────────────────
 FROM node:20-alpine AS builder
 ARG VERDACCIO_URL=http://host.docker.internal:10100
-ARG MF_HOME_BASE_URL=http://localhost:10502
+ARG VITE_BASE_URL=http://localhost:10502
 ARG VITE_REMOTE_SHELL=http://localhost:10500/remoteEntry.js
 WORKDIR /app
 
@@ -17,7 +17,7 @@ RUN --mount=type=cache,target=/root/.npm \
  && npm install --install-strategy=nested
 
 COPY apps/mf-home ./apps/mf-home
-RUN VITE_BASE_URL=${MF_HOME_BASE_URL} \
+RUN VITE_BASE_URL=${VITE_BASE_URL} \
     VITE_REMOTE_SHELL=${VITE_REMOTE_SHELL} \
     npm run build -w apps/mf-home
 
