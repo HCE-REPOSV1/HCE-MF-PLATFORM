@@ -25,4 +25,16 @@ export const ENDPOINTS = {
     reassign: () => `${AG_WEB_EMERGENCY}/api/v1/encounter/beds/reassign`,
   },
 
+  practitionerAssignment: {
+    /** Pacientes activos con encounter activo y SIN médico (ATND) asignado todavía. */
+    assignmentCandidates: (locationUuid: string, page = 1, limit = 20) =>
+      `${AG_WEB_EMERGENCY}/api/v1/emergency-monitor/assignment-candidates?location_uuid=${locationUuid}&page=${page}&limit=${limit}`,
+    /** Pacientes activos con médico (ATND) asignado, sin alta médica ni administrativa. */
+    reassignmentCandidates: (locationUuid: string, page = 1, limit = 20) =>
+      `${AG_WEB_EMERGENCY}/api/v1/emergency-monitor/reassignment-candidates?location_uuid=${locationUuid}&page=${page}&limit=${limit}`,
+    /** Asigna/reasigna el médico (ATND) del encounter — mismo endpoint para ambos modos. */
+    assign: (encounterId: number | string) =>
+      `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounterId}/assign-practitioner`,
+  },
+
 } as const

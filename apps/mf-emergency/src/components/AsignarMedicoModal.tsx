@@ -8,19 +8,20 @@ import {
   RadioGroup,
 } from "@hce/design-system"
 import { useUser } from "shell/UserContext"
+import { useSedeUuid } from "../hooks/useSedeUuid"
 import {
-  getPacientesSinMedicoMock,
-  getPacientesConMedicoMock,
-  type PacienteSinMedico,
-  type PacienteConMedico,
-} from "../mock/pacientesAsignacion.mock"
+  getAssignmentCandidates,
+  getReassignmentCandidates,
+  assignPractitioner,
+  type AssignmentCandidate,
+} from "../services/practitionerAssignment.service"
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 export interface AsignarMedicoModalProps {
   open:      boolean
   onClose:   () => void
-  /** Callback al confirmar. encounterId = paciente elegido, username = médico logueado que registra. */
+  /** Callback al confirmar (ya asignado/reasignado en backend) — usar para refetchear el monitor. */
   onAsignar: (payload: { encounterId: number; username: string }) => void
 }
 
@@ -33,12 +34,14 @@ const OPTIONS = [
 
 export function AsignarMedicoModal({ open, onClose, onAsignar }: AsignarMedicoModalProps) {
   const { user } = useUser()
+  const sedeUuid = useSedeUuid()
   const [encounterId, setEncounterId] = useState("")
-  // true = Asignar (GET /api/pacientes/sin-medico), false = Reasignar (GET /api/pacientes/con-medico)
+  // true = Asignar (GET assignment-candidates), false = Reasignar (GET reassignment-candidates)
   const [modo, setModo] = useState<boolean | string>(true)
-  const [pacientesSinMedico, setPacientesSinMedico] = useState<PacienteSinMedico[]>([])
-  const [pacientesConMedico, setPacientesConMedico] = useState<PacienteConMedico[]>([])
+  const [candidatos, setCandidatos] = useState<AssignmentCandidate[]>([])
   const [cargando, setCargando] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [enviando, setEnviando] = useState(false)
 
   // Cada apertura arranca siempre en modo "Asignar".
   useEffect(() => {
@@ -46,41 +49,56 @@ export function AsignarMedicoModal({ open, onClose, onAsignar }: AsignarMedicoMo
   }, [open])
 
   // Carga la lista correspondiente al modo activo.
-  // TODO: reemplazar getPacientesSinMedicoMock()/getPacientesConMedicoMock() por
-  // GET /api/pacientes/sin-medico y GET /api/pacientes/con-medico respectivamente.
   useEffect(() => {
-    if (!open) return
+    if (!open || !sedeUuid) return
+    let cancelled = false
     setEncounterId("")
     setCargando(true)
-    const timer = setTimeout(() => {
-      if (modo === true) {
-        setPacientesSinMedico(getPacientesSinMedicoMock())
-      } else {
-        setPacientesConMedico(getPacientesConMedicoMock())
-      }
-      setCargando(false)
-    }, 300) // simula latencia de API
-    return () => clearTimeout(timer)
-  }, [open, modo])
+    setError(null)
 
-  const pacientesDisponibles = modo === true ? pacientesSinMedico : pacientesConMedico
+    const fetchCandidatos = modo === true ? getAssignmentCandidates : getReassignmentCandidates
+    fetchCandidatos(sedeUuid)
+      .then((items) => {
+        if (!cancelled) setCandidatos(items)
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : String(err))
+      })
+      .finally(() => {
+        if (!cancelled) setCargando(false)
+      })
 
-  const selectOptions = pacientesDisponibles.map((p) => ({
+    return () => { cancelled = true }
+  }, [open, modo, sedeUuid])
+
+  const selectOptions = candidatos.map((p) => ({
     value: String(p.encounter_id),
-    label: p.complete_name,
+    label: p.patient_name,
   }))
 
   // Solo tiene sentido en modo Reasignar: muestra quién es el médico ya asignado
   // al paciente elegido.
-  const pacienteConMedicoSeleccionado =
+  const candidatoSeleccionado =
     modo === false
-      ? pacientesConMedico.find((p) => String(p.encounter_id) === encounterId)
+      ? candidatos.find((p) => String(p.encounter_id) === encounterId)
       : undefined
 
-  function handleConfirmar() {
+  async function handleConfirmar() {
     if (!encounterId || !user?.username) return
-    onAsignar({ encounterId: Number(encounterId), username: user.username })
-    onClose()
+    setEnviando(true)
+    setError(null)
+    try {
+      await assignPractitioner(Number(encounterId), {
+        ad_username: user.username,
+        user_modify: user.username,
+      })
+      onAsignar({ encounterId: Number(encounterId), username: user.username })
+      onClose()
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setEnviando(false)
+    }
   }
 
   return (
@@ -95,7 +113,7 @@ export function AsignarMedicoModal({ open, onClose, onAsignar }: AsignarMedicoMo
         label: "Asignar",
         onClick: handleConfirmar,
         color: hceColors.primary.green[600],
-        disabled: !encounterId || cargando,
+        disabled: !encounterId || cargando || enviando,
       }}
       secondaryButton={{
         label: "Cancelar",
@@ -134,7 +152,7 @@ export function AsignarMedicoModal({ open, onClose, onAsignar }: AsignarMedicoMo
             />
           )}
 
-          {pacienteConMedicoSeleccionado && (
+          {candidatoSeleccionado && (
             <Typography
               sx={{
                 fontFamily: hceTypography.fontFamily,
@@ -142,7 +160,19 @@ export function AsignarMedicoModal({ open, onClose, onAsignar }: AsignarMedicoMo
                 color:      hceColors.neutro.black[400],
               }}
             >
-              Médico actual asignado: <strong>{pacienteConMedicoSeleccionado.physician_name}</strong>
+              Médico actual asignado: <strong>{candidatoSeleccionado.practitioner_name}</strong>
+            </Typography>
+          )}
+
+          {error && (
+            <Typography
+              sx={{
+                fontFamily: hceTypography.fontFamily,
+                fontSize:   "0.8rem",
+                color:      hceColors.alert.error[600],
+              }}
+            >
+              {error}
             </Typography>
           )}
         </div>
