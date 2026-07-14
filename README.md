@@ -383,6 +383,33 @@ docker compose build mf-emergency mf-home
 docker compose up -d mf-emergency mf-home
 ```
 
+##### Con `docker-compose.dev.yml` (sin Vault)
+
+Mismo comando, agregando `-f docker-compose.dev.yml`. `up -d --build` hace
+`build` + `up` en un solo paso — sirve igual para actualizar un solo servicio:
+
+```bash
+docker compose -f docker-compose.dev.yml up -d --build mf-emergency
+
+# varios a la vez (recordar el límite de disco — ver advertencia de ENOSPC arriba,
+# no hacer esto con más de 2 microfrontends a la vez en el servidor de dev)
+docker compose -f docker-compose.dev.yml up -d --build mf-emergency mf-home
+```
+
+> **⚠️ `--build` es obligatorio, no opcional, cuando cambia algo que se resuelve
+> en build-time** (un build-arg en `docker-compose.dev.yml`, un `ARG` del
+> `Dockerfile`, o cualquier `VITE_*` — Vite los hornea en el bundle al compilar,
+> no en runtime). Un simple `docker compose -f docker-compose.dev.yml up -d
+> mf-emergency` sin `--build`, o un `restart`, **no vuelven a leer esos
+> valores** — reutilizan la imagen ya construida tal cual, aunque el
+> `docker-compose.dev.yml` haya cambiado. Si un `ARG` nuevo no aparece en el
+> bundle final después de reconstruir, revisar primero que el `Dockerfile`
+> del microfrontend declare ese mismo `ARG` (con el mismo nombre exacto que
+> usa `build.args` en el compose) y lo pase al `RUN npm run build` — un
+> build-arg que el compose pasa pero el `Dockerfile` no declara se descarta
+> en silencio y Vite cae al valor del `.env` local (normalmente apuntando a
+> `localhost`), no al valor de producción.
+
 #### Detener un solo microfrontend
 
 `docker compose down` no acepta un servicio individual — usar `stop` + `rm`:

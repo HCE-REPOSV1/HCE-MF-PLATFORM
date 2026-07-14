@@ -2,10 +2,13 @@ import { useEffect, useState } from "react"
 import { Box, Typography } from "@mui/material"
 import {
   HceFormModal,
+  HceModal,
   SelectField,
   hceColors,
   hceTypography,
   RadioGroup,
+  UiCheckedIcon,
+  UiWarningIcon,
 } from "@hce/design-system"
 import { useUser } from "shell/UserContext"
 import { useSedeUuid } from "../hooks/useSedeUuid"
@@ -13,6 +16,7 @@ import {
   getAssignmentCandidates,
   getReassignmentCandidates,
   assignPractitioner,
+  HttpError,
   type AssignmentCandidate,
 } from "../services/practitionerAssignment.service"
 
@@ -42,10 +46,17 @@ export function AsignarMedicoModal({ open, onClose, onAsignar }: AsignarMedicoMo
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
+  const [mostrarExito, setMostrarExito] = useState(false)
+  const [sinPermiso, setSinPermiso] = useState(false)
 
-  // Cada apertura arranca siempre en modo "Asignar".
+  // Cada apertura arranca siempre en modo "Asignar" y limpia estado de intentos previos.
   useEffect(() => {
-    if (open) setModo(true)
+    if (open) {
+      setModo(true)
+      setError(null)
+      setMostrarExito(false)
+      setSinPermiso(false)
+    }
   }, [open])
 
   // Carga la lista correspondiente al modo activo.
@@ -92,91 +103,135 @@ export function AsignarMedicoModal({ open, onClose, onAsignar }: AsignarMedicoMo
         ad_username: user.username,
         user_modify: user.username,
       })
-      onAsignar({ encounterId: Number(encounterId), username: user.username })
-      onClose()
+      setMostrarExito(true)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : String(err))
+      // 404 = practitioner no encontrado / no registrado como médico (is_physician) — ver
+      // PractitionerLookupTypeOrmRepository en ms-bs-core-encounter.
+      if (err instanceof HttpError && err.status === 404) {
+        setSinPermiso(true)
+      } else {
+        setError(err instanceof Error ? err.message : String(err))
+      }
     } finally {
       setEnviando(false)
     }
   }
 
+  function handleAceptarExito() {
+    setMostrarExito(false)
+    if (encounterId && user?.username) {
+      onAsignar({ encounterId: Number(encounterId), username: user.username })
+    }
+    onClose()
+  }
+
+  const formVisible = !mostrarExito && !sinPermiso
+
   return (
-    <HceFormModal
-      open={open}
-      onClose={onClose}
-      title="Asignar o reasignar médico a paciente"
-      borderNone={true}
-      iconClose={false}
-      maxWidth={400}
-      primaryButton={{
-        label: "Asignar",
-        onClick: handleConfirmar,
-        color: hceColors.primary.green[600],
-        disabled: !encounterId || cargando || enviando,
-      }}
-      secondaryButton={{
-        label: "Cancelar",
-        onClick: onClose,
-        color: hceColors.primary.blue[600],
-      }}
-      buttonAlign="center"
-    >
-      {/* El HceModal acepta children opcionales — aquí metemos el select */}
-      <Box sx={{ textAlign: "left", mt: 1 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '0 20px' }}>
-          <RadioGroup
-            legend="Tipo de asignación"
-            options={OPTIONS}
-            value={modo}
-            onChange={(v) => setModo(v)}
-            disabled={false}
-          />
+    <>
+      {formVisible && (
+        <HceFormModal
+          open={open}
+          onClose={onClose}
+          title="Asignar o reasignar médico a paciente"
+          borderNone={true}
+          iconClose={false}
+          maxWidth={400}
+          primaryButton={{
+            label: "Asignar",
+            onClick: handleConfirmar,
+            color: hceColors.primary.green[600],
+            disabled: !encounterId || cargando || enviando,
+          }}
+          secondaryButton={{
+            label: "Cancelar",
+            onClick: onClose,
+            color: hceColors.primary.blue[600],
+          }}
+          buttonAlign="center"
+        >
+          {/* El HceModal acepta children opcionales — aquí metemos el select */}
+          <Box sx={{ textAlign: "left", mt: 1 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '0 20px' }}>
+              <RadioGroup
+                legend="Tipo de asignación"
+                options={OPTIONS}
+                value={modo}
+                onChange={(v) => setModo(v)}
+                disabled={false}
+              />
 
-          {cargando ? (
-            <Box sx={{ py: 1.5, textAlign: "center", fontFamily: hceTypography.fontFamily, fontSize: "0.875rem", color: hceColors.neutro.black[300] }}>
-              Cargando pacientes disponibles…
-            </Box>
-          ) : (
-            <SelectField
-              label="Lista de pacientes"
-              value={encounterId}
-              onChange={setEncounterId}
-              options={selectOptions}
-              placeholder={
-                selectOptions.length === 0
-                  ? "-No hay pacientes disponibles-"
-                  : "-Seleccionar paciente-"
-              }
-              disabled={selectOptions.length === 0}
-            />
-          )}
+              {cargando ? (
+                <Box sx={{ py: 1.5, textAlign: "center", fontFamily: hceTypography.fontFamily, fontSize: "0.875rem", color: hceColors.neutro.black[300] }}>
+                  Cargando pacientes disponibles…
+                </Box>
+              ) : (
+                <SelectField
+                  label="Lista de pacientes"
+                  value={encounterId}
+                  onChange={setEncounterId}
+                  options={selectOptions}
+                  placeholder={
+                    selectOptions.length === 0
+                      ? "-No hay pacientes disponibles-"
+                      : "-Seleccionar paciente-"
+                  }
+                  disabled={selectOptions.length === 0}
+                />
+              )}
 
-          {candidatoSeleccionado && (
-            <Typography
-              sx={{
-                fontFamily: hceTypography.fontFamily,
-                fontSize:   "0.8rem",
-                color:      hceColors.neutro.black[400],
-              }}
-            >
-              Médico actual asignado: <strong>{candidatoSeleccionado.practitioner_name}</strong>
-            </Typography>
-          )}
+              {candidatoSeleccionado && (
+                <Typography
+                  sx={{
+                    fontFamily: hceTypography.fontFamily,
+                    fontSize:   "0.8rem",
+                    color:      hceColors.neutro.black[400],
+                  }}
+                >
+                  Médico actual asignado: <strong>{candidatoSeleccionado.practitioner_name}</strong>
+                </Typography>
+              )}
 
-          {error && (
-            <Typography
-              sx={{
-                fontFamily: hceTypography.fontFamily,
-                fontSize:   "0.8rem",
-                color:      hceColors.alert.error[600],
-              }}
-            >
-              {error}
-            </Typography>
-          )}
-        </div>
-      </Box>
-    </HceFormModal>
+              {error && (
+                <Typography
+                  sx={{
+                    fontFamily: hceTypography.fontFamily,
+                    fontSize:   "0.8rem",
+                    color:      hceColors.alert.error[600],
+                  }}
+                >
+                  {error}
+                </Typography>
+              )}
+            </div>
+          </Box>
+        </HceFormModal>
+      )}
+
+      {/* Éxito — un solo botón, cierra todo y recarga la grilla (via onAsignar). */}
+      <HceModal
+        maxWidth={400}
+        open={mostrarExito}
+        title={`Paciente ${modo === true ? "asignado" : "reasignado"} correctamente`}
+        icon={<UiCheckedIcon />}
+        confirmButton={{
+          label: "Aceptar",
+          onClick: handleAceptarExito,
+        }}
+      />
+
+      {/* Sin permisos — el usuario logueado no está registrado como médico (is_physician). */}
+      <HceModal
+        maxWidth={400}
+        open={sinPermiso}
+        title="No tienes permisos para esta acción"
+        description="Tu usuario no está registrado como médico — solo un médico puede asignarse como tratante."
+        icon={<UiWarningIcon />}
+        confirmButton={{
+          label: "Aceptar",
+          onClick: () => setSinPermiso(false),
+        }}
+      />
+    </>
   )
 }
