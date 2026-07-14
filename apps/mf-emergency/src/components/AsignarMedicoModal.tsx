@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react"
-import { Box } from "@mui/material"
+import { useEffect, useState } from "react"
+import { Box, Typography } from "@mui/material"
 import {
   HceFormModal,
   SelectField,
@@ -35,50 +35,97 @@ const OPTIONS = [
 export function AsignarMedicoModal({ open, onClose, onAsignar }: AsignarMedicoModalProps) {
   const { user } = useUser()
   const sedeUuid = useSedeUuid()
+
   const [encounterId, setEncounterId] = useState("")
-  // true = Asignar (GET assignment-candidates), false = Reasignar (GET reassignment-candidates)
-  const [modo, setModo] = useState<boolean | string>(true)
-  const [candidatos, setCandidatos] = useState<AssignmentCandidate[]>([])
+  const [modo, setModo] = useState(true)
+
+  const [candidatosAsignar, setCandidatosAsignar] = useState<
+    AssignmentCandidate[]
+  >([])
+
+  const [candidatosReasignar, setCandidatosReasignar] = useState<
+    AssignmentCandidate[]
+  >([])
+
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
 
-  const [tipoAsignacion, setTipoAsignacion] = useState<boolean | string>(true)
+  useEffect(() => {
+    if (open) {
+      setModo(true)
+      setEncounterId("")
+    }
+  }, [open])
 
-  // Carga la lista correspondiente al modo activo.
+    // Carga la lista correspondiente al modo activo.
   useEffect(() => {
     if (!open || !sedeUuid) return
+
+     const currentSedeUuid = sedeUuid
     let cancelled = false
+
+
+    async function cargarCandidatos() {
+      setCargando(true)
+      setError(null)
+      setEncounterId("")
+
+      try {
+         const [asignacion, reasignacion] = await Promise.all([
+        getAssignmentCandidates(currentSedeUuid),
+        getReassignmentCandidates(currentSedeUuid),
+       ])
+
+        if (cancelled) return
+
+        setCandidatosAsignar(asignacion)
+        setCandidatosReasignar(reasignacion)
+      } catch (err: unknown) {
+        if (cancelled) return
+
+        setCandidatosAsignar([])
+        setCandidatosReasignar([])
+        setError(err instanceof Error ? err.message : String(err))
+      } finally {
+        if (!cancelled) {
+          setCargando(false)
+        }
+      }
+    }
+
+    cargarCandidatos()
+
+    return () => {
+      cancelled = true
+    }
+  }, [open, sedeUuid])
+
+   const handleModoChange = (value: boolean | string) => {
+    const nuevoModo = value === true || value === "true"
+
+    if (nuevoModo === modo) return
+
     setEncounterId("")
-    setCargando(true)
     setError(null)
+    setModo(nuevoModo)
+  }
 
-    const fetchCandidatos = modo === true ? getAssignmentCandidates : getReassignmentCandidates
-    fetchCandidatos(sedeUuid)
-      .then((items) => {
-        if (!cancelled) setCandidatos(items)
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err))
-      })
-      .finally(() => {
-        if (!cancelled) setCargando(false)
-      })
+  const candidatos = modo
+    ? candidatosAsignar
+    : candidatosReasignar
 
-    return () => { cancelled = true }
-  }, [open, modo, sedeUuid])
-
-  const selectOptions = candidatos.map((p) => ({
-    value: String(p.encounter_id),
-    label: p.patient_name,
+  const selectOptions = candidatos.map((paciente) => ({
+    value: String(paciente.encounter_id),
+    label: paciente.patient_name,
   }))
 
-  // Solo tiene sentido en modo Reasignar: muestra quién es el médico ya asignado
-  // al paciente elegido.
-  const candidatoSeleccionado =
-    modo === false
-      ? candidatos.find((p) => String(p.encounter_id) === encounterId)
-      : undefined
+  const candidatoSeleccionado = !modo
+    ? candidatosReasignar.find(
+        (paciente) => String(paciente.encounter_id) === encounterId,
+      )
+    : undefined
+
 
   async function handleConfirmar() {
     if (!encounterId || !user?.username) return
@@ -103,15 +150,17 @@ export function AsignarMedicoModal({ open, onClose, onAsignar }: AsignarMedicoMo
       open={open}
       onClose={onClose}
       title="Asignar o reasignar médico a paciente"
-      borderNone
+      borderNone={true}
       iconClose={false}
       maxWidth={400}
       primaryButton={{
-        label: "Cancelar",
-        onClick: onClose,
-      }}
-      secondaryButton={{
-        label: tipoAsignacion ? "Asignar" : "Reasignar",
+        label: enviando
+          ? modo
+            ? "Asignando..."
+            : "Reasignando..."
+          : modo
+            ? "Asignar"
+            : "Reasignar",
         onClick: handleConfirmar,
         color: hceColors.primary.green[600],
         disabled: !encounterId || cargando || enviando,
@@ -123,42 +172,32 @@ export function AsignarMedicoModal({ open, onClose, onAsignar }: AsignarMedicoMo
       }}
       buttonAlign="center"
     >
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "10px",
-          mx: "20px",
-          mt: 1,
-          textAlign: "left",
-        }}
-      >
-        <RadioGroup
-          legend="Grupo de Radio"
-          options={RADIO_OPTIONS}
-          value={tipoAsignacion}
-          onChange={setTipoAsignacion}
-          disabled={false}
-        />
+      {/* El HceModal acepta children opcionales — aquí metemos el select */}
+      <Box sx={{ textAlign: "left", mt: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '0 20px' }}>
+         <RadioGroup
+            legend="Tipo de asignación"
+            options={OPTIONS}
+            value={modo}
+            onChange={handleModoChange}
+            disabled={cargando || enviando}
+          />
 
-          {cargando ? (
-            <Box sx={{ py: 1.5, textAlign: "center", fontFamily: hceTypography.fontFamily, fontSize: "0.875rem", color: hceColors.neutro.black[300] }}>
-              Cargando pacientes disponibles…
-            </Box>
-          ) : (
-            <SelectField
-              label="Lista de pacientes"
-              value={encounterId}
-              onChange={setEncounterId}
-              options={selectOptions}
-              placeholder={
-                selectOptions.length === 0
+         <SelectField
+            label="Lista de pacientes"
+            value={encounterId}
+            onChange={setEncounterId}
+            options={selectOptions}
+            placeholder={
+               cargando
+                ? "-Cargando pacientes-"
+                : selectOptions.length === 0
                   ? "-No hay pacientes disponibles-"
                   : "-Seleccionar paciente-"
-              }
-              disabled={selectOptions.length === 0}
+            }
+            disabled={cargando || selectOptions.length === 0}
+            menuMaxHeight = {280}
             />
-          )}
 
           {candidatoSeleccionado && (
             <Typography
