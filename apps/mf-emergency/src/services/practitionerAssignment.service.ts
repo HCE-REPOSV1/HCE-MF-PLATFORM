@@ -19,6 +19,15 @@ export interface AssignPractitionerPayload {
   user_modify:        string
 }
 
+/** Error HTTP con el status adjunto — permite distinguir 404 (practitioner no
+ * encontrado / no es médico) de otros errores (500, red, etc.) en la UI. */
+export class HttpError extends Error {
+  constructor(message: string, public readonly status: number) {
+    super(message)
+    this.name = 'HttpError'
+  }
+}
+
 async function getCandidates(url: string): Promise<AssignmentCandidate[]> {
   const res = await fetch(url, { method: 'GET', credentials: 'include' })
   const body = await res.json()
@@ -45,6 +54,6 @@ export async function assignPractitioner(encounterId: number, payload: AssignPra
     body: JSON.stringify(payload),
   })
   const body = await res.json()
-  if (!res.ok) throw new Error(body?.message ?? `HTTP ${res.status}`)
+  if (!res.ok) throw new HttpError(body?.message ?? `HTTP ${res.status}`, res.status)
   return body
 }
