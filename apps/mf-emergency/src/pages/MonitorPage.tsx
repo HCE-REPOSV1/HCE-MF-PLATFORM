@@ -395,10 +395,9 @@ export default function MonitorPage() {
           sx={{
             flex: 1,
             display: "flex",
-            flexwrap: "wrap",
-            alignContent: 'space-between',
-            height: "100%",
             flexDirection: "column",
+            height: "100%",
+            minHeight: 0,
             overflow: "hidden",
             padding: `${hceSpacing[3]} 52px ${hceSpacing[3]} ${hceSpacing[4]}`,
             gap: hceSpacing[3],
@@ -406,7 +405,7 @@ export default function MonitorPage() {
         >
           {/* Barra de acciones de monitoreo — ancho completo, iconos a la izquierda */}
           <Box sx={{ flexShrink: 0 }}>
-            
+
             <MonitoActionBar
               tooltipPlacement="bottom"
               orientation="horizontal"
@@ -417,24 +416,29 @@ export default function MonitorPage() {
             />
           </Box>
 
-         <Box sx={{ flex: 1, overflow: "hidden", minHeight: 'fit-content' }}>
+          {/* Área de la tabla — debe crecer/encoger para ocupar TODO el espacio
+              vertical restante entre la barra de acciones y la paginación.
+              flex:1 + minHeight:0 en toda la cadena de contenedores (incluido
+              GenericTable internamente) es lo que evita el hueco en blanco al
+              achicar la ventana; antes había un maxHeight="45vh" fijo en
+              GenericTable que no tenía relación con el espacio real disponible. */}
+         <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
           {monitorLoading ? (
             <Box sx={{ p: 2 }}>Cargando monitor...</Box>
           ) : monitorError ? (
             <Box sx={{ p: 2 }}>Error: {monitorError}</Box>
           ) : (
-            <Box sx={{ flex: 1, overflowX:"auto", height: "100%", marginBottom: '10px' }}>
+            <Box sx={{ flex: 1, minHeight: 0, overflowX: "auto" }}>
             <GenericTable
               rows={rows}
               columns={columns}
               getRowId={(row) => row.id}
-              maxHeight="45vh"
               rowAlertGetter={(row) => row.row_alert_color === "red"}
-              
+
             />
             </Box>
           )}
-          
+
         </Box>
             {/* <EmergencyPatientTable rows={paginatedRows} header={HEADER_COLUMNS} /> */}
           
