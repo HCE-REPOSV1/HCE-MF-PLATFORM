@@ -433,6 +433,7 @@ export default function MonitorPage() {
               rows={rows}
               columns={columns}
               getRowId={(row) => row.id}
+              maxHeight="100%"
               rowAlertGetter={(row) => row.row_alert_color === "red"}
 
             />
