@@ -36,6 +36,8 @@ import { mapMonitorApiItemToTableRow, mapMonitorApiSummaryToSummary } from "../m
 import { monitorSortComparator } from "../../src/utils/monitorSort"
 import { BoxModal } from "../components/BoxModal";
 
+import { useNavigate } from "react-router-dom";
+
 
 const PAGE_SIZE = 10
 
@@ -221,6 +223,7 @@ export default function MonitorPage() {
   const [disponibilidadOpen, setDisponibilidadOpen] = useState(false);
   const [attentionWarningOpen, setAttentionWarningOpen] = useState(false)
 
+   const navigate = useNavigate()
   const sede = useSede()
   const {
     beds:    bedBoardData,
@@ -288,6 +291,7 @@ export default function MonitorPage() {
 
   const handlePatientClick = useCallback((row: MonitorTableRow) => {
     console.info("[MonitorPage] Abrir HCE:", row)
+    navigate("historiacli")
   }, [])
 
   const handlePriorityClick = useCallback(

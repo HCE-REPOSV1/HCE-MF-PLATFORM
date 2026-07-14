@@ -10,8 +10,9 @@ export type MenuConfigItem = {
 }
 
 export const menuConfig: MenuConfigItem[] = [
-  { label: "Monitor Emergencia", path: "/emergencia",          icon: Monitor,  permission: PERMISOS_EMERGENCY.monitor   },
-  { label: "Pacientes",          path: "/emergencia/patients", icon: Users,    permission: PERMISOS_EMERGENCY.patients  },
-  { label: "Reportes",           path: "/emergencia/reports",  icon: BarChart, permission: PERMISOS_EMERGENCY.reports   },
-  { label: "Configuración",      path: "/emergencia/settings", icon: Settings, permission: PERMISOS_EMERGENCY.settings  },
+  { label: "Monitor Emergencia", path: "/emergencia",            icon: Monitor,    permission: PERMISOS_EMERGENCY.monitor   },
+  { label: "Historia Clínica",   path:"/emergencia/historiacli", icon: Monitor,    permission: PERMISOS_EMERGENCY.clinicalRecord},
+  { label: "Pacientes",          path: "/emergencia/patients",   icon: Users,      permission: PERMISOS_EMERGENCY.patients  },
+  { label: "Reportes",           path: "/emergencia/reports",    icon: BarChart,   permission: PERMISOS_EMERGENCY.reports   },
+  { label: "Configuración",      path: "/emergencia/settings",   icon: Settings,   permission: PERMISOS_EMERGENCY.settings  },
 ]
