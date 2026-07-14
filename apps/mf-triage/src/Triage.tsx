@@ -657,8 +657,8 @@ export function Triage({
           }
         : {}),
       vitalSign: {
-        height_cm: Number(form.peso),
-        weight_kg: Number(form.talla),
+        height_cm: Number(form.talla),
+        weight_kg: Number(form.peso),
         systolic_pressure: form.pSistolica
           ? Number(form.pSistolica)
           : undefined,
@@ -1415,7 +1415,7 @@ export function Triage({
                       borderRadius: "8px",
                       m: 0,
                       px: 1.5,
-                      pt: 1.5,
+                      py: 1.5,
                     }}
                   >
                     <Box
@@ -1495,7 +1495,7 @@ export function Triage({
                       borderRadius: "8px",
                       m: 0,
                       px: 1.5,
-                      pt: 1.5,
+                      py: 1.5,
                     }}
                   >
                     <Box
