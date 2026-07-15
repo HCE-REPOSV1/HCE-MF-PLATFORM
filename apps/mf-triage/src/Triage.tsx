@@ -341,6 +341,7 @@ export function Triage({
   const [patientId, setPatientId] = useState<number | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
 
   const set = useCallback(
     <K extends keyof TriajeForm>(key: K, val: TriajeForm[K]) => {
@@ -725,9 +726,20 @@ export function Triage({
     setPacienteNoEncontrado(false);
     setSaveError(null);
     setLoadError(null);
+    setConfirmCloseOpen(false);
     setPatientId(null);
     setValuePrincipioActivo([]);
     onClose();
+  }
+
+  /** Botón Cancelar / X del form: en modo lectura no hay nada que perder, cierra directo.
+   * En modo escritura, confirma antes de descartar lo escrito (HceModal "confirmCloseOpen"). */
+  function handleRequestClose() {
+    if (readOnly) {
+      handleClose();
+      return;
+    }
+    setConfirmCloseOpen(true);
   }
 
   return (
@@ -756,8 +768,10 @@ export function Triage({
         description={loadError ?? ""}
         icon={<UiWarningIcon />}
         confirmButton={{
+          // Sin datos cargados no queda un formulario válido detrás: al confirmar se
+          // cierra todo el modal en vez de dejar el form de lectura vacío/roto abierto.
           label: "Aceptar",
-          onClick: () => setLoadError(null),
+          onClick: handleClose,
         }}
       />
       <HceModal
@@ -771,10 +785,28 @@ export function Triage({
           onClick: () => setSaveError(null),
         }}
       />
+      <HceModal
+        maxWidth={460}
+        open={confirmCloseOpen}
+        title="¿Desea cerrar el formulario?"
+        description="Si cierra la ventana, se perderá la información escrita."
+        icon={<UiWarningIcon />}
+        confirmButton={{
+          label: "Aceptar",
+          onClick: () => {
+            setConfirmCloseOpen(false);
+            handleClose();
+          },
+        }}
+        cancelButton={{
+          label: "Cancelar",
+          onClick: () => setConfirmCloseOpen(false),
+        }}
+      />
       <HceFormModal
         open={open}
         title={readOnly ? "Triaje — Solo lectura" : "Triaje"}
-        onClose={handleClose}
+        onClose={handleRequestClose}
         closeOnBackdrop={false}
         maxWidth="md"
         primaryButton={
@@ -795,7 +827,7 @@ export function Triage({
         }
         secondaryButton={{
           label: readOnly ? "Cerrar" : "Cancelar",
-          onClick: handleClose,
+          onClick: handleRequestClose,
           color: hceColors.primary.blue[600],
           icon: <CloseIcon size={16} color={hceColors.primary.blue[600]} />,
         }}
