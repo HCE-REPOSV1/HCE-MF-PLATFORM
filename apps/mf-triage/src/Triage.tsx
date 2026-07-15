@@ -833,7 +833,8 @@ export function Triage({
           color: hceColors.primary.blue[600],
           icon: <CloseIcon size={16} color={hceColors.primary.blue[600]} />,
         }}
-        buttonAlign="right"
+        buttonAlign="center"
+        buttonsFullWidth
       >
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
           {/* ── Sección 1: Datos del paciente ─────────────────────────────── */}
