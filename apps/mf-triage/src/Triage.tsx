@@ -804,7 +804,9 @@ export function Triage({
         }}
       />
       <HceFormModal
-        open={open}
+        // Con loadError seteado no hay datos válidos que mostrar: se oculta el form
+        // completo y queda únicamente la alerta de error visible.
+        open={open && !loadError}
         title={readOnly ? "Triaje — Solo lectura" : "Triaje"}
         onClose={handleRequestClose}
         closeOnBackdrop={false}
