@@ -1,0 +1,48 @@
+import { Box, Typography } from "@mui/material"
+import {
+  hceColors,
+  hceTypography,
+} from "@hce/design-system"
+
+import type {
+  PatientFieldProps,
+} from "../types/clinical.record.types"
+
+const labelSx = {
+  fontFamily: hceTypography.fontFamily,
+  fontSize: "0.625rem",
+  fontWeight: 700,
+  color: hceColors.primary.blue[500],
+  mb: 0.5,
+}
+
+const valueSx = {
+  fontFamily: hceTypography.fontFamily,
+  fontSize: "0.875rem",
+  fontWeight: 400,
+  color: hceColors.primary.blue[500],
+  overflowWrap: "anywhere",
+}
+
+export function PatientField({
+  label,
+  value,
+  align = "left",
+}: PatientFieldProps) {
+  return (
+    <Box
+      sx={{
+        minWidth: 0,
+        textAlign: align,
+      }}
+    >
+      <Typography sx={labelSx}>
+        {label}
+      </Typography>
+
+      <Typography sx={valueSx}>
+        {value || "-"}
+      </Typography>
+    </Box>
+  )
+}

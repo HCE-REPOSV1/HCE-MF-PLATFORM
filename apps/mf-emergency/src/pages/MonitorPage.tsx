@@ -11,11 +11,13 @@ import {
   EmergencyPagination,
   BedAvailabilityDrawerV2,
   HceModal,
+ 
 
 } from "@hce/design-system";
 
 import { AsignarMedicoModal } from "../components/AsignarMedicoModal";
 import { AditionalInfoModal } from "../components/AditionalInfoModal";
+
 import { useBedBoard } from "../hooks/useBedBoard";
 import { mapBedApiItemToAvailabilityItem } from "../mapper/bed.mapper";
 
@@ -222,6 +224,7 @@ export default function MonitorPage() {
     useState<MonitorTableRow | null>(null)  
   const [disponibilidadOpen, setDisponibilidadOpen] = useState(false);
   const [attentionWarningOpen, setAttentionWarningOpen] = useState(false)
+   //const [patientDetailsOpen, setPatientDetailsOpen] = useState(false)
 
    const navigate = useNavigate()
   const sede = useSede()
@@ -290,8 +293,16 @@ export default function MonitorPage() {
   }, [])
 
   const handlePatientClick = useCallback((row: MonitorTableRow) => {
+
     console.info("[MonitorPage] Abrir HCE:", row)
+
     navigate("historiacli")
+
+
+
+    //setSelectedPatientId((prev) => (prev === row.id ? null : row.id))
+   // console.info("[MonitorPage] Abrir HCE:", row)
+  
   }, [])
 
   const handlePriorityClick = useCallback(
@@ -546,6 +557,10 @@ export default function MonitorPage() {
     onClick: () => setAttentionWarningOpen(false),
   }}
 />
+
+
+
+
     </>
   );
 }
