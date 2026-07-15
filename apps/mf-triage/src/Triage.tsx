@@ -32,7 +32,7 @@ import type {
   SearchMode,
 } from "@hce/design-system";
 // import { buscarDiagnosticoMock } from "./mock/triage.mock";
-import { Grid, IconButton } from "@mui/material";
+import { Grid, IconButton, MenuItem, Select } from "@mui/material";
 import { usePatient } from "./hooks/usePatient";
 import { useCatalog } from "./hooks/useCatalog";
 import { useTriage } from "./hooks/useTriage";
@@ -110,7 +110,12 @@ function mapTriageFullToForm(full: TriageFullData): Partial<TriajeForm> {
     tiempoUnidad: triage.illness_duration_unit ?? "",
     comentarios: triage.comments ?? "",
 
-    traumaShock: Boolean(vitalSign?.trauma_shock_flag),
+    traumaShock:
+      vitalSign?.trauma_shock_flag === true
+        ? true
+        : vitalSign?.impossible_capture_flag === true
+          ? false
+          : null,
     peso: vitalSign?.weight_kg != null ? String(vitalSign.weight_kg) : "",
     talla: vitalSign?.height_cm != null ? String(vitalSign.height_cm) : "",
     frCardiaca:
@@ -190,8 +195,8 @@ interface TriajeForm {
   tiempoUnidad: string;
   comentarios: string;
   // Signos vitales
-  traumaShock: boolean;
-  noSV: boolean;
+  // null = sin seleccionar; true = Trauma Shock; false = No es posible tomar signos vitales
+  traumaShock: boolean | null;
   peso: string;
   talla: string;
   frCardiaca: string;
@@ -233,8 +238,7 @@ const INITIAL_FORM: TriajeForm = {
   tiempoEnfermedad: "",
   tiempoUnidad: "HRS",
   comentarios: "",
-  traumaShock: false,
-  noSV: false,
+  traumaShock: null,
   peso: "",
   talla: "",
   frCardiaca: "",
@@ -337,6 +341,7 @@ export function Triage({
   const [patientId, setPatientId] = useState<number | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
 
   const set = useCallback(
     <K extends keyof TriajeForm>(key: K, val: TriajeForm[K]) => {
@@ -510,7 +515,9 @@ export function Triage({
         setEnabledAlergiasTriage(false);
         setEnabledEvaTriage(false);
         setEnabledClasificacionTriage(false);
-        setValuePrincipioActivo(full.allergySubstances.map(i => String(i.active_principle_id)))
+        setValuePrincipioActivo(
+          full.allergySubstances.map((i) => String(i.active_principle_id)),
+        );
         full.triage.cie_description = await handleSearchMotivoById(
           full.triage.cie_id!,
         );
@@ -657,8 +664,8 @@ export function Triage({
           }
         : {}),
       vitalSign: {
-        height_cm: Number(form.talla),
-        weight_kg: Number(form.peso),
+        weight_kg: form.peso ? Number(form.peso) : undefined,
+        height_cm: form.talla ? Number(form.talla) : undefined,
         systolic_pressure: form.pSistolica
           ? Number(form.pSistolica)
           : undefined,
@@ -675,7 +682,10 @@ export function Triage({
         temperature_c: form.temperatura
           ? Number(form.temperatura.replace(",", "."))
           : undefined,
-        trauma_shock_flag: form.traumaShock,
+        // El radio es mutuamente excluyente y admite "sin elegir" (null): solo se envía
+        // el flag de la opción efectivamente marcada, nunca ambos ni un false implícito.
+        trauma_shock_flag: form.traumaShock === true ? true : undefined,
+        impossible_capture_flag: form.traumaShock === false ? true : undefined,
         user_create: username,
       },
       glasgowScale: {
@@ -717,9 +727,20 @@ export function Triage({
     setPacienteNoEncontrado(false);
     setSaveError(null);
     setLoadError(null);
+    setConfirmCloseOpen(false);
     setPatientId(null);
     setValuePrincipioActivo([]);
     onClose();
+  }
+
+  /** Botón Cancelar / X del form: en modo lectura no hay nada que perder, cierra directo.
+   * En modo escritura, confirma antes de descartar lo escrito (HceModal "confirmCloseOpen"). */
+  function handleRequestClose() {
+    if (readOnly) {
+      handleClose();
+      return;
+    }
+    setConfirmCloseOpen(true);
   }
 
   return (
@@ -748,8 +769,10 @@ export function Triage({
         description={loadError ?? ""}
         icon={<UiWarningIcon />}
         confirmButton={{
+          // Sin datos cargados no queda un formulario válido detrás: al confirmar se
+          // cierra todo el modal en vez de dejar el form de lectura vacío/roto abierto.
           label: "Aceptar",
-          onClick: () => setLoadError(null),
+          onClick: handleClose,
         }}
       />
       <HceModal
@@ -763,10 +786,30 @@ export function Triage({
           onClick: () => setSaveError(null),
         }}
       />
+      <HceModal
+        maxWidth={460}
+        open={confirmCloseOpen}
+        title="¿Desea cerrar el formulario?"
+        description="Si cierra la ventana, se perderá la información escrita."
+        icon={<UiWarningIcon />}
+        confirmButton={{
+          label: "Aceptar",
+          onClick: () => {
+            setConfirmCloseOpen(false);
+            handleClose();
+          },
+        }}
+        cancelButton={{
+          label: "Cancelar",
+          onClick: () => setConfirmCloseOpen(false),
+        }}
+      />
       <HceFormModal
-        open={open}
+        // Con loadError seteado no hay datos válidos que mostrar: se oculta el form
+        // completo y queda únicamente la alerta de error visible.
+        open={open && !loadError}
         title={readOnly ? "Triaje — Solo lectura" : "Triaje"}
-        onClose={handleClose}
+        onClose={handleRequestClose}
         closeOnBackdrop={false}
         maxWidth="md"
         primaryButton={
@@ -787,11 +830,12 @@ export function Triage({
         }
         secondaryButton={{
           label: readOnly ? "Cerrar" : "Cancelar",
-          onClick: handleClose,
+          onClick: handleRequestClose,
           color: hceColors.primary.blue[600],
           icon: <CloseIcon size={16} color={hceColors.primary.blue[600]} />,
         }}
-        buttonAlign="right"
+        buttonAlign="center"
+        buttonsFullWidth
       >
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
           {/* ── Sección 1: Datos del paciente ─────────────────────────────── */}
@@ -1198,49 +1242,70 @@ export function Triage({
                             }
                           />
 
-                          <Box
+                          <Select
+                            value={form.tiempoUnidad || ""}
+                            onChange={(e) =>
+                              set("tiempoUnidad", e.target.value)
+                            }
+                            disabled={
+                              !canDatosClinicosTriage ||
+                              !enabledDatosClinicosTriage
+                            }
+                            renderValue={(selected) => {
+          if (!selected) return "Unidad"; // Opcional: un texto por defecto si está 100% vacío
+          const matchedOption = timeUnitOptions.find((u) => u.time_unit_code === selected);
+          return matchedOption ? matchedOption.time_unit_name : selected;
+        }}
                             sx={{
                               width: "90px",
                               flexShrink: 0,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              px: 1,
+                              height: 40, // Igualamos la altura con el input
                               backgroundColor: hceColors.primary.blue[600],
                               color: "#fff",
-                              borderRadius: "0 8px 8px 0",
+                              borderRadius: "0 8px 8px 0", // Bordes redondeados solo a la derecha
                               fontFamily: hceTypography.fontFamily,
                               fontWeight: 600,
                               fontSize: "0.78rem",
-                              whiteSpace: "nowrap",
-                              cursor:
-                                !canDatosClinicosTriage ||
-                                !enabledDatosClinicosTriage
-                                  ? "not-allowed"
-                                  : "pointer",
-                            }}
-                            onClick={() => {
-                              if (
-                                !canDatosClinicosTriage ||
-                                !enabledDatosClinicosTriage ||
-                                !timeUnitOptions.length
-                              )
-                                return;
-                              const idx = timeUnitOptions.findIndex(
-                                (u) => u.time_unit_code === form.tiempoUnidad,
-                              );
-                              const next =
-                                timeUnitOptions[
-                                  (idx + 1) % timeUnitOptions.length
-                                ];
-                              set("tiempoUnidad", next.time_unit_code);
+
+                              // Centrado del texto dentro del Select
+                              "& .MuiSelect-select": {
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                paddingRight: "24px !important", // Espacio para que la flecha no pise el texto
+                                paddingLeft: "8px",
+                              },
+
+                              // Eliminamos el borde por defecto de MUI para que se fusione con el input
+                              "& .MuiOutlinedInput-notchedOutline": {
+                                border: "none",
+                              },
+
+                              // Pintamos la flecha del desplegable de color blanco
+                              "& .MuiSvgIcon-root": {
+                                color: "#fff",
+                              },
+
+                              // Estilo si llega a estar deshabilitado (siguiendo tu lógica anterior)
+                              "&.Mui-disabled": {
+                                backgroundColor: hceColors.neutro.black[300],
+                                color: hceColors.neutro.black[50],
+                                "& .MuiSvgIcon-root": {
+                                  color: hceColors.neutro.black[50],
+                                },
+                              },
                             }}
                           >
-                            {timeUnitOptions.find(
-                              (u) => u.time_unit_code === form.tiempoUnidad,
-                            )?.time_unit_name ?? form.tiempoUnidad}{" "}
-                            ▾
-                          </Box>
+                            {/* Renderizamos dinámicamente las opciones */}
+                            {timeUnitOptions.map((u) => (
+                              <MenuItem
+                                key={u.time_unit_code}
+                                value={u.time_unit_code}
+                              >
+                                {u.time_unit_name}
+                              </MenuItem>
+                            ))}
+                          </Select>
                         </Box>
                       </FieldCol>
                     </Box>
@@ -1581,10 +1646,10 @@ export function Triage({
                       options={opcionesRadioAlergia}
                       onChange={(v) => {
                         set("tieneAlergia", v);
-                        if(v=='N'){
-                          setValuePrincipioActivo([])
-                          set("alimentos","")
-                          set("otrosAlergias","")
+                        if (v == "N") {
+                          setValuePrincipioActivo([]);
+                          set("alimentos", "");
+                          set("otrosAlergias", "");
                         }
                       }}
                     />
@@ -1592,7 +1657,11 @@ export function Triage({
 
                   <Grid size={{ xs: 12, sm: 8, md: 8 }}>
                     <MultiSelect
-                      disabled={!canAlergiasTriage || !enabledAlergiasTriage || form.tieneAlergia == 'N'}
+                      disabled={
+                        !canAlergiasTriage ||
+                        !enabledAlergiasTriage ||
+                        form.tieneAlergia == "N"
+                      }
                       options={optionsActivePrinciples}
                       label="Principio activo"
                       value={valuePrincipioActivo}
@@ -1606,7 +1675,11 @@ export function Triage({
                   onChange={(v) => set("alimentos", v)}
                   maxLength={100}
                   placeholder="Describa alergias alimentarias"
-                  disabled={!canAlergiasTriage || !enabledAlergiasTriage || form.tieneAlergia == 'N'}
+                  disabled={
+                    !canAlergiasTriage ||
+                    !enabledAlergiasTriage ||
+                    form.tieneAlergia == "N"
+                  }
                 />
                 <TextareaField
                   label="Otros"
@@ -1614,7 +1687,11 @@ export function Triage({
                   onChange={(v) => set("otrosAlergias", v)}
                   maxLength={100}
                   placeholder="Otros tipos de alergia"
-                  disabled={!canAlergiasTriage || !enabledAlergiasTriage || form.tieneAlergia == 'N'}
+                  disabled={
+                    !canAlergiasTriage ||
+                    !enabledAlergiasTriage ||
+                    form.tieneAlergia == "N"
+                  }
                 />
               </Box>
             )}
