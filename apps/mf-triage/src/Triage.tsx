@@ -32,7 +32,7 @@ import type {
   SearchMode,
 } from "@hce/design-system";
 // import { buscarDiagnosticoMock } from "./mock/triage.mock";
-import { Grid, IconButton } from "@mui/material";
+import { Grid, IconButton, MenuItem, Select } from "@mui/material";
 import { usePatient } from "./hooks/usePatient";
 import { useCatalog } from "./hooks/useCatalog";
 import { useTriage } from "./hooks/useTriage";
@@ -515,7 +515,9 @@ export function Triage({
         setEnabledAlergiasTriage(false);
         setEnabledEvaTriage(false);
         setEnabledClasificacionTriage(false);
-        setValuePrincipioActivo(full.allergySubstances.map(i => String(i.active_principle_id)))
+        setValuePrincipioActivo(
+          full.allergySubstances.map((i) => String(i.active_principle_id)),
+        );
         full.triage.cie_description = await handleSearchMotivoById(
           full.triage.cie_id!,
         );
@@ -683,8 +685,7 @@ export function Triage({
         // El radio es mutuamente excluyente y admite "sin elegir" (null): solo se envía
         // el flag de la opción efectivamente marcada, nunca ambos ni un false implícito.
         trauma_shock_flag: form.traumaShock === true ? true : undefined,
-        impossible_capture_flag:
-          form.traumaShock === false ? true : undefined,
+        impossible_capture_flag: form.traumaShock === false ? true : undefined,
         user_create: username,
       },
       glasgowScale: {
@@ -1241,49 +1242,70 @@ export function Triage({
                             }
                           />
 
-                          <Box
+                          <Select
+                            value={form.tiempoUnidad || ""}
+                            onChange={(e) =>
+                              set("tiempoUnidad", e.target.value)
+                            }
+                            disabled={
+                              !canDatosClinicosTriage ||
+                              !enabledDatosClinicosTriage
+                            }
+                            renderValue={(selected) => {
+          if (!selected) return "Unidad"; // Opcional: un texto por defecto si está 100% vacío
+          const matchedOption = timeUnitOptions.find((u) => u.time_unit_code === selected);
+          return matchedOption ? matchedOption.time_unit_name : selected;
+        }}
                             sx={{
                               width: "90px",
                               flexShrink: 0,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              px: 1,
+                              height: 40, // Igualamos la altura con el input
                               backgroundColor: hceColors.primary.blue[600],
                               color: "#fff",
-                              borderRadius: "0 8px 8px 0",
+                              borderRadius: "0 8px 8px 0", // Bordes redondeados solo a la derecha
                               fontFamily: hceTypography.fontFamily,
                               fontWeight: 600,
                               fontSize: "0.78rem",
-                              whiteSpace: "nowrap",
-                              cursor:
-                                !canDatosClinicosTriage ||
-                                !enabledDatosClinicosTriage
-                                  ? "not-allowed"
-                                  : "pointer",
-                            }}
-                            onClick={() => {
-                              if (
-                                !canDatosClinicosTriage ||
-                                !enabledDatosClinicosTriage ||
-                                !timeUnitOptions.length
-                              )
-                                return;
-                              const idx = timeUnitOptions.findIndex(
-                                (u) => u.time_unit_code === form.tiempoUnidad,
-                              );
-                              const next =
-                                timeUnitOptions[
-                                  (idx + 1) % timeUnitOptions.length
-                                ];
-                              set("tiempoUnidad", next.time_unit_code);
+
+                              // Centrado del texto dentro del Select
+                              "& .MuiSelect-select": {
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                paddingRight: "24px !important", // Espacio para que la flecha no pise el texto
+                                paddingLeft: "8px",
+                              },
+
+                              // Eliminamos el borde por defecto de MUI para que se fusione con el input
+                              "& .MuiOutlinedInput-notchedOutline": {
+                                border: "none",
+                              },
+
+                              // Pintamos la flecha del desplegable de color blanco
+                              "& .MuiSvgIcon-root": {
+                                color: "#fff",
+                              },
+
+                              // Estilo si llega a estar deshabilitado (siguiendo tu lógica anterior)
+                              "&.Mui-disabled": {
+                                backgroundColor: hceColors.neutro.black[300],
+                                color: hceColors.neutro.black[50],
+                                "& .MuiSvgIcon-root": {
+                                  color: hceColors.neutro.black[50],
+                                },
+                              },
                             }}
                           >
-                            {timeUnitOptions.find(
-                              (u) => u.time_unit_code === form.tiempoUnidad,
-                            )?.time_unit_name ?? form.tiempoUnidad}{" "}
-                            ▾
-                          </Box>
+                            {/* Renderizamos dinámicamente las opciones */}
+                            {timeUnitOptions.map((u) => (
+                              <MenuItem
+                                key={u.time_unit_code}
+                                value={u.time_unit_code}
+                              >
+                                {u.time_unit_name}
+                              </MenuItem>
+                            ))}
+                          </Select>
                         </Box>
                       </FieldCol>
                     </Box>
@@ -1624,10 +1646,10 @@ export function Triage({
                       options={opcionesRadioAlergia}
                       onChange={(v) => {
                         set("tieneAlergia", v);
-                        if(v=='N'){
-                          setValuePrincipioActivo([])
-                          set("alimentos","")
-                          set("otrosAlergias","")
+                        if (v == "N") {
+                          setValuePrincipioActivo([]);
+                          set("alimentos", "");
+                          set("otrosAlergias", "");
                         }
                       }}
                     />
@@ -1635,7 +1657,11 @@ export function Triage({
 
                   <Grid size={{ xs: 12, sm: 8, md: 8 }}>
                     <MultiSelect
-                      disabled={!canAlergiasTriage || !enabledAlergiasTriage || form.tieneAlergia == 'N'}
+                      disabled={
+                        !canAlergiasTriage ||
+                        !enabledAlergiasTriage ||
+                        form.tieneAlergia == "N"
+                      }
                       options={optionsActivePrinciples}
                       label="Principio activo"
                       value={valuePrincipioActivo}
@@ -1649,7 +1675,11 @@ export function Triage({
                   onChange={(v) => set("alimentos", v)}
                   maxLength={100}
                   placeholder="Describa alergias alimentarias"
-                  disabled={!canAlergiasTriage || !enabledAlergiasTriage || form.tieneAlergia == 'N'}
+                  disabled={
+                    !canAlergiasTriage ||
+                    !enabledAlergiasTriage ||
+                    form.tieneAlergia == "N"
+                  }
                 />
                 <TextareaField
                   label="Otros"
@@ -1657,7 +1687,11 @@ export function Triage({
                   onChange={(v) => set("otrosAlergias", v)}
                   maxLength={100}
                   placeholder="Otros tipos de alergia"
-                  disabled={!canAlergiasTriage || !enabledAlergiasTriage || form.tieneAlergia == 'N'}
+                  disabled={
+                    !canAlergiasTriage ||
+                    !enabledAlergiasTriage ||
+                    form.tieneAlergia == "N"
+                  }
                 />
               </Box>
             )}
