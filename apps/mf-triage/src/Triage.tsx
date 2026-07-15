@@ -110,7 +110,12 @@ function mapTriageFullToForm(full: TriageFullData): Partial<TriajeForm> {
     tiempoUnidad: triage.illness_duration_unit ?? "",
     comentarios: triage.comments ?? "",
 
-    traumaShock: Boolean(vitalSign?.trauma_shock_flag),
+    traumaShock:
+      vitalSign?.trauma_shock_flag === true
+        ? true
+        : vitalSign?.impossible_capture_flag === true
+          ? false
+          : null,
     peso: vitalSign?.weight_kg != null ? String(vitalSign.weight_kg) : "",
     talla: vitalSign?.height_cm != null ? String(vitalSign.height_cm) : "",
     frCardiaca:
@@ -190,8 +195,8 @@ interface TriajeForm {
   tiempoUnidad: string;
   comentarios: string;
   // Signos vitales
-  traumaShock: boolean;
-  noSV: boolean;
+  // null = sin seleccionar; true = Trauma Shock; false = No es posible tomar signos vitales
+  traumaShock: boolean | null;
   peso: string;
   talla: string;
   frCardiaca: string;
@@ -233,8 +238,7 @@ const INITIAL_FORM: TriajeForm = {
   tiempoEnfermedad: "",
   tiempoUnidad: "HRS",
   comentarios: "",
-  traumaShock: false,
-  noSV: false,
+  traumaShock: null,
   peso: "",
   talla: "",
   frCardiaca: "",
@@ -337,6 +341,7 @@ export function Triage({
   const [patientId, setPatientId] = useState<number | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
 
   const set = useCallback(
     <K extends keyof TriajeForm>(key: K, val: TriajeForm[K]) => {
@@ -657,8 +662,8 @@ export function Triage({
           }
         : {}),
       vitalSign: {
-        height_cm: Number(form.talla),
-        weight_kg: Number(form.peso),
+        weight_kg: form.peso ? Number(form.peso) : undefined,
+        height_cm: form.talla ? Number(form.talla) : undefined,
         systolic_pressure: form.pSistolica
           ? Number(form.pSistolica)
           : undefined,
@@ -675,7 +680,11 @@ export function Triage({
         temperature_c: form.temperatura
           ? Number(form.temperatura.replace(",", "."))
           : undefined,
-        trauma_shock_flag: form.traumaShock,
+        // El radio es mutuamente excluyente y admite "sin elegir" (null): solo se envía
+        // el flag de la opción efectivamente marcada, nunca ambos ni un false implícito.
+        trauma_shock_flag: form.traumaShock === true ? true : undefined,
+        impossible_capture_flag:
+          form.traumaShock === false ? true : undefined,
         user_create: username,
       },
       glasgowScale: {
@@ -717,9 +726,20 @@ export function Triage({
     setPacienteNoEncontrado(false);
     setSaveError(null);
     setLoadError(null);
+    setConfirmCloseOpen(false);
     setPatientId(null);
     setValuePrincipioActivo([]);
     onClose();
+  }
+
+  /** Botón Cancelar / X del form: en modo lectura no hay nada que perder, cierra directo.
+   * En modo escritura, confirma antes de descartar lo escrito (HceModal "confirmCloseOpen"). */
+  function handleRequestClose() {
+    if (readOnly) {
+      handleClose();
+      return;
+    }
+    setConfirmCloseOpen(true);
   }
 
   return (
@@ -748,8 +768,10 @@ export function Triage({
         description={loadError ?? ""}
         icon={<UiWarningIcon />}
         confirmButton={{
+          // Sin datos cargados no queda un formulario válido detrás: al confirmar se
+          // cierra todo el modal en vez de dejar el form de lectura vacío/roto abierto.
           label: "Aceptar",
-          onClick: () => setLoadError(null),
+          onClick: handleClose,
         }}
       />
       <HceModal
@@ -763,10 +785,30 @@ export function Triage({
           onClick: () => setSaveError(null),
         }}
       />
+      <HceModal
+        maxWidth={460}
+        open={confirmCloseOpen}
+        title="¿Desea cerrar el formulario?"
+        description="Si cierra la ventana, se perderá la información escrita."
+        icon={<UiWarningIcon />}
+        confirmButton={{
+          label: "Aceptar",
+          onClick: () => {
+            setConfirmCloseOpen(false);
+            handleClose();
+          },
+        }}
+        cancelButton={{
+          label: "Cancelar",
+          onClick: () => setConfirmCloseOpen(false),
+        }}
+      />
       <HceFormModal
-        open={open}
+        // Con loadError seteado no hay datos válidos que mostrar: se oculta el form
+        // completo y queda únicamente la alerta de error visible.
+        open={open && !loadError}
         title={readOnly ? "Triaje — Solo lectura" : "Triaje"}
-        onClose={handleClose}
+        onClose={handleRequestClose}
         closeOnBackdrop={false}
         maxWidth="md"
         primaryButton={
@@ -787,11 +829,12 @@ export function Triage({
         }
         secondaryButton={{
           label: readOnly ? "Cerrar" : "Cancelar",
-          onClick: handleClose,
+          onClick: handleRequestClose,
           color: hceColors.primary.blue[600],
           icon: <CloseIcon size={16} color={hceColors.primary.blue[600]} />,
         }}
-        buttonAlign="right"
+        buttonAlign="center"
+        buttonsFullWidth
       >
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
           {/* ── Sección 1: Datos del paciente ─────────────────────────────── */}
