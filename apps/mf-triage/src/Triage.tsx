@@ -110,7 +110,12 @@ function mapTriageFullToForm(full: TriageFullData): Partial<TriajeForm> {
     tiempoUnidad: triage.illness_duration_unit ?? "",
     comentarios: triage.comments ?? "",
 
-    traumaShock: Boolean(vitalSign?.trauma_shock_flag),
+    traumaShock:
+      vitalSign?.trauma_shock_flag === true
+        ? true
+        : vitalSign?.impossible_capture_flag === true
+          ? false
+          : null,
     peso: vitalSign?.weight_kg != null ? String(vitalSign.weight_kg) : "",
     talla: vitalSign?.height_cm != null ? String(vitalSign.height_cm) : "",
     frCardiaca:
@@ -190,8 +195,8 @@ interface TriajeForm {
   tiempoUnidad: string;
   comentarios: string;
   // Signos vitales
-  traumaShock: boolean;
-  noSV: boolean;
+  // null = sin seleccionar; true = Trauma Shock; false = No es posible tomar signos vitales
+  traumaShock: boolean | null;
   peso: string;
   talla: string;
   frCardiaca: string;
@@ -233,8 +238,7 @@ const INITIAL_FORM: TriajeForm = {
   tiempoEnfermedad: "",
   tiempoUnidad: "HRS",
   comentarios: "",
-  traumaShock: false,
-  noSV: false,
+  traumaShock: null,
   peso: "",
   talla: "",
   frCardiaca: "",
@@ -657,8 +661,8 @@ export function Triage({
           }
         : {}),
       vitalSign: {
-        height_cm: Number(form.peso),
-        weight_kg: Number(form.talla),
+        weight_kg: form.peso ? Number(form.peso) : undefined,
+        height_cm: form.talla ? Number(form.talla) : undefined,
         systolic_pressure: form.pSistolica
           ? Number(form.pSistolica)
           : undefined,
@@ -675,7 +679,11 @@ export function Triage({
         temperature_c: form.temperatura
           ? Number(form.temperatura.replace(",", "."))
           : undefined,
-        trauma_shock_flag: form.traumaShock,
+        // El radio es mutuamente excluyente y admite "sin elegir" (null): solo se envía
+        // el flag de la opción efectivamente marcada, nunca ambos ni un false implícito.
+        trauma_shock_flag: form.traumaShock === true ? true : undefined,
+        impossible_capture_flag:
+          form.traumaShock === false ? true : undefined,
         user_create: username,
       },
       glasgowScale: {
