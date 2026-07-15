@@ -181,6 +181,7 @@ export function AsignarMedicoModal({ open, onClose, onAsignar }: AsignarMedicoMo
             color: hceColors.primary.blue[600],
           }}
           buttonAlign="center"
+         
         >
           {/* El HceModal acepta children opcionales — aquí metemos el select */}
           <Box sx={{ textAlign: "left", mt: 1 }}>

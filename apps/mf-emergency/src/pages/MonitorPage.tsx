@@ -5,8 +5,7 @@ import {
   Box,
   hceClinicalColors,
   hceSpacing,
-  hceBorderRadius,
-  hceShadows,
+
   MonitoActionBar,
   EmergencyPagination,
   BedAvailabilityDrawerV2,
@@ -471,10 +470,7 @@ export default function MonitorPage() {
           <Box
             sx={{
               flexShrink: 0,
-              backgroundColor: hceClinicalColors.surfaceBg,
-              borderRadius: hceBorderRadius.lg,
-              boxShadow: hceShadows.card,
-              border: `1px solid ${hceClinicalColors.border}`,
+             
             }}
           >
             <EmergencyPagination

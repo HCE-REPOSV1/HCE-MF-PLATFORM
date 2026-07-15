@@ -218,6 +218,7 @@ const handleConfirm = useCallback(async () => {
         onClick: handleCancel,
         disabled: saving,
       }}
+      buttonsFullWidth
     >
       <Box sx={{ textAlign: "left", mt: 1 }}>
         {!localPaciente ? (
