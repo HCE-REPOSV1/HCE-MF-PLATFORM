@@ -1,5 +1,22 @@
 import { Box, Avatar } from "@mui/material";
-import { DataCard, hceColors, InfoButton, StatusBadge, User } from "@hce/design-system";
+import {
+  ActionBar,
+  AltaMedicaIcon,
+  DataCard,
+  hceColors,
+  HceHistoryIcon,
+  InfoButton,
+  StatusBadge,
+  UiBloodTestIcon,
+  UiDrugsIcon,
+  UiMonitorIcon,
+  UiPrescriptionIcon,
+  UiPrintingIcon,
+  UiReferenceIcon,
+  UiXRaysIcon,
+  User,
+  type ExtraAction,
+} from "@hce/design-system";
 import { PatientField } from "../components/PatientField";
 import { PatientDetailsModal } from "../components/PatientDetailsModal";
 import type { ClinicalRecordPatient } from "../types/clinical.record.types";
@@ -25,18 +42,84 @@ const patient: ClinicalRecordPatient = {
   address: "Av. Gregorio Escobedo 650, Jesús María",
 
   hasAllergies: true,
-}
+};
 
-export default function ClinicalRecordPage(){
+export default function ClinicalRecordPage() {
+  const LIST_ACTION_BAR: ExtraAction[] = [
+    {
+      id: "monitor",
+      labelTooltip: "Monitor",
+      icon: UiMonitorIcon,
+      onClick: () => console.log("Abriendo monitor..."),
+      disabled: false,
+    },
+    {
+      id: "laboratorio",
+      labelTooltip: "Laboratorio",
+      icon: UiBloodTestIcon,
+      onClick: () => console.log("Abriendo laboratorio..."),
+      disabled: false,
+    },
+    {
+      id: "imagenes",
+      labelTooltip: "Imagenes",
+      icon: UiXRaysIcon,
+      onClick: () => console.log("Abriendo imagenes..."),
+      disabled: false,
+    },
+    {
+      id: "receta_alta",
+      labelTooltip: "Receta de alta",
+      icon: UiPrescriptionIcon,
+      onClick: () => console.log("Abriendo receta de alta..."),
+      disabled: false,
+    },
+    {
+      id: "alta_medica",
+      labelTooltip: "Alta medica",
+      icon: AltaMedicaIcon,
+      onClick: () => console.log("Abriendo alta medica..."),
+      disabled: false,
+    },
+    {
+      id: "imprimir_reporte",
+      labelTooltip: "Imprimir reporte",
+      icon: UiPrintingIcon,
+      onClick: () => console.log("Abriendo imprimir reporte..."),
+      disabled: false,
+    },
+    {
+      id: "indicaciones_actuales",
+      labelTooltip: "Indicaciones actuales",
+      icon: UiDrugsIcon,
+      onClick: () => console.log("Abriendo indicaciones actuales..."),
+      disabled: false,
+    },
+    {
+      id: "historial_atenciones",
+      labelTooltip: "Historial de atenciones",
+      icon: HceHistoryIcon,
+      onClick: () => console.log("Abriendo historial de atenciones..."),
+      disabled: false,
+    },
+    {
+      id: "referencia",
+      labelTooltip: "Referencia",
+      icon: UiReferenceIcon,
+      onClick: () => console.log("Abriendo referencia..."),
+      disabled: false,
+    },
+  ];
 
-    const [patientDetailsOpen, setPatientDetailsOpen] = useState(false)
+  const [patientDetailsOpen, setPatientDetailsOpen] = useState(false);
 
-
-    return (
-        <Box sx={{  width:"100%"}}>
-
-
-  <Box sx={{ width: "100%", p: 2 }}>
+  return (
+    <Box sx={{ width: "100%" }}>
+      {/* Modal Historial de atenciones */}
+      <Box>
+    
+      </Box>
+      <Box sx={{ width: "100%", p: 2 }}>
         <DataCard
           backgroundColor={hceColors.primary.green[50]}
           borderColor={hceColors.primary.blue[500]}
@@ -60,43 +143,24 @@ export default function ClinicalRecordPage(){
               sx={{
                 width: 42,
                 height: 42,
-                backgroundColor:
-                  hceColors.primary.green[600],
+                backgroundColor: hceColors.primary.green[600],
                 color: hceColors.neutro.white[50],
               }}
             >
               <User size={24} />
             </Avatar>
 
-            <PatientField
-              label="Paciente:"
-              value="Sofía González Pérez"
-            />
+            <PatientField label="Paciente:" value="Sofía González Pérez" />
 
-            <PatientField
-              label="Género:"
-              value="Femenino"
-            />
+            <PatientField label="Género:" value="Femenino" />
 
-            <PatientField
-              label="Edad:"
-              value="19 Años"
-            />
+            <PatientField label="Edad:" value="19 Años" />
 
-            <PatientField
-              label="Tipo y N.Documento:"
-              value="DNI - 80001234"
-            />
+            <PatientField label="Tipo y N.Documento:" value="DNI - 80001234" />
 
-            <PatientField
-              label="G. Sanguíneo:"
-              value="A+"
-            />
+            <PatientField label="G. Sanguíneo:" value="A+" />
 
-            <PatientField
-              label="Especialidad:"
-              value="Oncología"
-            />
+            <PatientField label="Especialidad:" value="Oncología" />
 
             <PatientField
               label="Alergias:"
@@ -106,7 +170,7 @@ export default function ClinicalRecordPage(){
                   variant="error"
                   clickable
                   onClick={() => {
-                    console.log("Abrir detalle de alergias")
+                    console.log("Abrir detalle de alergias");
                   }}
                 />
               }
@@ -118,32 +182,25 @@ export default function ClinicalRecordPage(){
                 justifyContent: "flex-end",
               }}
             >
-              <InfoButton
-                onClick={() => setPatientDetailsOpen(true)}
-              />
+              <InfoButton onClick={() => setPatientDetailsOpen(true)} />
             </Box>
           </Box>
         </DataCard>
-
-
       </Box>
 
+      <Box>
+        <ActionBar
+          orientation="horizontal"
+          actions={LIST_ACTION_BAR}
+          closeAction={true}
+        />
+      </Box>
 
-
-            <Box>Aqui va Datos del paciente (HU07,HU08)</Box>
-            <Box>Aqui va el actionBar(HU06)</Box>
-
-
-             <PatientDetailsModal
-                open={patientDetailsOpen}
-                patient={patient}
-                onClose={() => setPatientDetailsOpen(false)}
-                />
-        </Box>
-
-       
-
-
-
-    )
+      <PatientDetailsModal
+        open={patientDetailsOpen}
+        patient={patient}
+        onClose={() => setPatientDetailsOpen(false)}
+      />
+    </Box>
+  );
 }
