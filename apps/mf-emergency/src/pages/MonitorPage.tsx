@@ -1,6 +1,6 @@
 
 import { useEmergencyMonitor } from "../hooks/useEmergencyMonitor";
-import { useState, useCallback, lazy, Suspense, useMemo } from "react";
+import { useState, useCallback, lazy, Suspense, useMemo, useEffect } from "react";
 import {
   Box,
   hceClinicalColors,
@@ -14,8 +14,8 @@ import {
 
 } from "@hce/design-system";
 
-import { AsignarMedicoModal } from "../components/AsignarMedicoModal";
-import { AditionalInfoModal } from "../components/AditionalInfoModal";
+import { AsignarMedicoModal } from "../components/monitor/AsignarMedicoModal";
+import { AditionalInfoModal } from "../components/monitor/AditionalInfoModal";
 
 import { useBedBoard } from "../hooks/useBedBoard";
 import { mapBedApiItemToAvailabilityItem } from "../mapper/bed.mapper";
@@ -35,7 +35,7 @@ import type { MonitorSummary, MonitorTableRow } from "../types/monitor.table.typ
 import type { MonitorApiResponse } from "../types/monitor.api.types";
 import { mapMonitorApiItemToTableRow, mapMonitorApiSummaryToSummary } from "../mapper/monitor.mapper";
 import { monitorSortComparator } from "../../src/utils/monitorSort"
-import { BoxModal } from "../components/BoxModal";
+import { BoxModal } from "../components/monitor/BoxModal";
 
 import { useNavigate } from "react-router-dom";
 
@@ -237,6 +237,7 @@ export default function MonitorPage() {
 
    const navigate = useNavigate()
   const sede = useSede()
+
   const {
     beds:    bedBoardData,
     loading: bedBoardLoading,
@@ -281,7 +282,20 @@ export default function MonitorPage() {
 
   const totalPages = meta?.totalPages ?? 1
 
+  
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sede?.id]);
+
+  useEffect(() => {
+  if (currentPage > totalPages) {
+    setCurrentPage(1);
+  }
+}, [currentPage, totalPages]);
+
   const handleOpenTriageWrite = useCallback(() => {
+
+    
     setTriajeModo("write")
     setTriajeOpen(true)
   }, [])
