@@ -293,6 +293,7 @@ export function Triage({
   const [form, setForm] = useState<TriajeForm>(INITIAL_FORM);
   const [buscandoPaciente, setBuscandoPaciente] = useState(false);
   const [pacienteNoEncontrado, setPacienteNoEncontrado] = useState(false);
+  const [modalPacienteNoEncontrado, setModalPacienteNoEncontrado] = useState(false);
 
   const [disableNombres, setDisableNombres] = useState(true);
   const [disableApellidoPaterno, setDisableApellidoPaterno] = useState(true);
@@ -809,7 +810,8 @@ export function Triage({
 
   function handleClose() {
     setForm(INITIAL_FORM);
-    setPacienteNoEncontrado(false);
+    setPacienteNoEncontrado(false)
+    setModalPacienteNoEncontrado(false)
     setSaveError(null);
     setLoadError(null);
     setConfirmCloseOpen(false);
@@ -838,13 +840,13 @@ export function Triage({
       />
       <HceModal
         maxWidth={460}
-        open={pacienteNoEncontrado}
+        open={modalPacienteNoEncontrado}
         title="El documento no se ha encontrado."
         description="Le solicitamos ingresar los datos de manera manual."
         icon={<UiWarningIcon />}
         confirmButton={{
           label: "Aceptar",
-          onClick: () => setPacienteNoEncontrado(false),
+          onClick: () => setModalPacienteNoEncontrado(false),
         }}
       />
       <HceModal
@@ -909,7 +911,7 @@ export function Triage({
                   guardandoTriaje ||
                   (form.noIdentificado
                     ? !form.sexo || !form.grupoEtario
-                    : !patientId),
+                    : !patientId) || (pacienteNoEncontrado && !patientId),
                 loading: guardandoTriaje,
               }
         }
@@ -1145,26 +1147,35 @@ export function Triage({
                     disabled={disableApellidoMaterno}
                   />
                 </Grid>
-                <Grid size={{ xs: 24, sm: 12, md: 4 }}>
-                  <TextInput
-                    label="Fecha de nacimiento"
-                    value={form.fechaNacimiento}
-                    onChange={(v) => set("fechaNacimiento", v)}
-                    placeholder="dd-mm-yyyy"
-                    disabled={disableFechaNacimiento}
-                  />
+                <Grid size={{ xs: 24, sm: 12, md: 5 }}>
+                  {pacienteNoEncontrado ? (
+                    <TextInput
+                      label="Fecha de nacimiento"
+                      value={form.fechaNacimiento}
+                      onChange={(v) => set("fechaNacimiento", v)}
+                      placeholder="dd-mm-yyyy"
+                      disabled={disableFechaNacimiento}
+                    />
+                  ) : (
+                    <DatePicker
+                      label="Fecha de nacimiento"
+                      value={form.fechaNacimiento}
+                      onChange={(v) => set("fechaNacimiento", v)}
+                      disabled={disableFechaNacimiento}
+                    />
+                  )}
                 </Grid>
                 {/* md:6 (antes 4) — "-Seleccionar opción-" y "Desconocido" no entraban
                     cómodos en 4/24; se le sacó 1 columna a cada apellido (5→4) en vez de
                     achicar la tipografía del SelectField (rompería consistencia con el
                     resto del form). */}
-                <Grid size={{ xs: 24, sm: 12, md: 6 }}>
+                <Grid size={{ xs: 24, sm: 12, md: 5 }}>
                   <SelectField
                     label="Sexo"
                     value={form.sexo}
                     onChange={(v) => set("sexo", v)}
                     options={genderOptions}
-                    placeholder="-Seleccionar opción-"
+                    placeholder="Ingrese datos"
                     disabled={disableSexo}
                   />
                 </Grid>
