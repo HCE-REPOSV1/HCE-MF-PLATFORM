@@ -1,7 +1,9 @@
-import { Box, Typography } from "@mui/material"
+
 import {
   hceColors,
   hceTypography,
+  Box,
+  Typography
 } from "@hce/design-system"
 
 import type {

@@ -25,6 +25,8 @@ import {
   NumericField,
   TextareaField,
   DatePicker,
+  Grid,
+  IconButton,
 } from "@hce/design-system";
 import type {
   TriagePriority,
@@ -32,7 +34,7 @@ import type {
   SearchMode,
 } from "@hce/design-system";
 // import { buscarDiagnosticoMock } from "./mock/triage.mock";
-import { Grid, IconButton } from "@mui/material";
+
 import { usePatient } from "./hooks/usePatient";
 import { useCatalog } from "./hooks/useCatalog";
 import { useTriage } from "./hooks/useTriage";
@@ -293,7 +295,8 @@ export function Triage({
   const [form, setForm] = useState<TriajeForm>(INITIAL_FORM);
   const [buscandoPaciente, setBuscandoPaciente] = useState(false);
   const [pacienteNoEncontrado, setPacienteNoEncontrado] = useState(false);
-  const [modalPacienteNoEncontrado, setModalPacienteNoEncontrado] = useState(false);
+  const [modalPacienteNoEncontrado, setModalPacienteNoEncontrado] =
+    useState(false);
 
   const [disableNombres, setDisableNombres] = useState(true);
   const [disableApellidoPaterno, setDisableApellidoPaterno] = useState(true);
@@ -810,8 +813,8 @@ export function Triage({
 
   function handleClose() {
     setForm(INITIAL_FORM);
-    setPacienteNoEncontrado(false)
-    setModalPacienteNoEncontrado(false)
+    setPacienteNoEncontrado(false);
+    setModalPacienteNoEncontrado(false);
     setSaveError(null);
     setLoadError(null);
     setConfirmCloseOpen(false);
@@ -898,7 +901,7 @@ export function Triage({
         title={readOnly ? "Triaje — Solo lectura" : "Triaje"}
         onClose={handleRequestClose}
         closeOnBackdrop={false}
-        maxWidth="md"
+        maxWidth="lg"
         primaryButton={
           readOnly
             ? undefined
@@ -911,7 +914,8 @@ export function Triage({
                   guardandoTriaje ||
                   (form.noIdentificado
                     ? !form.sexo || !form.grupoEtario
-                    : !patientId) || (pacienteNoEncontrado && !patientId),
+                    : !patientId) ||
+                  (pacienteNoEncontrado && !patientId),
                 loading: guardandoTriaje,
               }
         }
@@ -944,7 +948,7 @@ export function Triage({
               sx={{
                 display: "flex",
                 alignItems: "flex-end",
-                gap: 2,
+                gap: "1rem",
                 p: 2.5,
                 backgroundColor: "#f5fcec",
                 borderRadius: "10px",
@@ -953,7 +957,7 @@ export function Triage({
                 flexWrap: "wrap",
               }}
             >
-              <Box sx={{ flex: "0 0 180px" }}>
+              <Box>
                 <SelectField
                   label="Tipo de documento *"
                   value={form.tipoDoc}
@@ -982,7 +986,7 @@ export function Triage({
               </Box>
               {/* Botón buscar  */}
 
-              <Box
+              {/* <Box
                 component="button"
                 type="button"
                 onClick={handleBuscarPaciente}
@@ -1016,25 +1020,22 @@ export function Triage({
                   whiteSpace: "nowrap",
                 }}
               >
-                <IconButton
-                  sx={{
-                    color: hceColors.neutro.white[50],
-                    "&:hover": {
-                      backgroundColor: "transparent",
-                    },
-                  }}
-                >
-                  <UiSearchIcon size={14}></UiSearchIcon>
-                </IconButton>
-              </Box>
+                <UiSearchIcon size={14}></UiSearchIcon>
+              </Box> */}
+              <IconButton
+                sx={{ background: hceColors.primary.green[600], borderRadius: "8px", color: hceColors.neutro.white[50] }}
+                icon={<UiSearchIcon/>}
+                onClick={handleBuscarPaciente}
+              ></IconButton>
+
               <Box
                 component="label"
                 sx={{
                   display: "flex",
                   alignItems: "center",
                   gap: 1,
-                  px: 1.5,
-                  py: 0.75,
+                  px: "12px",
+                  py: "8px",
                   border: `1.5px solid ${hceColors.primary.green[500]}`,
                   borderRadius: "8px",
                   backgroundColor: "#ffffff",

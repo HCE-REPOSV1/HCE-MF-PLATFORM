@@ -1,9 +1,8 @@
-import { NavTab, NavTabPanel, type NavTabItem } from "@hce/design-system";
-import { Box } from "@mui/material";
+import { NavTab, Box} from "@hce/design-system";
 import { useState } from "react";
 
 export function MedicalRecordPanel({}) {
-  const tabs: NavTabItem[] = [
+  const tabs: any[] = [
     { label: "Anamnesis y EF", value: "tab_01", disabled: true },
     { label: "Diagnóstico", value: "tab_02" },
     { label: "Indicaciones médicas", value: "tab_03", disabled: true },
@@ -23,11 +22,6 @@ export function MedicalRecordPanel({}) {
   return (
     <Box>
       <NavTab tabs={tabs} value={tab} onChange={handleChange} />
-      <NavTabPanel value="tab_02" currentValue={tab}>
-        <Box >
-
-        </Box>
-      </NavTabPanel>
     </Box>
   );
 }

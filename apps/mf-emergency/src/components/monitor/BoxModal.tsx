@@ -7,21 +7,19 @@ import {
   Typography,
   HceModal,
   UiCheckedIcon,
-} from "@hce/design-system"
-import {
   FormControl,
   MenuItem,
   Select,
-  type SelectChangeEvent,
-} from "@mui/material"
+  type SelectChangeEvent
+} from "@hce/design-system"
 
-import type { MonitorTableRow } from "../types/monitor.table.types"
-import { useSede } from "../hooks/useSede"
+import type { MonitorTableRow } from "../../types/monitor.table.types"
+import { useSede } from "../../hooks/useSede"
 import {
   getAvailableBeds,
   reassignBed,
   type BedOption,
-} from "../services/bedManagement.service"
+} from "../../services/bedManagement.service"
 import { useUser } from "shell/UserContext"
 
 export interface BoxModalProps {

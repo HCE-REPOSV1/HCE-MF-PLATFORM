@@ -65,7 +65,6 @@ export default defineConfig(({ mode }) => {
         "react-dom",
         "react-router-dom",
         "lucide-react",
-        "@mui/material",
         "@emotion/react",
         "@emotion/styled",
         "@hce/design-system",

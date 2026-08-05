@@ -1,11 +1,8 @@
-import { Box, Avatar } from "@mui/material"
 import {
   DataCardModal,
   StatusBadge,
-  User,
   hceColors,
-  
-
+  Box
 } from "@hce/design-system"
 
 import type { ClinicalRecordPatient } from "../types/clinical.record.types"
@@ -49,19 +46,19 @@ export function PatientDetailsModal({
       borderRadius="12px"
       contentPadding="24px"
       contentAlign="center"
-      headerContent={
-        <Avatar
-          src={patient.photoUrl ?? undefined}
-          sx={{
-            width: 48,
-            height: 48,
-            backgroundColor: hceColors.primary.green[600],
-            color: hceColors.neutro.white[50],
-          }}
-        >
-          <User size={28} />
-        </Avatar>
-      }
+      // headerContent={
+      //   <Avatar
+      //     src={patient.photoUrl ?? undefined}
+      //     sx={{
+      //       width: 48,
+      //       height: 48,
+      //       backgroundColor: hceColors.primary.green[600],
+      //       color: hceColors.neutro.white[50],
+      //     }}
+      //   >
+      //     <User size={28} />
+      //   </Avatar>
+      // }
     >
       <Box>
        <Box
@@ -80,7 +77,7 @@ export function PatientDetailsModal({
             label={allergyLabel}
             variant={allergyVariant}
             clickable={false}
-            sx={{ mt: 1 }}
+            sx={{ marginTop: 1 }}
           />
         </Box>
 

@@ -1,4 +1,4 @@
-import { Box, Avatar } from "@mui/material";
+
 import {
   ActionBar,
   AltaMedicaIcon,
@@ -15,9 +15,11 @@ import {
   UiMonitorIcon,
   UiPrescriptionIcon,
   UiPrintingIcon,
-  UiReferenceIcon,
+  ReferenceIcon,
   UiXRaysIcon,
   User,
+  Box,
+  Avatar,
   type ExtraAction,
 } from "@hce/design-system";
 import { PatientField } from "../components/PatientField";
@@ -111,7 +113,7 @@ export default function ClinicalRecordPage() {
     {
       id: "referencia",
       labelTooltip: "Referencia",
-      icon: UiReferenceIcon,
+      icon: ReferenceIcon,
       onClick: () => console.log("Abriendo referencia..."),
       disabled: false,
     },

@@ -1,5 +1,5 @@
 
-import type {  MonitorTableRow } from "../types/monitor.table.types"
+import type {  MonitorTableRow } from "../../types/monitor.table.types"
 
 import type {  GenericTableColumn } from "@hce/design-system";
 import {

@@ -1,10 +1,10 @@
 import "./layout.css";
 import { useState, useEffect, lazy, useMemo } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useMediaQuery } from "@mui/material";
 import {
   HceModal,
   UiWarningIcon,
+  useMediaQuery
 } from "@hce/design-system";
 import { useUser } from "./context/UserContext";
 import { buildSidebarOpciones } from "./config/sidebarConfig";
