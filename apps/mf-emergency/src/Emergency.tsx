@@ -1,5 +1,4 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { DSProvider, emergencyTheme } from "@hce/design-system";
 import type { ReactNode } from "react";
 
 import MonitorPage from "./pages/MonitorPage";
@@ -28,35 +27,33 @@ function PermisoRoute({
 //   3. Agregar el ítem en menuConfig.ts y en permisos.ts
 export default function Emergency() {
   return (
-    <DSProvider theme={emergencyTheme}>
-      <Routes>
-        <Route index element={<MonitorPage />} />
-        <Route path="patients" element={<div />} /> {/* TODO: PatientsPage */}
-        <Route
-          path="historiacli"
-          element={
-            <PermisoRoute codigo={PERMISOS_EMERGENCY.clinicalRecord}>
-              <ClinicalRecordPage></ClinicalRecordPage>
-            </PermisoRoute>
-          }
-        />
-        <Route
-          path="reports"
-          element={
-            <PermisoRoute codigo={PERMISOS_EMERGENCY.reports}>
-              <ReportsPage />
-            </PermisoRoute>
-          }
-        />
-        <Route
-          path="settings"
-          element={
-            <PermisoRoute codigo={PERMISOS_EMERGENCY.settings}>
-              <SettingsPage />
-            </PermisoRoute>
-          }
-        />
-      </Routes>
-    </DSProvider>
+    <Routes>
+      <Route index element={<MonitorPage />} />
+      <Route path="patients" element={<div />} /> {/* TODO: PatientsPage */}
+      <Route
+        path="historiacli"
+        element={
+          <PermisoRoute codigo={PERMISOS_EMERGENCY.clinicalRecord}>
+            <ClinicalRecordPage></ClinicalRecordPage>
+          </PermisoRoute>
+        }
+      />
+      <Route
+        path="reports"
+        element={
+          <PermisoRoute codigo={PERMISOS_EMERGENCY.reports}>
+            <ReportsPage />
+          </PermisoRoute>
+        }
+      />
+      <Route
+        path="settings"
+        element={
+          <PermisoRoute codigo={PERMISOS_EMERGENCY.settings}>
+            <SettingsPage />
+          </PermisoRoute>
+        }
+      />
+    </Routes>
   );
 }

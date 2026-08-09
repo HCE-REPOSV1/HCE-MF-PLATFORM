@@ -16,6 +16,12 @@ export const PERMISOS_EMERGENCY = {
   settings: "emergency:settings",  // [PROV] página Configuración
   beds:     "emergency:beds",      // [PROV] panel de disponibilidad de camas (BedAvailabilityDrawerV2)
   clinicalRecord: "emergency:clinical_record",
+  allergy:{
+    base:  "emergency:clinical_record:allergy",        
+    read:  "emergency:clinical_record:allergy:read",   
+    write: "emergency:clinical_record:allergy:write", 
+
+  },
   triage: {
     base:  "emergency:triage",        // [MAC]  01/02/01 — acceso al modal de triaje
     read:  "emergency:triage:read",   // [MAC derivado] ver triaje (botón Prioridad en grilla)

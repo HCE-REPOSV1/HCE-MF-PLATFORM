@@ -8,7 +8,7 @@ import {
 
 } from "@hce/design-system"
 
-import type { ClinicalRecordPatient } from "../types/clinical.record.types"
+import type { ClinicalRecordPatient } from "../../types/clinical.record.types"
 import { PatientField } from "./PatientField"
 
 interface PatientInformationModalProps {

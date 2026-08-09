@@ -1,9 +1,10 @@
 import { Box, Avatar } from "@mui/material";
 import { DataCard, hceColors, InfoButton, StatusBadge, User } from "@hce/design-system";
-import { PatientField } from "../components/PatientField";
-import { PatientDetailsModal } from "../components/PatientDetailsModal";
+import { PatientField } from "../components/clinical-record/PatientField";
+import { PatientDetailsModal } from "../components/clinical-record/PatientDetailsModal";
 import type { ClinicalRecordPatient } from "../types/clinical.record.types";
 import { useState } from "react";
+import { AllergyModal } from "../components/clinical-record/AllergyModal";
 
 const patient: ClinicalRecordPatient = {
   patientId: "1",
@@ -30,6 +31,9 @@ const patient: ClinicalRecordPatient = {
 export default function ClinicalRecordPage(){
 
     const [patientDetailsOpen, setPatientDetailsOpen] = useState(false)
+
+    const [allergyDetailsOpen, setAllergyDetailsOpen] = useState(false)
+
 
 
     return (
@@ -105,9 +109,7 @@ export default function ClinicalRecordPage(){
                   label="Presenta alergias"
                   variant="error"
                   clickable
-                  onClick={() => {
-                    console.log("Abrir detalle de alergias")
-                  }}
+                  onClick={() => setAllergyDetailsOpen(true)}
                 />
               }
             />
@@ -139,6 +141,14 @@ export default function ClinicalRecordPage(){
                 patient={patient}
                 onClose={() => setPatientDetailsOpen(false)}
                 />
+
+                <AllergyModal 
+                open={allergyDetailsOpen}
+                onClose={()=>setAllergyDetailsOpen(false)}
+                >
+                  
+                  
+                  </AllergyModal>
         </Box>
 
        

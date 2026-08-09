@@ -11,14 +11,14 @@ import {
   UiWarningIcon,
 } from "@hce/design-system"
 import { useUser } from "shell/UserContext"
-import { useSedeUuid } from "../hooks/useSedeUuid"
+import { useSedeUuid } from "../../hooks/useSedeUuid"
 import {
   getAssignmentCandidates,
   getReassignmentCandidates,
   assignPractitioner,
   HttpError,
   type AssignmentCandidate,
-} from "../services/practitionerAssignment.service"
+} from "../../services/practitionerAssignment.service"
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
