@@ -33,7 +33,7 @@ export interface AditionalInfoModalProps {
     type: "waiting-time",
     field: "waiting_time_box_display",
     colorField: "waiting_time_box_color",
-    width: 180,
+    width: 200,
     align: "center",
   },
   {
@@ -42,7 +42,7 @@ export interface AditionalInfoModalProps {
     type: "waiting-time",
     field: "waiting_time_physician_display",
     colorField: "waiting_time_physician_color",
-    width: 180,
+    width: 200,
     align: "center",
   },
   {
@@ -68,7 +68,7 @@ export interface AditionalInfoModalProps {
     header: "Fecha de alta",
     type: "text",
     field: "dischargeDate",
-    width: 120,
+    width: 100,
     align: "center",
     boldGetter: (row) => row.has_discharge,
   },
@@ -86,7 +86,7 @@ export interface AditionalInfoModalProps {
     header: "Paciente VIP",
     type: "switch",
     field: "is_vip",
-    width: 180,
+    width: 150,
     align: "center",
     disabledGetter: () => !canReadVIP,
      onClick: (row, checked) => onChangeVIP(row, Boolean(checked)),
@@ -193,12 +193,16 @@ export function AditionalInfoModal({ open, onClose, paciente,onSaveChanges }: Ad
         open={open}
         onClose={handleClose}
         title="Información adicional"
-        maxWidth={1200}
+        maxWidth='xl'
         buttonAlign="right"
         >
         {/* El HceModal acepta children opcionales — aquí metemos el select */}
-       <Box sx={{ textAlign: "left", mt: 1 }}>
-          {!localPaciente ? (
+      
+               
+               <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
+         
+               
+               {!localPaciente ? (
             <Box
               sx={{
                 py: 1.5,
@@ -211,14 +215,18 @@ export function AditionalInfoModal({ open, onClose, paciente,onSaveChanges }: Ad
               Cargando informacion del paciente
             </Box>
           ) : (
+            <Box sx={{ flex: 1, minHeight: 0, overflowX: "auto" }}>
+           
             <GenericTable
               rows={[localPaciente]}
               columns={columns}
               getRowId={(row) => row.id}
-              //maxHeight="45vh"
+              maxHeight="100%"
             />
+            </Box>
           )}
-        </Box>
+          </Box> 
+        
         </HceFormModal>
 
 )

@@ -8,7 +8,7 @@ import {
 
 import type {
   PatientFieldProps,
-} from "../types/clinical.record.types"
+} from "../../types/clinical.record.types"
 
 const labelSx = {
   fontFamily: hceTypography.fontFamily,

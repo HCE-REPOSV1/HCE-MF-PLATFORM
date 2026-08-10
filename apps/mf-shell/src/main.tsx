@@ -37,14 +37,35 @@
  */
 import ReactDOM from "react-dom/client"
 import { BrowserRouter } from "react-router-dom"
-import { injectHceTokens, injectHceFonts } from "@hce/design-system"
-import { DSProvider } from "@hce/design-system"
+import {
+  companyThemes,
+  DSProvider,
+  injectHceFonts,
+  injectHceTokens,
+  type CompanyThemeKey,
+} from "@hce/design-system"
 import { UserProvider } from "./context/UserContext"
 import App from "./App"
 
 // Inyecta los CSS custom properties del Design System base en :root
 injectHceTokens()
 injectHceFonts()
+
+// El tenant se configura por despliegue desde apps/mf-shell/.env.
+// Una clave ausente conserva el tema default; una clave desconocida utiliza
+// deliberadamente el fallback "unknown" para hacer visible la configuración.
+const configuredTheme = import.meta.env.VITE_COMPANY_THEME?.trim().toLowerCase()
+const companyTheme: CompanyThemeKey = !configuredTheme
+  ? "default"
+  : configuredTheme in companyThemes
+    ? configuredTheme as CompanyThemeKey
+    : "unknown"
+
+if (configuredTheme && companyTheme === "unknown" && configuredTheme !== "unknown") {
+  console.warn(
+    `[mf-shell] VITE_COMPANY_THEME="${configuredTheme}" no está registrado; se usará el tema "unknown".`,
+  )
+}
 
 // Suppress known Emotion + React 18.3 key prop warning.
 // Emotion's Styled factory renders React.Fragment(null, Insertion, FinalTag)
@@ -76,7 +97,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
    * Inyecta el theme global y configuración
    * del Design System corporativo
    */
- <DSProvider>
+ <DSProvider theme={companyTheme}>
     <UserProvider>
       <BrowserRouter>
         <App />

@@ -84,7 +84,7 @@ export function useEmergencyMonitor({
       })
 
     return () => { cancelled = true }
-  }, [finalLocationUuid, isPublicView, page, limit, tick])
+  }, [finalLocationUuid, isPublicView, page, finalLimit, tick])
 
   return { data, loading, error, refetch }
 }

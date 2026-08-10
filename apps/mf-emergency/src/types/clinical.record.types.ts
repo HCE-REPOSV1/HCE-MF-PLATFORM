@@ -21,6 +21,21 @@ export interface ClinicalRecordPatient {
   hasAllergies: boolean
 }
 
+
+export interface AllergyDetailApi {
+  allergy_id: string;
+  encounter_id: string;
+  api: string[];
+  food: string[];
+  other: string | null;
+}
+
+export interface AllergyRowTable {
+  api: string[];
+  food: string[];
+  other: string | null;
+}
+
 export interface PatientInformationModalProps {
   open: boolean
   onClose: () => void

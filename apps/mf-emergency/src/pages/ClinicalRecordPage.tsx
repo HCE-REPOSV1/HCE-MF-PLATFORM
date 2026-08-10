@@ -22,11 +22,13 @@ import {
   Avatar,
   type ExtraAction,
 } from "@hce/design-system";
-import { PatientField } from "../components/PatientField";
-import { PatientDetailsModal } from "../components/PatientDetailsModal";
+
 import type { ClinicalRecordPatient } from "../types/clinical.record.types";
 import { useState } from "react";
 import { MedicalRecordPanel } from "../components/MedicalRecordPanel";
+import { AllergyModal } from "../components/clinical-record/AllergyModal";
+import { PatientField } from "../components/clinical-record/PatientField";
+import { PatientDetailsModal } from "../components/clinical-record/PatientDetailsModal";
 
 const patient: ClinicalRecordPatient = {
   patientId: "1",
@@ -119,6 +121,10 @@ export default function ClinicalRecordPage() {
     },
   ];
 
+
+
+    const [allergyDetailsOpen, setAllergyDetailsOpen] = useState(false)
+
   const [patientDetailsOpen, setPatientDetailsOpen] = useState(false);
   const [openMedicalHistory, setOpenMedicalHistory] = useState(false);
 
@@ -188,6 +194,9 @@ export default function ClinicalRecordPage() {
       ),
     },
   ];
+
+
+
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -297,9 +306,7 @@ export default function ClinicalRecordPage() {
                   label="Presenta alergias"
                   variant="error"
                   clickable
-                  onClick={() => {
-                    console.log("Abrir detalle de alergias");
-                  }}
+                  onClick={() => setAllergyDetailsOpen(true)}
                 />
               }
             />
@@ -329,6 +336,16 @@ export default function ClinicalRecordPage() {
         patient={patient}
         onClose={() => setPatientDetailsOpen(false)}
       />
+
+       <AllergyModal 
+                open={allergyDetailsOpen}
+                onClose={()=>setAllergyDetailsOpen(false)}
+                >
+                  
+                  
+                  </AllergyModal>
     </Box>
   );
 }
+
+         
