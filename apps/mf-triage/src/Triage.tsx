@@ -25,6 +25,8 @@ import {
   NumericField,
   TextareaField,
   DatePicker,
+  Grid,
+  IconButton,
 } from "@hce/design-system";
 import type {
   TriagePriority,
@@ -32,7 +34,7 @@ import type {
   SearchMode,
 } from "@hce/design-system";
 // import { buscarDiagnosticoMock } from "./mock/triage.mock";
-import { Grid, IconButton } from "@mui/material";
+
 import { usePatient } from "./hooks/usePatient";
 import { useCatalog } from "./hooks/useCatalog";
 import { useTriage } from "./hooks/useTriage";
@@ -55,6 +57,17 @@ const TRIAGE_LEVEL_MAP: Record<TriagePriority, number> = {
   III: 3,
   IV: 4,
 };
+
+const SEARCH_MODES_MOTIVO: any[] = [
+  { value: "cie_description", label: "Por nombre" },
+  { value: "cie_code", label: "CIE-10" },
+];
+
+const SEARCH_MODES_T_ENFERMEDAD: any[] = [
+  { value: "minutos", label: "minutos" },
+  { value: "horas", label: "horas" },
+  { value: "dias", label: "dias" },
+];
 
 const TRIAGE_LEVEL_MAP_REVERSE: Record<number, TriagePriority> = {
   1: "I",
@@ -282,6 +295,14 @@ export function Triage({
   const [form, setForm] = useState<TriajeForm>(INITIAL_FORM);
   const [buscandoPaciente, setBuscandoPaciente] = useState(false);
   const [pacienteNoEncontrado, setPacienteNoEncontrado] = useState(false);
+  const [modalPacienteNoEncontrado, setModalPacienteNoEncontrado] =
+    useState(false);
+
+  const [disableNombres, setDisableNombres] = useState(true);
+  const [disableApellidoPaterno, setDisableApellidoPaterno] = useState(true);
+  const [disableApellidoMaterno, setDisableApellidoMaterno] = useState(true);
+  const [disableFechaNacimiento, setDisableFechaNacimiento] = useState(true);
+  const [disableSexo, setDisableSexo] = useState(true);
 
   /* Control de permisos */
   const canDatosPacienteTriage = usePermiso(
@@ -480,11 +501,10 @@ export function Triage({
         }
 
         if (timeUnits && Array.isArray(timeUnits)) {
-          setTimeUnitOptions(
-            [...timeUnits]
-              .filter((u) => u.is_active)
-              .sort((a, b) => a.display_order - b.display_order),
-          );
+          const nuevasOpcionesTimeUnits = [...timeUnits]
+            .filter((u) => u.is_active)
+            .sort((a, b) => a.display_order - b.display_order);
+          setTimeUnitOptions(nuevasOpcionesTimeUnits);
         }
       } catch (err) {
         console.error("Error al cargar información", err);
@@ -515,7 +535,9 @@ export function Triage({
         setEnabledAlergiasTriage(false);
         setEnabledEvaTriage(false);
         setEnabledClasificacionTriage(false);
-        setValuePrincipioActivo(full.allergySubstances.map(i => String(i.active_principle_id)))
+        setValuePrincipioActivo(
+          full.allergySubstances.map((i) => String(i.active_principle_id)),
+        );
         full.triage.cie_description = await handleSearchMotivoById(
           full.triage.cie_id!,
         );
@@ -530,11 +552,67 @@ export function Triage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, readOnly, triageId]);
 
+  const RANGOS_NORMALES = {
+    frCardiaca: { min: 60, max: 100 },
+    frRespiratoria: { min: 12, max: 20 },
+    saturacionO2: { min: 95, max: 100 },
+    pSistolica: { min: 100, max: 139 },
+    temperatura: { min: 36, max: 37.4 },
+  };
+
+  useEffect(() => {
+    const estaAlterado = (
+      valor: string | undefined,
+      limites: { min: number; max: number },
+    ) => {
+      if (!valor) return false;
+      const numero = Number(valor);
+      return numero < limites.min || numero > limites.max;
+    };
+    const fcAlterada = estaAlterado(
+      form.frCardiaca,
+      RANGOS_NORMALES.frCardiaca,
+    );
+    const frAlterada = estaAlterado(
+      form.frRespiratoria,
+      RANGOS_NORMALES.frRespiratoria,
+    );
+    const satAlterada = estaAlterado(
+      form.saturacionO2,
+      RANGOS_NORMALES.saturacionO2,
+    );
+    const psAlterada = estaAlterado(
+      form.pSistolica,
+      RANGOS_NORMALES.pSistolica,
+    );
+    const tempAlterada = estaAlterado(
+      form.temperatura,
+      RANGOS_NORMALES.temperatura,
+    );
+
+    if (fcAlterada || frAlterada || satAlterada || psAlterada || tempAlterada) {
+      form.prioridad = "II";
+    } else {
+      form.prioridad = null;
+    }
+  }, [
+    form.frCardiaca,
+    form.frRespiratoria,
+    form.saturacionO2,
+    form.pSistolica,
+    form.temperatura,
+  ]);
+
   // Buscar paciente por documento
   async function handleBuscarPaciente() {
     if (!form.numeroDoc || !form.tipoDoc) return;
     setPacienteNoEncontrado(false);
     setBuscandoPaciente(true);
+    setDisableNombres(true);
+    setDisableApellidoPaterno(true);
+    setDisableApellidoMaterno(true);
+    setDisableFechaNacimiento(true);
+    setDisableSexo(true);
     const patient = await fetchPatient(form.numeroDoc, form.tipoDoc);
 
     if (patient) {
@@ -550,6 +628,19 @@ export function Triage({
     } else {
       setPatientId(null);
       setPacienteNoEncontrado(true);
+      setDisableNombres(false);
+      setDisableApellidoPaterno(false);
+      setDisableApellidoMaterno(false);
+      setDisableFechaNacimiento(false);
+      setDisableSexo(false);
+      setForm((f) => ({
+        ...f,
+        nombres: "",
+        apellidoPaterno: "",
+        apellidoMaterno: "",
+        fechaNacimiento: "",
+        sexo: "",
+      }));
     }
     setBuscandoPaciente(false);
   }
@@ -628,7 +719,7 @@ export function Triage({
     // El valor real que valida el backend (illness_duration_unit) es exactamente
     // time_unit_name del catálogo — no se traduce ni se hardcodea en el frontend.
     const illnessDurationUnit = timeUnitOptions.find(
-      (u) => u.time_unit_code === form.tiempoUnidad,
+      (u) => u.time_unit_name === form.tiempoUnidad,
     )?.time_unit_name;
 
     const payload: TriageFormRequest = {
@@ -638,7 +729,7 @@ export function Triage({
         location_id: Number(sedeActual.id),
         triage_level: TRIAGE_LEVEL_MAP[form.prioridad],
         pain_scale_eva: form.dolEva ?? undefined,
-        cie_id: form.motivoSelected.value,
+        cie_id: Number(form.motivoSelected.value),
         comments: form.comentarios || undefined,
         isolation_required:
           form.aislamiento === "" ? undefined : form.aislamiento === "S",
@@ -683,8 +774,7 @@ export function Triage({
         // El radio es mutuamente excluyente y admite "sin elegir" (null): solo se envía
         // el flag de la opción efectivamente marcada, nunca ambos ni un false implícito.
         trauma_shock_flag: form.traumaShock === true ? true : undefined,
-        impossible_capture_flag:
-          form.traumaShock === false ? true : undefined,
+        impossible_capture_flag: form.traumaShock === false ? true : undefined,
         user_create: username,
       },
       glasgowScale: {
@@ -724,6 +814,7 @@ export function Triage({
   function handleClose() {
     setForm(INITIAL_FORM);
     setPacienteNoEncontrado(false);
+    setModalPacienteNoEncontrado(false);
     setSaveError(null);
     setLoadError(null);
     setConfirmCloseOpen(false);
@@ -752,13 +843,13 @@ export function Triage({
       />
       <HceModal
         maxWidth={460}
-        open={pacienteNoEncontrado}
+        open={modalPacienteNoEncontrado}
         title="El documento no se ha encontrado."
         description="Le solicitamos ingresar los datos de manera manual."
         icon={<UiWarningIcon />}
         confirmButton={{
           label: "Aceptar",
-          onClick: () => setPacienteNoEncontrado(false),
+          onClick: () => setModalPacienteNoEncontrado(false),
         }}
       />
       <HceModal
@@ -810,7 +901,7 @@ export function Triage({
         title={readOnly ? "Triaje — Solo lectura" : "Triaje"}
         onClose={handleRequestClose}
         closeOnBackdrop={false}
-        maxWidth="md"
+        maxWidth="lg"
         primaryButton={
           readOnly
             ? undefined
@@ -823,7 +914,8 @@ export function Triage({
                   guardandoTriaje ||
                   (form.noIdentificado
                     ? !form.sexo || !form.grupoEtario
-                    : !patientId),
+                    : !patientId) ||
+                  (pacienteNoEncontrado && !patientId),
                 loading: guardandoTriaje,
               }
         }
@@ -856,7 +948,7 @@ export function Triage({
               sx={{
                 display: "flex",
                 alignItems: "flex-end",
-                gap: 2,
+                gap: "1rem",
                 p: 2.5,
                 backgroundColor: "#f5fcec",
                 borderRadius: "10px",
@@ -865,7 +957,7 @@ export function Triage({
                 flexWrap: "wrap",
               }}
             >
-              <Box sx={{ flex: "0 0 180px" }}>
+              <Box>
                 <SelectField
                   label="Tipo de documento *"
                   value={form.tipoDoc}
@@ -894,7 +986,7 @@ export function Triage({
               </Box>
               {/* Botón buscar  */}
 
-              <Box
+              {/* <Box
                 component="button"
                 type="button"
                 onClick={handleBuscarPaciente}
@@ -928,25 +1020,22 @@ export function Triage({
                   whiteSpace: "nowrap",
                 }}
               >
-                <IconButton
-                  sx={{
-                    color: hceColors.neutro.white[50],
-                    "&:hover": {
-                      backgroundColor: "transparent",
-                    },
-                  }}
-                >
-                  <UiSearchIcon size={14}></UiSearchIcon>
-                </IconButton>
-              </Box>
+                <UiSearchIcon size={14}></UiSearchIcon>
+              </Box> */}
+              <IconButton
+                sx={{ background: hceColors.primary.green[600], borderRadius: "8px", color: hceColors.neutro.white[50] }}
+                icon={<UiSearchIcon/>}
+                onClick={handleBuscarPaciente}
+              ></IconButton>
+
               <Box
                 component="label"
                 sx={{
                   display: "flex",
                   alignItems: "center",
                   gap: 1,
-                  px: 1.5,
-                  py: 0.75,
+                  px: "12px",
+                  py: "8px",
                   border: `1.5px solid ${hceColors.primary.green[500]}`,
                   borderRadius: "8px",
                   backgroundColor: "#ffffff",
@@ -1033,57 +1122,62 @@ export function Triage({
                 sx={{ width: "100%", alignItems: "flex-end" }}
               >
                 <Grid size={{ xs: 24, sm: 12, md: 6 }}>
-                  <FieldCol label="Nombres">
-                    <TextInput
-                      value={form.nombres}
-                      onChange={(v) => set("nombres", v)}
-                      placeholder="Ingrese datos"
-                      disabled={!pacienteNoEncontrado}
-                    />
-                  </FieldCol>
+                  <TextInput
+                    label="Nombres"
+                    value={form.nombres}
+                    onChange={(v) => set("nombres", v)}
+                    placeholder="Ingrese datos"
+                    disabled={disableNombres}
+                  />
                 </Grid>
                 <Grid size={{ xs: 24, sm: 12, md: 4 }}>
-                  <FieldCol label="Apellido Paterno">
-                    <TextInput
-                      value={form.apellidoPaterno}
-                      onChange={(v) => set("apellidoPaterno", v)}
-                      placeholder="Ingrese datos"
-                      disabled={!pacienteNoEncontrado}
-                    />
-                  </FieldCol>
+                  <TextInput
+                    label="Apellido Paterno"
+                    value={form.apellidoPaterno}
+                    onChange={(v) => set("apellidoPaterno", v)}
+                    placeholder="Ingrese datos"
+                    disabled={disableApellidoPaterno}
+                  />
                 </Grid>
                 <Grid size={{ xs: 24, sm: 12, md: 4 }}>
-                  <FieldCol label="Apellido Materno">
-                    <TextInput
-                      value={form.apellidoMaterno}
-                      onChange={(v) => set("apellidoMaterno", v)}
-                      placeholder="Ingrese datos"
-                      disabled={!pacienteNoEncontrado}
-                    />
-                  </FieldCol>
+                  <TextInput
+                    label="Apellido Materno"
+                    value={form.apellidoMaterno}
+                    onChange={(v) => set("apellidoMaterno", v)}
+                    placeholder="Ingrese datos"
+                    disabled={disableApellidoMaterno}
+                  />
                 </Grid>
-                <Grid size={{ xs: 24, sm: 12, md: 4 }}>
-                  <FieldCol label="Fecha de nacimiento">
+                <Grid size={{ xs: 24, sm: 12, md: 5 }}>
+                  {pacienteNoEncontrado ? (
                     <TextInput
+                      label="Fecha de nacimiento"
                       value={form.fechaNacimiento}
                       onChange={(v) => set("fechaNacimiento", v)}
                       placeholder="dd-mm-yyyy"
-                      disabled={!pacienteNoEncontrado}
+                      disabled={disableFechaNacimiento}
                     />
-                  </FieldCol>
+                  ) : (
+                    <DatePicker
+                      label="Fecha de nacimiento"
+                      value={form.fechaNacimiento}
+                      onChange={(v) => set("fechaNacimiento", v)}
+                      disabled={disableFechaNacimiento}
+                    />
+                  )}
                 </Grid>
                 {/* md:6 (antes 4) — "-Seleccionar opción-" y "Desconocido" no entraban
                     cómodos en 4/24; se le sacó 1 columna a cada apellido (5→4) en vez de
                     achicar la tipografía del SelectField (rompería consistencia con el
                     resto del form). */}
-                <Grid size={{ xs: 24, sm: 12, md: 6 }}>
+                <Grid size={{ xs: 24, sm: 12, md: 5 }}>
                   <SelectField
                     label="Sexo"
                     value={form.sexo}
                     onChange={(v) => set("sexo", v)}
                     options={genderOptions}
-                    placeholder="-Seleccionar opción-"
-                    disabled={!pacienteNoEncontrado}
+                    placeholder="Ingrese datos"
+                    disabled={disableSexo}
                   />
                 </Grid>
               </Grid>
@@ -1103,6 +1197,7 @@ export function Triage({
               >
                 {/* Motivo de ingreso con SearchComboInput */}
                 <SearchComboInput
+                  modes={SEARCH_MODES_MOTIVO}
                   loading={loadingSearchMotivo}
                   label="Motivo de ingreso *"
                   searchMode={form.modoMotivo}
@@ -1124,6 +1219,7 @@ export function Triage({
                   disabled={
                     !canDatosClinicosTriage || !enabledDatosClinicosTriage
                   }
+                  placeholder="Ingrese texto"
                 />
 
                 {/* Aislamiento + Gestante + FUR + Tiempo de enfermedad.
@@ -1187,12 +1283,13 @@ export function Triage({
                           if (!v) set("fur", "");
                         }}
                       />
-                      <FieldCol label="Fecha FUR" flex="1 1 0">
+                      <FieldCol flex="1 1 0">
                         {/* DatePicker: doble método de entrada (escritura manual segmentada +
                             selector de calendario nativo). El value ya es YYYY-MM-DD, formato
                             que exige @IsDateString() en fur_date del backend
                             (ms-bs-core-triage/create-Triage.dto.ts) — sin conversión manual. */}
                         <DatePicker
+                          label="Fecha FUR"
                           value={form.fur}
                           onChange={(v) => set("fur", v)}
                           disabled={
@@ -1207,83 +1304,28 @@ export function Triage({
                   </Grid>
                   <Grid size={{ xs: 24, sm: 12, md: 6 }}>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <FieldCol label="T. de enfermedad">
+                      <FieldCol>
                         <Box sx={{ display: "flex", width: "100%" }}>
-                          <Box
-                            component="input"
-                            type="text"
-                            inputMode="numeric"
+                          <SearchComboInput
+                            modes={SEARCH_MODES_T_ENFERMEDAD}
+                            loading={loadingSearchMotivo}
+                            label="T. de enfermedad"
+                            onSearchModeChange={(m) => {
+                              set("tiempoUnidad", m);
+                            }}
                             value={form.tiempoEnfermedad}
-                            onChange={(
-                              e: React.ChangeEvent<HTMLInputElement>,
-                            ) =>
-                              set(
-                                "tiempoEnfermedad",
-                                e.target.value.replace(/\D/g, ""),
-                              )
-                            }
-                            placeholder="Ej: 12"
-                            sx={{
-                              flex: 1,
-                              minWidth: 0,
-                              height: 40,
-                              px: 1.5,
-                              border: `1.5px solid ${hceColors.neutro.black[200]}`,
-                              borderRight: "none",
-                              borderRadius: "8px 0 0 8px",
-                              outline: "none",
-                              fontFamily: hceTypography.fontFamily,
-                              fontSize: "0.875rem",
+                            searchMode={form.tiempoUnidad}
+                            onChange={(v) => set("tiempoEnfermedad", v)}
+                            onSelect={(opt) => {
+                              set("tiempoUnidad", opt.value.toString());
                             }}
                             disabled={
                               !canDatosClinicosTriage ||
                               !enabledDatosClinicosTriage
                             }
+                            modePosition="right"
+                            placeholder="Ej:12"
                           />
-
-                          <Box
-                            sx={{
-                              width: "90px",
-                              flexShrink: 0,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              px: 1,
-                              backgroundColor: hceColors.primary.blue[600],
-                              color: "#fff",
-                              borderRadius: "0 8px 8px 0",
-                              fontFamily: hceTypography.fontFamily,
-                              fontWeight: 600,
-                              fontSize: "0.78rem",
-                              whiteSpace: "nowrap",
-                              cursor:
-                                !canDatosClinicosTriage ||
-                                !enabledDatosClinicosTriage
-                                  ? "not-allowed"
-                                  : "pointer",
-                            }}
-                            onClick={() => {
-                              if (
-                                !canDatosClinicosTriage ||
-                                !enabledDatosClinicosTriage ||
-                                !timeUnitOptions.length
-                              )
-                                return;
-                              const idx = timeUnitOptions.findIndex(
-                                (u) => u.time_unit_code === form.tiempoUnidad,
-                              );
-                              const next =
-                                timeUnitOptions[
-                                  (idx + 1) % timeUnitOptions.length
-                                ];
-                              set("tiempoUnidad", next.time_unit_code);
-                            }}
-                          >
-                            {timeUnitOptions.find(
-                              (u) => u.time_unit_code === form.tiempoUnidad,
-                            )?.time_unit_name ?? form.tiempoUnidad}{" "}
-                            ▾
-                          </Box>
                         </Box>
                       </FieldCol>
                     </Box>
@@ -1425,9 +1467,9 @@ export function Triage({
                         label={f.label}
                         value={form[f.key as keyof TriajeForm] as string}
                         numberType={f.numberType}
-                        onChange={(v) =>
-                          set(f.key as keyof TriajeForm, v as any)
-                        }
+                        onChange={(v) => {
+                          set(f.key as keyof TriajeForm, v as any);
+                        }}
                         suffix={f.suffix}
                         disabled={
                           !canSignosVitalesTriage || !enabledSignosVitalesTriage
@@ -1524,6 +1566,10 @@ export function Triage({
                           value={String(glasgowTotal)}
                           suffix="pts"
                           readOnly
+                          disabled={
+                            !canSignosVitalesTriage ||
+                            !enabledSignosVitalesTriage
+                          }
                         />
                       </Grid>
                     </Grid>
@@ -1624,10 +1670,10 @@ export function Triage({
                       options={opcionesRadioAlergia}
                       onChange={(v) => {
                         set("tieneAlergia", v);
-                        if(v=='N'){
-                          setValuePrincipioActivo([])
-                          set("alimentos","")
-                          set("otrosAlergias","")
+                        if (v == "N") {
+                          setValuePrincipioActivo([]);
+                          set("alimentos", "");
+                          set("otrosAlergias", "");
                         }
                       }}
                     />
@@ -1635,7 +1681,11 @@ export function Triage({
 
                   <Grid size={{ xs: 12, sm: 8, md: 8 }}>
                     <MultiSelect
-                      disabled={!canAlergiasTriage || !enabledAlergiasTriage || form.tieneAlergia == 'N'}
+                      disabled={
+                        !canAlergiasTriage ||
+                        !enabledAlergiasTriage ||
+                        form.tieneAlergia == "N"
+                      }
                       options={optionsActivePrinciples}
                       label="Principio activo"
                       value={valuePrincipioActivo}
@@ -1649,7 +1699,11 @@ export function Triage({
                   onChange={(v) => set("alimentos", v)}
                   maxLength={100}
                   placeholder="Describa alergias alimentarias"
-                  disabled={!canAlergiasTriage || !enabledAlergiasTriage || form.tieneAlergia == 'N'}
+                  disabled={
+                    !canAlergiasTriage ||
+                    !enabledAlergiasTriage ||
+                    form.tieneAlergia == "N"
+                  }
                 />
                 <TextareaField
                   label="Otros"
@@ -1657,7 +1711,11 @@ export function Triage({
                   onChange={(v) => set("otrosAlergias", v)}
                   maxLength={100}
                   placeholder="Otros tipos de alergia"
-                  disabled={!canAlergiasTriage || !enabledAlergiasTriage || form.tieneAlergia == 'N'}
+                  disabled={
+                    !canAlergiasTriage ||
+                    !enabledAlergiasTriage ||
+                    form.tieneAlergia == "N"
+                  }
                 />
               </Box>
             )}

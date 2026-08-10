@@ -7,13 +7,11 @@ import {
   Typography,
   HceModal,
   UiCheckedIcon,
-} from "@hce/design-system"
-import {
   FormControl,
   MenuItem,
   Select,
-  type SelectChangeEvent,
-} from "@mui/material"
+  type SelectChangeEvent
+} from "@hce/design-system"
 
 import type { MonitorTableRow } from "../../types/monitor.table.types"
 import { useSede } from "../../hooks/useSede"

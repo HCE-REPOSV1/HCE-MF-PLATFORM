@@ -399,9 +399,8 @@ export function AllergyModal({ open, onClose,onSaveChanges, mode = "write",encou
                             set("has_allergy", v);
                             if(v==false){
                               setValuePrincipioActivo([])
-                              set("food", )
-                              set("other",""
-                              )
+                              set("food", "")
+                              set("other", "")
                             }
                           }}
                         />

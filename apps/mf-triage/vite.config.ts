@@ -31,8 +31,7 @@ export default defineConfig(({ mode }) => {
         "./Triage":   "./src/Triage.tsx",
       },
       shared: [
-        "react", "react-dom", "react-router-dom", "lucide-react",
-        "@mui/material", "@emotion/react", "@emotion/styled", "@hce/design-system",
+        "react", "react-dom", "react-router-dom", "lucide-react", "@emotion/react", "@emotion/styled", "@hce/design-system",
       ],
     }),
   ],
