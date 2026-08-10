@@ -901,7 +901,7 @@ export function Triage({
         title={readOnly ? "Triaje — Solo lectura" : "Triaje"}
         onClose={handleRequestClose}
         closeOnBackdrop={false}
-        maxWidth="lg"
+        maxWidth={1050}
         primaryButton={
           readOnly
             ? undefined
@@ -928,7 +928,7 @@ export function Triage({
         buttonAlign="center"
         buttonsFullWidth
       >
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "2.5rem" }}>
           {/* ── Sección 1: Datos del paciente ─────────────────────────────── */}
           <Box>
             <Typography
@@ -949,7 +949,8 @@ export function Triage({
                 display: "flex",
                 alignItems: "flex-end",
                 gap: "1rem",
-                p: 2.5,
+                px: 6,
+                py: 2.5,
                 backgroundColor: "#f5fcec",
                 borderRadius: "10px",
                 border: `1.5px solid ${hceColors.primary.green[500]}`,
@@ -985,46 +986,13 @@ export function Triage({
                 />
               </Box>
               {/* Botón buscar  */}
-
-              {/* <Box
-                component="button"
-                type="button"
-                onClick={handleBuscarPaciente}
-                disabled={
-                  form.noIdentificado ||
-                  buscandoPaciente ||
-                  !form.tipoDoc ||
-                  !form.numeroDoc ||
-                  !canDatosPacienteTriage ||
-                  !enabledPacienteTriage
-                }
-                sx={{
-                  width: 45,
-                  height: 36,
-                  borderRadius: "8px",
-                  backgroundColor: hceColors.primary.green[500],
-                  color: "#ffffff",
-                  border: "none",
-                  fontFamily: hceTypography.fontFamily,
-                  fontWeight: 600,
-                  fontSize: "0.82rem",
-                  cursor: "pointer",
-                  flexShrink: 0,
-                  opacity:
-                    form.noIdentificado ||
-                    buscandoPaciente ||
-                    !form.tipoDoc ||
-                    !form.numeroDoc
-                      ? 0.5
-                      : 1,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                <UiSearchIcon size={14}></UiSearchIcon>
-              </Box> */}
               <IconButton
-                sx={{ background: hceColors.primary.green[600], borderRadius: "8px", color: hceColors.neutro.white[50] }}
-                icon={<UiSearchIcon/>}
+                sx={{
+                  background: hceColors.primary.green[600],
+                  borderRadius: "8px",
+                  color: hceColors.neutro.white[50],
+                }}
+                icon={<UiSearchIcon />}
                 onClick={handleBuscarPaciente}
               ></IconButton>
 
@@ -1081,21 +1049,22 @@ export function Triage({
             {form.noIdentificado ? (
               <Grid
                 container
-                columns={24}
                 spacing={2}
-                sx={{ width: "100%", alignItems: "flex-end" }}
+                alignItems="flex-start"
+                wrap="nowrap"
+                sx={{ mt: "20px" }}
               >
-                <Grid size={{ xs: 24, sm: 12, md: 4 }}>
+                <Grid item xs={12} sm={6} md zeroMinWidth>
                   <FieldCol label="Documento">
                     <TextInput value="NI" disabled onChange={() => {}} />
                   </FieldCol>
                 </Grid>
-                <Grid size={{ xs: 24, sm: 12, md: 6 }}>
+                <Grid item xs={12} sm={6} md zeroMinWidth>
                   <FieldCol label="Número de documento">
                     <TextInput value="XXXXXXXX" disabled onChange={() => {}} />
                   </FieldCol>
                 </Grid>
-                <Grid size={{ xs: 24, sm: 12, md: 6 }}>
+                <Grid item xs={12} sm={6} md zeroMinWidth>
                   <SelectField
                     label="Sexo *"
                     value={form.sexo}
@@ -1104,7 +1073,7 @@ export function Triage({
                     placeholder="-Seleccionar opción-"
                   />
                 </Grid>
-                <Grid size={{ xs: 24, sm: 12, md: 8 }}>
+                <Grid item xs={12} sm={6} md zeroMinWidth>
                   <SelectField
                     label="Grupo etario estimado *"
                     value={form.grupoEtario}
@@ -1117,11 +1086,12 @@ export function Triage({
             ) : (
               <Grid
                 container
-                columns={24}
                 spacing={2}
-                sx={{ width: "100%", alignItems: "flex-end" }}
+                alignItems="flex-start"
+                wrap="nowrap"
+                sx={{ mt: "20px" }}
               >
-                <Grid size={{ xs: 24, sm: 12, md: 6 }}>
+                <Grid item xs={12} sm={6} md zeroMinWidth>
                   <TextInput
                     label="Nombres"
                     value={form.nombres}
@@ -1130,7 +1100,7 @@ export function Triage({
                     disabled={disableNombres}
                   />
                 </Grid>
-                <Grid size={{ xs: 24, sm: 12, md: 4 }}>
+                <Grid item xs={12} sm={6} md zeroMinWidth>
                   <TextInput
                     label="Apellido Paterno"
                     value={form.apellidoPaterno}
@@ -1139,7 +1109,7 @@ export function Triage({
                     disabled={disableApellidoPaterno}
                   />
                 </Grid>
-                <Grid size={{ xs: 24, sm: 12, md: 4 }}>
+                <Grid item xs={12} sm={6} md zeroMinWidth>
                   <TextInput
                     label="Apellido Materno"
                     value={form.apellidoMaterno}
@@ -1148,7 +1118,7 @@ export function Triage({
                     disabled={disableApellidoMaterno}
                   />
                 </Grid>
-                <Grid size={{ xs: 24, sm: 12, md: 5 }}>
+                <Grid item xs={12} sm={6} md zeroMinWidth>
                   {pacienteNoEncontrado ? (
                     <TextInput
                       label="Fecha de nacimiento"
@@ -1170,7 +1140,7 @@ export function Triage({
                     cómodos en 4/24; se le sacó 1 columna a cada apellido (5→4) en vez de
                     achicar la tipografía del SelectField (rompería consistencia con el
                     resto del form). */}
-                <Grid size={{ xs: 24, sm: 12, md: 5 }}>
+                <Grid item xs={12} sm={6} md zeroMinWidth>
                   <SelectField
                     label="Sexo"
                     value={form.sexo}
@@ -1193,7 +1163,12 @@ export function Triage({
             />
             {expDatosClinicos && (
               <Box
-                sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                  mt: "20px",
+                }}
               >
                 {/* Motivo de ingreso con SearchComboInput */}
                 <SearchComboInput
@@ -1231,79 +1206,94 @@ export function Triage({
                     controles) y necesita más ancho que un RadioGroup simple "Sí/No" —
                     con las 4 celdas iguales (6/6/6/6) el DatePicker quedaba pegado al
                     borde de su celda, muy cerca de "Tiempo de enfermedad". */}
-                <Grid container columns={24} spacing={2}>
-                  <Grid size={{ xs: 24, sm: 12, md: 5 }}>
-                    <RadioGroup
-                      legend="Aislamiento"
-                      value={form.aislamiento}
-                      options={opcionesRadio}
-                      onChange={(v) => set("aislamiento", v)}
-                      disabled={
-                        !canDatosClinicosTriage || !enabledDatosClinicosTriage
-                      }
-                    />
+                <Grid
+                  container
+                  spacing={2}
+                  alignItems="flex-end"
+                  wrap="nowrap"
+                  sx={{ mt: "20px" }}
+                >
+                  <Grid item xs={12} sm={6} md={2} zeroMinWidth>
+                    <Box sx={{ width: "100%" }}>
+                      <RadioGroup
+                        legend="Aislamiento"
+                        value={form.aislamiento}
+                        options={opcionesRadio}
+                        onChange={(v) => set("aislamiento", v)}
+                        disabled={
+                          !canDatosClinicosTriage || !enabledDatosClinicosTriage
+                        }
+                      />
+                    </Box>
                   </Grid>
-                  <Grid size={{ xs: 24, sm: 12, md: 5 }}>
-                    <RadioGroup
-                      legend="Gestante"
-                      value={form.gestante}
-                      options={opcionesRadio}
-                      onChange={(v) => set("gestante", v)}
-                      disabled={
-                        form.sexo === "male" ||
-                        !canDatosClinicosTriage ||
-                        !enabledDatosClinicosTriage
-                      }
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 24, sm: 12, md: 8 }}>
-                    {/* minWidth:0 (no un valor fijo como 220) — un mínimo fijo mayor al ancho
-                        real de la celda del Grid en ciertos breakpoints la desbordaba, tapando
-                        "T. de enfermedad". El Toggle mantiene su ancho fijo y el FieldCol con
-                        flex:1 1 0 ya se encarga de que el DatePicker ocupe el espacio restante
-                        real de la celda, sin forzar un piso que no siempre entra. */}
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "flex-end",
-                        gap: 1,
-                        width: "100%",
-                        minWidth: 0,
-                      }}
-                    >
-                      <Toggle
-                        checked={form.furEnabled}
+                  <Grid item xs={12} sm={6} md={2} zeroMinWidth>
+                    <Box sx={{ width: "100%" }}>
+                      <RadioGroup
+                        legend="Gestante"
+                        value={form.gestante}
+                        options={opcionesRadio}
+                        onChange={(v) => set("gestante", v)}
                         disabled={
                           form.sexo === "male" ||
                           !canDatosClinicosTriage ||
                           !enabledDatosClinicosTriage
                         }
-                        onChange={(v) => {
-                          set("furEnabled", v);
-                          if (!v) set("fur", "");
-                        }}
                       />
-                      <FieldCol flex="1 1 0">
-                        {/* DatePicker: doble método de entrada (escritura manual segmentada +
-                            selector de calendario nativo). El value ya es YYYY-MM-DD, formato
-                            que exige @IsDateString() en fur_date del backend
-                            (ms-bs-core-triage/create-Triage.dto.ts) — sin conversión manual. */}
-                        <DatePicker
-                          label="Fecha FUR"
-                          value={form.fur}
-                          onChange={(v) => set("fur", v)}
-                          disabled={
-                            !form.furEnabled ||
-                            form.sexo === "male" ||
-                            !canDatosClinicosTriage ||
-                            !enabledDatosClinicosTriage
-                          }
-                        />
-                      </FieldCol>
                     </Box>
                   </Grid>
-                  <Grid size={{ xs: 24, sm: 12, md: 6 }}>
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Grid item xs={12} sm={6} md={5} zeroMinWidth>
+                    {/* minWidth:0 (no un valor fijo como 220) — un mínimo fijo mayor al ancho
+                    real de la celda del Grid en ciertos breakpoints la desbordaba, tapando
+                    "T. de enfermedad". El Toggle mantiene su ancho fijo y el FieldCol con
+                    flex:1 1 0 ya se encarga de que el DatePicker ocupe el espacio restante
+                    real de la celda, sin forzar un piso que no siempre entra. */}
+                    <Grid
+                      container
+                      spacing={2}
+                      alignItems="center"
+                      wrap="nowrap"
+                    >
+                      <Grid item xs={12} sm={4} md={4} zeroMinWidth>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Toggle
+                            checked={form.furEnabled}
+                            disabled={
+                              form.sexo === "male" ||
+                              !canDatosClinicosTriage ||
+                              !enabledDatosClinicosTriage
+                            }
+                            onChange={(v) => {
+                              set("furEnabled", v);
+                              if (!v) set("fur", "");
+                            }}
+                          />
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} sm={8} md={8} zeroMinWidth>
+                        <FieldCol minWidth={10}>
+                          <DatePicker
+                            label="Fecha FUR"
+                            value={form.fur}
+                            onChange={(v) => set("fur", v)}
+                            disabled={
+                              !form.furEnabled ||
+                              form.sexo === "male" ||
+                              !canDatosClinicosTriage ||
+                              !enabledDatosClinicosTriage
+                            }
+                          />
+                        </FieldCol>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3} zeroMinWidth>
+                    <Box sx={{ width: "100%", minWidth: 0 }}>
                       <FieldCol>
                         <Box sx={{ display: "flex", width: "100%" }}>
                           <SearchComboInput
@@ -1331,17 +1321,18 @@ export function Triage({
                     </Box>
                   </Grid>
                 </Grid>
-
-                <TextareaField
-                  label="Comentarios"
-                  value={form.comentarios}
-                  onChange={(v) => set("comentarios", v)}
-                  maxLength={100}
-                  placeholder="Ingrese comentarios"
-                  disabled={
-                    !canDatosClinicosTriage || !enabledDatosClinicosTriage
-                  }
-                />
+                <Box sx={{ mt: "24px" }}>
+                  <TextareaField
+                    label="Comentarios"
+                    value={form.comentarios}
+                    onChange={(v) => set("comentarios", v)}
+                    maxLength={100}
+                    placeholder="Ingrese comentarios"
+                    disabled={
+                      !canDatosClinicosTriage || !enabledDatosClinicosTriage
+                    }
+                  />
+                </Box>
               </Box>
             )}
           </Box>
@@ -1357,15 +1348,12 @@ export function Triage({
               <Box>
                 <Grid
                   container
-                  columns={24}
                   spacing={2}
-                  sx={{
-                    width: "100%",
-                    alignItems: "flex-end",
-                    mt: 2,
-                  }}
+                  alignItems="flex-end"
+                  wrap="nowrap"
+                  sx={{ mt: "20px" }}
                 >
-                  <Grid size={{ xs: 24, md: 14 }}>
+                  <Grid item xs={12} sm={6} md={6} zeroMinWidth>
                     <RadioGroup
                       value={form.traumaShock}
                       options={opcionesRadioSignosVitales}
@@ -1377,7 +1365,7 @@ export function Triage({
                       }
                     />
                   </Grid>
-                  <Grid size={{ xs: 8, md: 3 }}>
+                  <Grid item xs={12} sm={3} md={2} zeroMinWidth>
                     <NumericField
                       label="Peso"
                       value={form.peso}
@@ -1389,7 +1377,7 @@ export function Triage({
                       }
                     />
                   </Grid>
-                  <Grid size={{ xs: 8, md: 3 }}>
+                  <Grid item xs={12} sm={3} md={2} zeroMinWidth>
                     <NumericField
                       label="Talla"
                       value={form.talla}
@@ -1401,7 +1389,7 @@ export function Triage({
                       }
                     />
                   </Grid>
-                  <Grid size={{ xs: 8, md: 4 }}>
+                  <Grid item xs={12} sm={3} md={2} zeroMinWidth>
                     <NumericField
                       label="IMC"
                       value={imc}
@@ -1416,13 +1404,10 @@ export function Triage({
                 {/* Fila 2: Signos */}
                 <Grid
                   container
-                  columns={12}
                   spacing={2}
-                  sx={{
-                    width: "100%",
-                    alignItems: "flex-end",
-                    mt: 2,
-                  }}
+                  alignItems="flex-end"
+                  wrap="nowrap"
+                  sx={{ mt: "20px" }}
                 >
                   {[
                     {
@@ -1462,7 +1447,7 @@ export function Triage({
                       numberType: "natural" as const,
                     },
                   ].map((f) => (
-                    <Grid key={f.key} size={{ xs: 6, sm: 4, md: 2 }}>
+                    <Grid key={f.key} item xs={12} sm={3} md={2} zeroMinWidth>
                       <NumericField
                         label={f.label}
                         value={form[f.key as keyof TriajeForm] as string}
@@ -1488,7 +1473,7 @@ export function Triage({
                     display: "flex",
                     flexDirection: { xs: "column", md: "row" },
                     gap: 2,
-                    mt: 2,
+                    mt: "20px",
                   }}
                 >
                   {/* Glasgow */}
@@ -1516,15 +1501,12 @@ export function Triage({
                     </Box>
                     <Grid
                       container
-                      columns={12}
                       spacing={2}
-                      sx={{
-                        width: "100%",
-                        alignItems: "flex-end",
-                      }}
+                      alignItems="flex-end"
+                      wrap="nowrap"
                     >
                       {(["ocular", "verbal", "motora"] as const).map((key) => (
-                        <Grid key={key} size={{ xs: 12, sm: 6, md: 3 }}>
+                        <Grid key={key} item xs={12} sm={3} md={3} zeroMinWidth>
                           <SelectField
                             disabled={
                               !canSignosVitalesTriage ||
@@ -1560,7 +1542,7 @@ export function Triage({
                       ))}
                       {/* No estaba envuelto en un Grid item propio — quedaba con el tamaño
                           implícito de MUI Grid v2 en vez de alinearse con sus 3 hermanos. */}
-                      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                      <Grid item xs={12} sm={3} md={3} zeroMinWidth>
                         <NumericField
                           label="Resultado"
                           value={String(glasgowTotal)}
@@ -1601,16 +1583,20 @@ export function Triage({
                     </Box>
                     <Grid
                       container
-                      columns={12}
                       spacing={2}
-                      sx={{
-                        width: "100%",
-                        alignItems: "flex-end",
-                      }}
+                      alignItems="flex-end"
+                      wrap="nowrap"
                     >
                       {(["cara", "brazos", "habla", "tiempo"] as const).map(
                         (key) => (
-                          <Grid key={key} size={{ xs: 12, sm: 6, md: 3 }}>
+                          <Grid
+                            key={key}
+                            item
+                            xs={12}
+                            sm={3}
+                            md={3}
+                            zeroMinWidth
+                          >
                             <SelectField
                               disabled={
                                 !canSignosVitalesTriage ||
@@ -1652,18 +1638,15 @@ export function Triage({
             />
             {expAlergias && (
               <Box
-                sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                  mt: "20px",
+                }}
               >
-                <Grid
-                  container
-                  columns={12}
-                  spacing={2}
-                  sx={{
-                    width: "100%",
-                    alignItems: "flex-end",
-                  }}
-                >
-                  <Grid size={{ xs: 12, sm: 4, md: 4 }}>
+                <Grid container spacing={2} alignItems="flex-end" wrap="nowrap">
+                  <Grid item xs={12} sm={4} md={4} zeroMinWidth>
                     <RadioGroup
                       disabled={!canAlergiasTriage || !enabledAlergiasTriage}
                       value={form.tieneAlergia}
@@ -1679,7 +1662,7 @@ export function Triage({
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12, sm: 8, md: 8 }}>
+                  <Grid item xs={12} sm={8} md={8} zeroMinWidth>
                     <MultiSelect
                       disabled={
                         !canAlergiasTriage ||
@@ -1693,30 +1676,34 @@ export function Triage({
                     />
                   </Grid>
                 </Grid>
-                <TextareaField
-                  label="Alimentos"
-                  value={form.alimentos}
-                  onChange={(v) => set("alimentos", v)}
-                  maxLength={100}
-                  placeholder="Describa alergias alimentarias"
-                  disabled={
-                    !canAlergiasTriage ||
-                    !enabledAlergiasTriage ||
-                    form.tieneAlergia == "N"
-                  }
-                />
-                <TextareaField
-                  label="Otros"
-                  value={form.otrosAlergias}
-                  onChange={(v) => set("otrosAlergias", v)}
-                  maxLength={100}
-                  placeholder="Otros tipos de alergia"
-                  disabled={
-                    !canAlergiasTriage ||
-                    !enabledAlergiasTriage ||
-                    form.tieneAlergia == "N"
-                  }
-                />
+                <Box sx={{ mt: "20px" }}>
+                  <TextareaField
+                    label="Alimentos"
+                    value={form.alimentos}
+                    onChange={(v) => set("alimentos", v)}
+                    maxLength={100}
+                    placeholder="Describa alergias alimentarias"
+                    disabled={
+                      !canAlergiasTriage ||
+                      !enabledAlergiasTriage ||
+                      form.tieneAlergia == "N"
+                    }
+                  />
+                </Box>
+                <Box sx={{ mt: "20px" }}>
+                  <TextareaField
+                    label="Otros"
+                    value={form.otrosAlergias}
+                    onChange={(v) => set("otrosAlergias", v)}
+                    maxLength={100}
+                    placeholder="Otros tipos de alergia"
+                    disabled={
+                      !canAlergiasTriage ||
+                      !enabledAlergiasTriage ||
+                      form.tieneAlergia == "N"
+                    }
+                  />
+                </Box>
               </Box>
             )}
           </Box>
@@ -1748,7 +1735,7 @@ export function Triage({
             />
             {expTriaje && (
               <Box
-                sx={{ mt: 2, px: 1, display: "flex", justifyContent: "center" }}
+                sx={{ mt: "20px", px: 1, display: "flex", justifyContent: "center" }}
               >
                 <TriagePriorityDisplay
                   readOnly={
