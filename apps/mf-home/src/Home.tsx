@@ -88,7 +88,7 @@ export default function Home() {
         fontFamily: hceTypography.fontFamily,
         fontSize:   "0.85rem",
         fontWeight: 600,
-        color:      hceColors.primary.blue[500],
+        color:      "var(--ds-color-primary, #0043a5)",
       }}>
         Bienvenido a las Historias Clínicas
       </Typography>
@@ -116,7 +116,7 @@ export default function Home() {
             fontFamily: hceTypography.fontFamily,
             fontWeight: 700,
             fontSize:   "1.35rem",
-            color:      hceColors.primary.green[600],
+            color:      "var(--ds-color-secondary, #0043a5)",
             lineHeight: 1.2,
           }}>
             Accesos Rápidos
@@ -124,7 +124,7 @@ export default function Home() {
           <Typography sx={{
             fontFamily: hceTypography.fontFamily,
             fontSize:   "0.82rem",
-            color:      hceColors.primary.blue[600],
+            color:      "var(--ds-color-text-interactive, #6b7280)",
             mt:         "2px",
           }}>
             Secciones más utilizadas del sistema
@@ -137,14 +137,14 @@ export default function Home() {
             size="sm"
             label="Reordenar"
             startIcon={<HceConfigIcon size={14}color={hceColors.neutro.white[50]}/>}
-            color={hceColors.primary.blue[600]}
+            color={"var(--ds-color-interactive, #0043a5)"}
           />
           <Button
             variant="outlined"
             size="sm"
             label="Personalizar"
-            startIcon={<HceStarIcon size={14}color={hceColors.primary.blue[600]}/>}
-            color={hceColors.primary.blue[600]}
+            startIcon={<HceStarIcon size={14}color={"var(--ds-color-interactive, #0043a5)"}/>}
+            color={"var(--ds-color-interactive, #0043a5)"}
           />
           {/* <Button
             variant="outlined"
@@ -155,7 +155,7 @@ export default function Home() {
               fontWeight:  500,
               fontSize:    "0.8rem",
               borderColor: hceColors.primary.blue[300],
-              color:       hceColors.primary.blue[600],
+              color:       "var(--ds-color-interactive, #0043a5)",
               borderRadius: "8px",
               px:          1.5,
               "&:hover": {

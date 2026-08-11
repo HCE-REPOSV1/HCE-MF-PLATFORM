@@ -172,13 +172,13 @@ export function AsignarMedicoModal({ open, onClose, onAsignar }: AsignarMedicoMo
               ? (modo ? "Asignando..." : "Reasignando...")
               : (modo ? "Asignar" : "Reasignar"),
             onClick: handleConfirmar,
-            color: hceColors.primary.green[600],
+            color: "var(--ds-color-interactive-button , #0043a5)",
             disabled: !encounterId || cargando || enviando,
           }}
           secondaryButton={{
             label: "Cancelar",
             onClick: onClose,
-            color: hceColors.primary.blue[600],
+            color: "var(--ds-color-interactive, #0043a5)",
           }}
           buttonAlign="center"
          

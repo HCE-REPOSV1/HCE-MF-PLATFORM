@@ -908,7 +908,7 @@ export function Triage({
             : {
                 label: "Guardar triaje",
                 onClick: handleGuardar,
-                color: hceColors.primary.green[600],
+                color: "var(--ds-color-interactive-button , #0043a5)",
                 icon: <UiDisketteIcon size={16} color="#ffffff" />,
                 disabled:
                   guardandoTriaje ||
@@ -922,8 +922,8 @@ export function Triage({
         secondaryButton={{
           label: readOnly ? "Cerrar" : "Cancelar",
           onClick: handleRequestClose,
-          color: hceColors.primary.blue[600],
-          icon: <CloseIcon size={16} color={hceColors.primary.blue[600]} />,
+          color: "var(--ds-color-interactive, #0043a5)",
+          icon: <CloseIcon size={16} color={"var(--ds-color-interactive, #0043a5)"} />,
         }}
         buttonAlign="center"
         buttonsFullWidth
@@ -936,7 +936,7 @@ export function Triage({
                 fontFamily: hceTypography.fontFamily,
                 fontWeight: 700,
                 fontSize: "0.95rem",
-                color: hceColors.primary.blue[600],
+                color: "var(--ds-color-interactive, #0043a5)",
                 mb: 1.5,
               }}
             >
@@ -951,9 +951,9 @@ export function Triage({
                 gap: "1rem",
                 px: 6,
                 py: 2.5,
-                backgroundColor: "#f5fcec",
+                backgroundColor: "var(--ds-color-secondary-light , #0043a5)",
                 borderRadius: "10px",
-                border: `1.5px solid ${hceColors.primary.green[500]}`,
+                border: `1.5px solid ${"var(--ds-color-secondary, #0043a5)"}`,
                 mb: 2,
                 flexWrap: "wrap",
               }}
@@ -988,7 +988,7 @@ export function Triage({
               {/* Botón buscar  */}
               <IconButton
                 sx={{
-                  background: hceColors.primary.green[600],
+                  background: "var(--ds-color-interactive-button , #0043a5)",
                   borderRadius: "8px",
                   color: hceColors.neutro.white[50],
                 }}
@@ -1004,7 +1004,7 @@ export function Triage({
                   gap: 1,
                   px: "12px",
                   py: "8px",
-                  border: `1.5px solid ${hceColors.primary.green[500]}`,
+                  border: `1.5px solid ${"var(--ds-color-secondary, #0043a5)"}`,
                   borderRadius: "8px",
                   backgroundColor: "#ffffff",
                   cursor: "pointer",
@@ -1481,7 +1481,7 @@ export function Triage({
                     component="fieldset"
                     sx={{
                       flex: 1,
-                      border: `1.5px solid ${hceColors.primary.green[500]}`,
+                      border: `1.5px solid ${"var(--ds-color-secondary, #0043a5)"}`,
                       borderRadius: "8px",
                       m: 0,
                       px: 1.5,
@@ -1494,7 +1494,7 @@ export function Triage({
                         fontFamily: hceTypography.fontFamily,
                         fontSize: "0.75rem",
                         fontWeight: 700,
-                        color: hceColors.primary.blue[600],
+                        color: "var(--ds-color-interactive, #0043a5)",
                       }}
                     >
                       Escala de Glasgow
@@ -1562,7 +1562,7 @@ export function Triage({
                     component="fieldset"
                     sx={{
                       flex: 1,
-                      border: `1.5px solid ${hceColors.primary.green[500]}`,
+                      border: `1.5px solid ${"var(--ds-color-secondary, #0043a5)"}`,
                       borderRadius: "8px",
                       m: 0,
                       px: 1.5,
@@ -1576,7 +1576,7 @@ export function Triage({
                         fontFamily: hceTypography.fontFamily,
                         fontSize: "0.75rem",
                         fontWeight: 700,
-                        color: hceColors.primary.blue[600],
+                        color: "var(--ds-color-interactive, #0043a5)",
                       }}
                     >
                       FAST

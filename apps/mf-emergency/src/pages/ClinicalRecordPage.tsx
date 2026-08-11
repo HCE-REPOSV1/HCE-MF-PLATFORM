@@ -216,8 +216,8 @@ export default function ClinicalRecordPage() {
           </Box>
           <Box>
             <DataCard
-              backgroundColor={hceColors.primary.green[50]}
-              borderColor={hceColors.primary.blue[500]}
+              backgroundColor={"var(--ds-color-secondary-light, #0043a5)"}
+              borderColor={"var(--ds-color-primary, #0043a5)"}
               borderWidth={2}
               borderRadius="12px"
               contentPadding="12px 14px"
@@ -238,7 +238,7 @@ export default function ClinicalRecordPage() {
                   sx={{
                     width: 42,
                     height: 42,
-                    backgroundColor: hceColors.primary.green[600],
+                    backgroundColor: "var(--ds-color-interactive-button, #0043a5)",
                     color: hceColors.neutro.white[50],
                   }}
                 >
@@ -258,8 +258,8 @@ export default function ClinicalRecordPage() {
       </Box>
       <Box sx={{ width: "100%", p: 2 }}>
         <DataCard
-          backgroundColor={hceColors.primary.green[50]}
-          borderColor={hceColors.primary.blue[500]}
+          backgroundColor={"var(--ds-color-secondary-light, #0043a5)"}
+          borderColor={"var(--ds-color-primary, #0043a5)"}
           borderWidth={2}
           borderRadius="12px"
           contentPadding="12px 14px"
@@ -280,7 +280,7 @@ export default function ClinicalRecordPage() {
               sx={{
                 width: 42,
                 height: 42,
-                backgroundColor: hceColors.primary.green[600],
+                backgroundColor: "var(--ds-color-interactive-button, #0043a5)",
                 color: hceColors.neutro.white[50],
               }}
             >
