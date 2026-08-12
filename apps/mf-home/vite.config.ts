@@ -41,7 +41,10 @@ export default defineConfig(({ mode }) => {
         "lucide-react",
         "@emotion/react",
         "@emotion/styled",
-        "@hce/design-system"
+        "@hce/design-system",
+        "i18next",
+        "react-i18next",
+        "@hce/i18n-core",
       ],
     })
   ],

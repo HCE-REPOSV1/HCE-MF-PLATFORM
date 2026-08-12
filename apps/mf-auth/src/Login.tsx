@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -23,6 +23,9 @@ import { login } from "shell/AuthService";
 // por eso se embebe directamente en el bundle — sin dependencia de servidor.
 // Para cambiar el fondo: copiar el nuevo SVG en src/assets/ y actualizar solo este import.
 import wallpaperRaw from "./assets/patron-fondo.svg?raw";
+import { useTranslation } from "@hce/i18n-core";
+import { registerAuthNamespace } from "./i18n";
+import { AUTH_ERROR_CODES, resolveStatusError } from "./i18n/errorCodes";
 const wallpaper = `data:image/svg+xml;utf8,${encodeURIComponent(wallpaperRaw)}`;
 
 // ─── Empresa fija ─────────────────────────────────────────
@@ -58,7 +61,7 @@ export default function Login({ onSuccess }: LoginProps) {
 
   const handleLogin = async () => {
     if (!usuario || !password) {
-      setError("Ingresa usuario y contraseña");
+      setError(t("errors.missingFields"));
       setHasError(true);
       return;
     }
@@ -72,29 +75,21 @@ export default function Login({ onSuccess }: LoginProps) {
         const codigo = data?.codigo as number | undefined;
         const mensaje = data?.mensaje as string | undefined;
 
-        // codigo 7 — cuenta bloqueada en AD: mostrar modal
+        // codigo 7 — cuenta bloqueada en AD: mostrar modal (no texto inline)
         if (codigo === 7) {
-          //setBlockedMessage(mensaje ?? "Estimado usuario, se ha excedido el número máximo de intentos de ingreso, por favor contactar con mesa de ayuda.")
-          setBlockedMessage(
-            "Estimado usuario, se ha excedido el número máximo de intentos de ingreso, por favor contactar con mesa de ayuda.",
-          );
+          setBlockedMessage(t("errors.accountBlocked"));
           setBlockedModal(true);
           return;
         }
 
-        // Todos los demás errores: texto rojo bajo el formulario
-        const errorMsg =
-          mensaje ??
-          (() => {
-            switch (status) {
-              case 503:
-                return "Servicio de autenticación no disponible. Intenta en unos momentos.";
-              case 504:
-                return "El servidor tardó demasiado en responder. Intenta nuevamente.";
-              default:
-                return "Ocurrió un error inesperado.";
-            }
-          })();
+        // Resto de errores: texto rojo bajo el formulario.
+        // Prioridad: código mapeado > status HTTP > mensaje crudo del backend
+        // (fallback temporal, mientras no todos los endpoints tengan código) > genérico.
+        const translationKey = codigo ? AUTH_ERROR_CODES[codigo] : undefined;
+        const errorMsg = translationKey
+          ? t(translationKey)
+          : (mensaje ?? t(resolveStatusError(status)));
+
         setError(errorMsg);
         setHasError(true);
         return;
@@ -110,14 +105,17 @@ export default function Login({ onSuccess }: LoginProps) {
       }
     } catch {
       // API Gateway no disponible o sin red
-      setError(
-        "No se pudo conectar con el servidor. Verifica tu conexión e intenta nuevamente.",
-      );
+      setError(t("errors.networkError"));
       setHasError(true);
     } finally {
       setLoading(false);
     }
   };
+
+  const { t } = useTranslation("auth");
+  useEffect(() => {
+    registerAuthNamespace();
+  }, []);
 
   return (
     <Box
@@ -137,19 +135,19 @@ export default function Login({ onSuccess }: LoginProps) {
       <CSFLoading
         open={loading}
         overlay
-        message="Verificando credenciales..."
+        message={t('login.msgLoading')}
         frameDuration={100}
       />
 
       {/* ── Modal: cuenta bloqueada (codigo 7) ── */}
       <HceModal
         open={blockedModal}
-        title="Su cuenta ha sido bloqueada"
+        title={t('errors.accountBlockedTitle')}
         description={blockedMessage}
         icon={<UiWarningIcon size={28} />}
         iconBgColor={hceColors.primary.blue[600]}
         confirmButton={{
-          label: "Aceptar",
+          label: t('common:actions.accept'),
           onClick: () => setBlockedModal(false),
         }}
       />
@@ -196,7 +194,8 @@ export default function Login({ onSuccess }: LoginProps) {
             pb: 5,
             px: { xs: "2.5rem", sm: "2.5rem" },
             width: { xs: "100%", sm: 440 },
-            boxShadow: "0 8px 28px -6px rgba(24, 39, 75, 0.12), 0 18px 88px -4px rgba(24, 39, 75, 0.14)",
+            boxShadow:
+              "0 8px 28px -6px rgba(24, 39, 75, 0.12), 0 18px 88px -4px rgba(24, 39, 75, 0.14)",
           }}
         >
           {/* Título */}
@@ -210,7 +209,8 @@ export default function Login({ onSuccess }: LoginProps) {
               mb: 1,
             }}
           >
-            Historia Clínica Electrónica
+            {/* Historia Clínica Electrónica */}
+            {t("login.title")}
           </Typography>
           <Typography
             sx={{
@@ -234,13 +234,13 @@ export default function Login({ onSuccess }: LoginProps) {
               mb: 3.5,
             }}
           >
-            Inicia sesión para acceder
+            {t("login.descriptionTitle")}
           </Typography>
 
           <Box sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             {/* Empresa (disabled, pre-seleccionada) */}
             <SelectField
-              label="Empresa"
+              label={t("login.CompanySelect")}
               value={EMPRESA_VALUE}
               onChange={() => {}}
               options={EMPRESA_OPTION}
@@ -249,20 +249,20 @@ export default function Login({ onSuccess }: LoginProps) {
 
             {/* Usuario */}
             <TextInput
-              label="Usuario"
+              label={t("login.usernameInput")}
               value={usuario}
               onChange={handleUsuarioChange}
-              placeholder="Ingrese Usuario"
+              placeholder={t("login.usernamePlaceholder")}
               startIcon={<DoctorIcon size={18} />}
               error={hasError}
             />
 
             {/* Contraseña */}
             <PasswordInput
-              label="Contraseña"
+              label={t("login.passwordInput")}
               value={password}
               onChange={handlePasswordChange}
-              placeholder="Ingrese contraseña"
+              placeholder={t("login.passwordPlaceholder")}
               startIcon={<ForgotPasswordIcon size={18} />}
               error={hasError}
             />
@@ -282,11 +282,11 @@ export default function Login({ onSuccess }: LoginProps) {
 
             <Box sx={{ mt: 1.5 }}>
               <Button
-                label="Iniciar sesión"
+                label={t("login.submitButton")}
                 onClick={handleLogin}
                 fullWidth
                 color={hceColors.primary.green[600]}
-                sx={{px: "30px", py: "12px"}}
+                sx={{ px: "30px", py: "12px" }}
               />
             </Box>
           </Box>

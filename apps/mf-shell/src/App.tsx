@@ -6,6 +6,8 @@ import { useUser } from "./context/UserContext"
 import { UpdateNotification } from "./components/UpdateNotification"
 import { CSFLoading } from "@hce/design-system"
 import HomeRoutes from "./routes/HomeRoutes"
+import { LangUrlSync } from "./components/LangUrlSync"
+
 
 const AppLoader = () => <CSFLoading open overlay message="Cargando pantallas ..." frameDuration={100} />
 
@@ -62,6 +64,7 @@ export default function App() {
 
   return (
     <>
+      <LangUrlSync />
       <UpdateNotification />
       <Suspense fallback={<AppLoader />}>
       <Routes>

@@ -622,7 +622,7 @@ export function Triage({
         nombres: patient.first_name,
         apellidoPaterno: patient.last_name_father,
         apellidoMaterno: patient.last_name_mother,
-        fechaNacimiento: formatBirthDate(patient.birth_date),
+        fechaNacimiento: patient.birth_date,
         sexo: patient.gender,
       }));
     } else {

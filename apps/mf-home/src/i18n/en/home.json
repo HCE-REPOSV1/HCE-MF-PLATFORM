@@ -1,0 +1,23 @@
+{
+  "quickLinks": {
+    "title":"Quick Links",
+    "description":"Most frequently used sections of the system",
+    "Emergency": {
+      "title": "HCE Emergency",
+      "description": "Section covering the fundamental functions of the emergency monitor and patient accounts."
+    },
+    "Ambulatory": {
+      "title": "HCE Ambulatory",
+      "description": "Management of appointments, consultation rooms, and outpatient care within the health system."
+    },
+    "Hospital": {
+      "title": "HCE Hospital",
+      "description": "Hospitalization management, available beds, admissions, and discharges."
+    },
+    "Audit": {
+      "title": "Audit",
+      "description": "Reports, event traceability, and system parameter configuration."
+    },
+    "AccessButton": "Access"
+  }
+}
