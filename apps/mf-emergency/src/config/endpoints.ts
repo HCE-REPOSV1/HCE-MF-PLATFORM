@@ -1,7 +1,8 @@
 const AG_WEB_EMERGENCY = import.meta.env.VITE_APIGW_CNL_WEB_EMERGENCY
+const AG_CLN_CROSS = import.meta.env.VITE_APIGW_CLN_CROSS
 
-const AG_CLN_CROSS = import.meta.env.VITE_APIGW_CLN_CROSS;
 if (!AG_WEB_EMERGENCY) throw new Error('[mf-emergency] VITE_APIGW_CNL_WEB_EMERGENCY no está configurado')
+if (!AG_CLN_CROSS) throw new Error('[mf-emergency] VITE_APIGW_CLN_CROSS no está configurado')
 
 export const ENDPOINTS = {
 
@@ -42,8 +43,6 @@ export const ENDPOINTS = {
     ActivePrinciples: () => `${AG_CLN_CROSS}/api/v1/catalogs/active-principles`,
     ActivePrinciplesSearch: (text: string) =>
       `${AG_CLN_CROSS}/api/v1/catalogs/active-principles/search?text=${encodeURIComponent(text)}`,
-     },
-
-     
+  },
 
 } as const

@@ -628,6 +628,7 @@ export function Triage({
     } else {
       setPatientId(null);
       setPacienteNoEncontrado(true);
+      setModalPacienteNoEncontrado(true);
       setDisableNombres(false);
       setDisableApellidoPaterno(false);
       setDisableApellidoMaterno(false);
@@ -992,6 +993,14 @@ export function Triage({
                 }}
                 icon={<UiSearchIcon />}
                 onClick={handleBuscarPaciente}
+                disabled={
+                  form.noIdentificado ||
+                  buscandoPaciente ||
+                  !form.tipoDoc ||
+                  !form.numeroDoc ||
+                  !canDatosPacienteTriage ||
+                  !enabledPacienteTriage
+                }
               ></IconButton>
 
               <Box
@@ -1296,7 +1305,6 @@ export function Triage({
                         <Box sx={{ display: "flex", width: "100%" }}>
                           <SearchComboInput
                             modes={SEARCH_MODES_T_ENFERMEDAD}
-                            loading={loadingSearchMotivo}
                             label="T. de enfermedad"
                             onSearchModeChange={(m) => {
                               set("tiempoUnidad", m);

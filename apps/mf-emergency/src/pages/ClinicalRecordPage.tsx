@@ -337,13 +337,10 @@ export default function ClinicalRecordPage() {
         onClose={() => setPatientDetailsOpen(false)}
       />
 
-       <AllergyModal 
-                open={allergyDetailsOpen}
-                onClose={()=>setAllergyDetailsOpen(false)}
-                >
-                  
-                  
-                  </AllergyModal>
+      <AllergyModal
+        open={allergyDetailsOpen}
+        onClose={() => setAllergyDetailsOpen(false)}
+      />
     </Box>
   );
 }

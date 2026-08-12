@@ -8,9 +8,10 @@ import type {
   CatalogActivePrinciples,
 } from "../types/catalog.types";
 
-// Cada recurso tiene su propio loading/error independiente — antes se compartía un único
-// par de estados entre los 7 fetch, y como Triage.tsx los llama en paralelo con Promise.all,
-// una llamada pisaba el loading/error de las demás (condición de carrera).
+// Estado de loading/error/data de un recurso de catálogo. Nota: fetchCatalogActivePrinciples
+// y fetchCatalogActivePrinciplesSearch comparten la misma instancia (catalogActivePrinciples)
+// — si en el futuro se llaman en paralelo, se pisarán el loading/error entre sí. Si eso llega
+// a pasar, dales cada uno su propio useResourceState().
 function useResourceState<T>() {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
