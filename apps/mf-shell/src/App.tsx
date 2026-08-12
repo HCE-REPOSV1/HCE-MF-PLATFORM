@@ -4,10 +4,10 @@ import { Routes, Route, Navigate, useNavigate } from "react-router-dom"
 import AppLayout from "./Layout"
 import { useUser } from "./context/UserContext"
 import { UpdateNotification } from "./components/UpdateNotification"
-import { CSFLoading } from "@hce/design-system"
+import { LoadingOverlay } from "@hce/design-system"
 import HomeRoutes from "./routes/HomeRoutes"
 
-const AppLoader = () => <CSFLoading open overlay message="Cargando pantallas ..." frameDuration={100} />
+const AppLoader = () => <LoadingOverlay open message="Cargando pantallas ..." />
 
 const Login       = lazy(() => import("auth/Login"))
 const Home        = lazy(() => import("home/Home"))

@@ -18,7 +18,7 @@ import {
   UiWarningIcon,
   MultiSelect,
   RadioGroup,
-  CSFLoading,
+  LoadingOverlay,
   SectionHeader,
   FieldCol,
   Toggle,
@@ -835,11 +835,9 @@ export function Triage({
 
   return (
     <Box>
-      <CSFLoading
+      <LoadingOverlay
         open={formBusy}
-        overlay
         message={guardandoTriaje ? "Guardando triaje..." : "Cargando..."}
-        frameDuration={100}
       />
       <HceModal
         maxWidth={460}

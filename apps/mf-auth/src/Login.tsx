@@ -7,13 +7,13 @@ import {
   PasswordInput,
   SelectField,
   Button,
-  CSFLoading,
+  LoadingOverlay,
   HceModal,
   hceColors,
   UiWarningIcon,
   DoctorIcon,
   ForgotPasswordIcon,
-  UiIsotipoClinicaIcon,
+  useCompanyBranding,
 } from "@hce/design-system";
 import { login } from "shell/AuthService";
 
@@ -27,15 +27,18 @@ const wallpaper = `data:image/svg+xml;utf8,${encodeURIComponent(wallpaperRaw)}`;
 
 // ─── Empresa fija ─────────────────────────────────────────
 // Disabled en el login — pre-seleccionada, no editable
-const EMPRESA_VALUE = "clinica-san-felipe";
-const EMPRESA_OPTION = [{ value: EMPRESA_VALUE, label: "Clínica San Felipe" }];
-
 interface LoginProps {
   onSuccess?: (sede: string) => void;
 }
 
 export default function Login({ onSuccess }: LoginProps) {
   const navigate = useNavigate();
+  const {
+    Isotype: CompanyIsotype,
+    selectValue: companyValue,
+    displayName: companyName,
+  } = useCompanyBranding();
+  const companyOptions = [{ value: companyValue, label: companyName }];
 
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
@@ -134,11 +137,9 @@ export default function Login({ onSuccess }: LoginProps) {
       }}
     >
       {/* ── Loading overlay — cubre la pantalla mientras espera la API ── */}
-      <CSFLoading
+      <LoadingOverlay
         open={loading}
-        overlay
         message="Verificando credenciales..."
-        frameDuration={100}
       />
 
       {/* ── Modal: cuenta bloqueada (codigo 7) ── */}
@@ -174,7 +175,7 @@ export default function Login({ onSuccess }: LoginProps) {
             width: 138,
             height: 138,
             borderRadius: "69px",
-            backgroundColor: hceColors.primary.green[600],
+            backgroundColor: "var(--ds-color-secondary, #89C93D)",
             display: "flex",
             flexDirection: "column",
             alignItems: "flex-start",
@@ -183,7 +184,7 @@ export default function Login({ onSuccess }: LoginProps) {
             zIndex: 2,
           }}
         >
-          <UiIsotipoClinicaIcon size={106} color="white" />
+          <CompanyIsotype size={106} color="white" />
         </Box>
 
         {/* ── Tarjeta ── */}
@@ -241,9 +242,9 @@ export default function Login({ onSuccess }: LoginProps) {
             {/* Empresa (disabled, pre-seleccionada) */}
             <SelectField
               label="Empresa"
-              value={EMPRESA_VALUE}
+              value={companyValue}
               onChange={() => {}}
-              options={EMPRESA_OPTION}
+              options={companyOptions}
               disabled
             />
 
