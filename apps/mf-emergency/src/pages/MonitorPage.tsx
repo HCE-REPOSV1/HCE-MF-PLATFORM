@@ -1,6 +1,6 @@
 
 import { useEmergencyMonitor } from "../hooks/useEmergencyMonitor";
-import { useState, useCallback, lazy, Suspense, useMemo, useEffect } from "react";
+import { useState, useCallback, lazy, Suspense, useMemo, useEffect, type ComponentProps } from "react";
 import {
   Box,
   hceClinicalColors,
@@ -10,7 +10,9 @@ import {
   EmergencyPagination,
   BedAvailabilityDrawerV2,
   HceModal,
- 
+  UiStethoscopeIcon,
+  UiPrintingIcon,
+  UiMedicalRoomIcon,
 
 } from "@hce/design-system";
 
@@ -315,6 +317,41 @@ export default function MonitorPage() {
     setDisponibilidadOpen(true)
   }, [])
 
+  // MonitoActionBar ya no trae Triaje/Reportes/Disponibilidad hardcodeados
+  // (ver MonitoActionBarProps en @hce/design-system) -- cada consumidor arma
+  // su propia lista de `actions`. Iconos/tooltips iguales a los que el
+  // componente traia fijos antes del refactor (UiStethoscopeIcon/
+  // UiPrintingIcon/UiMedicalRoomIcon), para no cambiar nada visualmente.
+  //
+  // El tipo `MonitoAction` existe en el componente fuente pero el paquete
+  // publicado de @hce/design-system no lo reexporta (solo MonitoActionBar),
+  // asi que se deriva localmente desde las props del propio componente en
+  // vez de importarlo por nombre.
+  type MonitorActionsProp = ComponentProps<typeof MonitoActionBar>["actions"]
+
+  const monitorActions = useMemo<MonitorActionsProp>(() => [
+    {
+      key: "triaje",
+      icon: <UiStethoscopeIcon size={17} color="currentColor" />,
+      tooltip: "Triaje",
+      onClick: handleOpenTriageWrite,
+      disabled: !canWriteTriage,
+    },
+    {
+      key: "reportes",
+      icon: <UiPrintingIcon size={17} color="currentColor" />,
+      tooltip: "Reportes",
+      onClick: handleReportes,
+    },
+    {
+      key: "disponibilidad",
+      icon: <UiMedicalRoomIcon size={17} color="currentColor" />,
+      tooltip: "Disponibilidad de camas",
+      onClick: handleDisponibilidad,
+      disabled: !canReadBeds,
+    },
+  ], [handleOpenTriageWrite, canWriteTriage, handleReportes, handleDisponibilidad, canReadBeds])
+
   const handlePatientClick = useCallback((row: MonitorTableRow) => {
 
     console.info("[MonitorPage] Abrir HCE:", row)
@@ -447,10 +484,8 @@ export default function MonitorPage() {
             <MonitoActionBar
               tooltipPlacement="bottom"
               orientation="horizontal"
-              onTriaje={canWriteTriage ? handleOpenTriageWrite : undefined}
+              actions={monitorActions}
               onAsignarMedicos={handleOpenAsignarMedicos}
-              onReportes={handleReportes}
-              onDisponibilidad={canReadBeds ? handleDisponibilidad : undefined}
             />
           </Box>
 
