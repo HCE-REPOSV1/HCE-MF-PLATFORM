@@ -7,10 +7,7 @@ import {
   Typography,
   HceModal,
   UiCheckedIcon,
-  FormControl,
-  MenuItem,
-  Select,
-  type SelectChangeEvent
+  SelectField,
 } from "@hce/design-system"
 
 import type { MonitorTableRow } from "../../types/monitor.table.types"
@@ -127,10 +124,6 @@ export function BoxModal({
 
   const patientName = localPaciente?.patient_name ?? "-"
 
-  const handleSelectBed = (event: SelectChangeEvent<string>) => {
-    setSelectedBedId(event.target.value)
-  }
-
   const handleCancel = useCallback(() => {
     if (saving) return
 
@@ -208,7 +201,7 @@ const handleConfirm = useCallback(async () => {
       primaryButton={{
         label: saving ? "Guardando..." : "Guardar",
         onClick: handleSave,
-        color: hceColors.primary.green[600],
+        color: "var(--ds-color-interactive-button)",
         disabled: isSaveDisabled,
       }}
       secondaryButton={{
@@ -238,7 +231,7 @@ const handleConfirm = useCallback(async () => {
                 sx={{
                   mb: 2,
                   textAlign: "center",
-                  color: hceColors.primary.blue[600],
+                  color: "var(--ds-color-interactive)",
                   fontFamily: hceTypography.fontFamily,
                   fontSize: "1rem",
                   fontWeight: hceTypography.weight.medium,
@@ -260,7 +253,7 @@ const handleConfirm = useCallback(async () => {
               <Typography
                 component="span"
                 sx={{
-                  color: hceColors.primary.blue[600],
+                  color: "var(--ds-color-interactive)",
                   fontFamily: hceTypography.fontFamily,
                   fontSize: "0.875rem",
                   fontWeight: hceTypography.weight.medium,
@@ -272,7 +265,7 @@ const handleConfirm = useCallback(async () => {
               <Typography
                 component="span"
                 sx={{
-                  color: hceColors.primary.blue[600],
+                  color: "var(--ds-color-interactive)",
                   fontFamily: hceTypography.fontFamily,
                   fontSize: "0.875rem",
                   fontWeight: hceTypography.weight.bold,
@@ -284,67 +277,23 @@ const handleConfirm = useCallback(async () => {
             </Box>
 
             <Box sx={{ mb: error ? 1.5 : 3 }}>
-              <Typography
-                sx={{
-                  mb: "4px",
-                  color: hceColors.primary.blue[600],
-                  fontFamily: hceTypography.fontFamily,
-                  fontSize: "0.75rem",
-                  fontWeight: hceTypography.weight.bold,
-                }}
-              >
-                Camas disponibles
-              </Typography>
-
-              <FormControl fullWidth size="small">
-                <Select
-                  value={selectedBedId}
-                  onChange={handleSelectBed}
-                  displayEmpty
-                  disabled={loadingBeds || saving || !locationId}
-                  sx={{
-                    height: 36,
-                    borderRadius: "7px",
-                    color: hceColors.primary.blue[600],
-                    fontFamily: hceTypography.fontFamily,
-                    fontSize: "0.875rem",
-                    // El Select de @hce/design-system es CSS puro (no MUI): no
-                    // existe ".MuiOutlinedInput-notchedOutline" ni soporte de
-                    // selectores anidados en `sx` (ver utils/sx.ts). Las 3 reglas
-                    // anidadas de antes pedian el MISMO azul en base/hover/focus,
-                    // asi que un `border` plano logra el mismo resultado visual
-                    // con el motor `sx` real. El icono hereda este color via
-                    // `currentColor` (ver DefaultArrowIcon), no hace falta regla
-                    // aparte para el.
-                    border: `1px solid ${hceColors.primary.blue[600]}`,
-                  }}
-                  renderValue={(value) => {
-                    if (loadingBeds) return "Cargando camas..."
-                    if (!value) return "-Seleccionar opción-"
-
-                    return (
-                      bedOptions.find((bed) => bed.id === value)?.label ??
-                      value
-                    )
-                  }}
-                >
-                  <MenuItem value="" disabled>
-                    -Seleccionar opción-
-                  </MenuItem>
-
-                  {bedOptions.length === 0 && !loadingBeds ? (
-                    <MenuItem value="" disabled>
-                      No hay camas disponibles
-                    </MenuItem>
-                  ) : (
-                    bedOptions.map((bed) => (
-                      <MenuItem key={bed.id} value={bed.id}>
-                        {bed.label}
-                      </MenuItem>
-                    ))
-                  )}
-                </Select>
-              </FormControl>
+              <SelectField
+                label="Camas disponibles"
+                value={selectedBedId}
+                onChange={setSelectedBedId}
+                options={bedOptions.map((bed) => ({
+                  value: bed.id,
+                  label: bed.label,
+                }))}
+                placeholder={
+                  loadingBeds
+                    ? "-Cargando camas-"
+                    : bedOptions.length === 0
+                      ? "-No hay camas disponibles-"
+                      : "-Seleccionar opción-"
+                }
+                disabled={loadingBeds || saving || !locationId || bedOptions.length === 0}
+              />
             </Box>
           
 
