@@ -128,6 +128,7 @@ export default function Login({ onSuccess }: LoginProps) {
         minHeight: "100vh",
         backgroundImage: `url(${wallpaper})`,
         backgroundSize: "cover",
+        backgroundColor: "var(--ds-color-primary-light)",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
         display: "flex",
@@ -148,7 +149,7 @@ export default function Login({ onSuccess }: LoginProps) {
         title="Su cuenta ha sido bloqueada"
         description={blockedMessage}
         icon={<UiWarningIcon size={28} />}
-        iconBgColor={hceColors.primary.blue[600]}
+        iconBgColor={"var(--ds-color-interactive)"}
         confirmButton={{
           label: "Aceptar",
           onClick: () => setBlockedModal(false),
@@ -175,7 +176,7 @@ export default function Login({ onSuccess }: LoginProps) {
             width: 138,
             height: 138,
             borderRadius: "69px",
-            backgroundColor: "var(--ds-color-secondary, #89C93D)",
+            backgroundColor: "var(--ds-color-interactive-button, #89C93D)",
             display: "flex",
             flexDirection: "column",
             alignItems: "flex-start",
@@ -191,9 +192,9 @@ export default function Login({ onSuccess }: LoginProps) {
         <Box
           sx={{
             backgroundColor: hceColors.neutro.white[50],
-            border: `1.5px solid ${hceColors.primary.blue[600]}`,
+            border: `1.5px solid ${"var(--ds-color-interactive)"}`,
             borderRadius: "16px",
-            pt: "6rem",
+            pt: "3.9rem",
             pb: 5,
             px: { xs: "2.5rem", sm: "2.5rem" },
             width: { xs: "100%", sm: 440 },
@@ -204,9 +205,9 @@ export default function Login({ onSuccess }: LoginProps) {
           <Typography
             sx={{
               textAlign: "center",
-              fontWeight: 500,
+              fontWeight: 700,
               fontSize: "1.375rem",
-              color: hceColors.primary.blue[600],
+              color: "var(--ds-color-interactive)",
               lineHeight: 1.3,
               mb: 1,
             }}
@@ -216,9 +217,9 @@ export default function Login({ onSuccess }: LoginProps) {
           <Typography
             sx={{
               textAlign: "center",
-              fontWeight: 500,
+              fontWeight: 700,
               fontSize: "1.375rem",
-              color: hceColors.primary.blue[600],
+              color: "var(--ds-color-interactive)",
               lineHeight: 1.3,
               mb: 1,
             }}
@@ -230,7 +231,7 @@ export default function Login({ onSuccess }: LoginProps) {
           <Typography
             sx={{
               textAlign: "center",
-              color: hceColors.primary.blue[600],
+              color: "var(--ds-color-interactive)",
               fontSize: "0.875rem",
               mb: 3.5,
             }}
@@ -281,13 +282,13 @@ export default function Login({ onSuccess }: LoginProps) {
               </Typography>
             )}
 
-            <Box sx={{ mt: 1.5 }}>
+            <Box sx={{ mt: 1.0 }}>
               <Button
                 label="Iniciar sesión"
                 onClick={handleLogin}
                 fullWidth
-                color={hceColors.primary.green[600]}
-                sx={{px: "30px", py: "12px"}}
+                color={"var(--ds-color-interactive-button)"}
+                sx={{px: "30px", py: "12px", fontFamily: "var(--ds-font-family)"}}
               />
             </Box>
           </Box>

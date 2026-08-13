@@ -401,10 +401,10 @@ export function AllergyModal({
                   <Box sx={{ display: "flex", justifyContent: "end" }}>
                     <Button
                       variant="contained"
-                      color={hceColors.primary.green[600]}
-                      hoverColor={hceColors.primary.green[600]}
+                      color={"var(--ds-color-interactive-button)"}
+                      hoverColor={"var(--ds-color-interactive-button)"}
                       hoverShadow="none"
-                      focusRingColor={hceColors.primary.blue[600]}
+                      focusRingColor={"var(--ds-color-interactive)"}
                       disabledBackground={hceColors.neutro.black[50]}
                       disabledColor={hceColors.neutro.black[200]}
                       onClick={handleSave}
