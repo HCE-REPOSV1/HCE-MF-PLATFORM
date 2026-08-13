@@ -486,6 +486,7 @@ export default function MonitorPage() {
               orientation="horizontal"
               actions={monitorActions}
               onAsignarMedicos={handleOpenAsignarMedicos}
+              labelBtn="Asignar médico"
             />
           </Box>
 
