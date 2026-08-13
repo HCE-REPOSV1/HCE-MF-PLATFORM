@@ -12,6 +12,7 @@ services:
       context: .
       dockerfile: apps/mf-shell/Dockerfile
       args:
+        VITE_COMPANY_THEME: csf
         VERDACCIO_URL: http://192.168.42.44:10100
         # URLs de producción — se hornean en el bundle al compilar
         VITE_APIGW_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
