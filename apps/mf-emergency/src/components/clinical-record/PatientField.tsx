@@ -24,7 +24,7 @@ const valueSx = {
   fontWeight: 400,
   color:"var(--ds-color-primary, #0043a5)",
   overflowWrap: "anywhere",
-}
+} as const
 
 export function PatientField({
   label,

@@ -308,19 +308,15 @@ const handleConfirm = useCallback(async () => {
                     color: hceColors.primary.blue[600],
                     fontFamily: hceTypography.fontFamily,
                     fontSize: "0.875rem",
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: hceColors.primary.blue[600],
-                    },
-                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: hceColors.primary.blue[600],
-                    },
-                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                      borderColor: hceColors.primary.blue[600],
-                      borderWidth: "1px",
-                    },
-                    "& .MuiSvgIcon-root": {
-                      color: hceColors.primary.blue[600],
-                    },
+                    // El Select de @hce/design-system es CSS puro (no MUI): no
+                    // existe ".MuiOutlinedInput-notchedOutline" ni soporte de
+                    // selectores anidados en `sx` (ver utils/sx.ts). Las 3 reglas
+                    // anidadas de antes pedian el MISMO azul en base/hover/focus,
+                    // asi que un `border` plano logra el mismo resultado visual
+                    // con el motor `sx` real. El icono hereda este color via
+                    // `currentColor` (ver DefaultArrowIcon), no hace falta regla
+                    // aparte para el.
+                    border: `1px solid ${hceColors.primary.blue[600]}`,
                   }}
                   renderValue={(value) => {
                     if (loadingBeds) return "Cargando camas..."
