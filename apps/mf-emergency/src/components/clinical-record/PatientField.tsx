@@ -23,8 +23,8 @@ const valueSx: any = {
   fontSize: "0.875rem",
   fontWeight: 400,
   color:"var(--ds-color-primary, #0043a5)",
- // overflowWrap: "anywhere",
-}
+  //overflowWrap: "anywhere",
+} as const
 
 export function PatientField({
   label,

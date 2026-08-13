@@ -12,6 +12,7 @@ services:
       context: .
       dockerfile: apps/mf-shell/Dockerfile
       args:
+        VITE_COMPANY_THEME: csf
         VERDACCIO_URL: http://192.168.42.44:10100
         # URLs de producción — se hornean en el bundle al compilar
         VITE_APIGW_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
@@ -88,6 +89,7 @@ services:
         VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
         VITE_REMOTE_TRIAGE: https://servicios.dev.sanfelipe.com:20510/assets/remoteEntry.js
         VITE_APIGW_CNL_WEB_EMERGENCY: https://servicios.dev.sanfelipe.com:20602
+        VITE_APIGW_CLN_CROSS: https://servicios.dev.sanfelipe.com:20601
         VITE_EMERGENCY_DECRYPT_KEY: 98fd5dd5c3584001b1b3e225aa10e04c9032a0dbc81936599b2f52a2a166c356
     restart: unless-stopped
     ports:
