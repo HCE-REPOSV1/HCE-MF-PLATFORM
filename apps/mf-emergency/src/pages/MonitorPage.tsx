@@ -1,11 +1,9 @@
-
 import { useEmergencyMonitor } from "../hooks/useEmergencyMonitor";
-import { useState, useCallback, lazy, Suspense, useMemo, useEffect, type ComponentProps } from "react";
+import { useState, useCallback, lazy, Suspense, useMemo, useEffect } from "react";
 import {
   Box,
   hceClinicalColors,
   hceSpacing,
-
   MonitoActionBar,
   EmergencyPagination,
   BedAvailabilityDrawerV2,
@@ -13,7 +11,6 @@ import {
   UiStethoscopeIcon,
   UiPrintingIcon,
   UiMedicalRoomIcon,
-
 } from "@hce/design-system";
 
 import { AsignarMedicoModal } from "../components/monitor/AsignarMedicoModal";
@@ -22,31 +19,34 @@ import { AditionalInfoModal } from "../components/monitor/AditionalInfoModal";
 import { useBedBoard } from "../hooks/useBedBoard";
 import { mapBedApiItemToAvailabilityItem } from "../mapper/bed.mapper";
 
-import {  UiWarningIcon, type GenericTableColumn } from "@hce/design-system";
+import { UiWarningIcon, type GenericTableColumn } from "@hce/design-system";
 
 import { usePermiso } from "../hooks/usePermiso";
 import { PERMISOS_EMERGENCY } from "../config/permisos";
 import { useSede } from "../hooks/useSede";
 
 import type { TriajeForm } from "triage/Triage";
-import {GenericTable} from "@hce/design-system";
+import { GenericTable } from "@hce/design-system";
 
-
-
-import type { MonitorSummary, MonitorTableRow } from "../types/monitor.table.types"
+import type {
+  MonitorSummary,
+  MonitorTableRow,
+} from "../types/monitor.table.types";
 import type { MonitorApiResponse } from "../types/monitor.api.types";
-import { mapMonitorApiItemToTableRow, mapMonitorApiSummaryToSummary } from "../mapper/monitor.mapper";
-import { monitorSortComparator } from "../../src/utils/monitorSort"
+import {
+  mapMonitorApiItemToTableRow,
+  mapMonitorApiSummaryToSummary,
+} from "../mapper/monitor.mapper";
+import { monitorSortComparator } from "../../src/utils/monitorSort";
 import { BoxModal } from "../components/monitor/BoxModal";
 
 import { useNavigate } from "react-router-dom";
+import { registerEmergencyNamespace } from "../i18n";
+import { useTranslation } from "@hce/i18n-core";
 
+const PAGE_SIZE = 10;
 
-const PAGE_SIZE = 10
-
-
-
- const createMonitorDskColumns = ({
+const createMonitorDskColumns = ({
   canReadTriage,
   canEditBox,
   canReadHce,
@@ -56,14 +56,14 @@ const PAGE_SIZE = 10
   onOpenBox,
   onOpenInfo,
 }: {
-  canReadTriage: boolean
-  canEditBox: boolean
-  canReadHce: boolean
-  canReadInfo: boolean
-  onOpenTriage: (row: MonitorTableRow) => void
-  onOpenHce: (row: MonitorTableRow) => void
-  onOpenBox: (row: MonitorTableRow) => void
-  onOpenInfo: (row: MonitorTableRow) => void
+  canReadTriage: boolean;
+  canEditBox: boolean;
+  canReadHce: boolean;
+  canReadInfo: boolean;
+  onOpenTriage: (row: MonitorTableRow) => void;
+  onOpenHce: (row: MonitorTableRow) => void;
+  onOpenBox: (row: MonitorTableRow) => void;
+  onOpenInfo: (row: MonitorTableRow) => void;
 }): GenericTableColumn<MonitorTableRow>[] => [
   {
     key: "priority",
@@ -76,7 +76,8 @@ const PAGE_SIZE = 10
     clickable: true,
     // Solo se puede abrir el triaje (modo lectura) desde este campo, y solo si la fila
     // ya tiene un triage_id vinculado — sin eso no hay nada que cargar.
-    disabledGetter: (row) => !canReadTriage || row.triage_id == null || row.priority=='none',
+    disabledGetter: (row) =>
+      !canReadTriage || row.triage_id == null || row.priority == "none",
     onClick: (row) => onOpenTriage(row),
   },
   {
@@ -206,46 +207,55 @@ const PAGE_SIZE = 10
     disabledGetter: (row) => !canReadInfo || row.box.stage === "ESPERA",
     onClick: (row) => onOpenInfo(row),
   },
-]
-
- 
+];
 
 const Triage = lazy(() => import("triage/Triage"));
 
 export default function MonitorPage() {
-  const canReadTriage  = usePermiso(PERMISOS_EMERGENCY.triage.read)
-  const canWriteTriage = usePermiso(PERMISOS_EMERGENCY.triage.write)
-  const canReadBeds    = usePermiso(PERMISOS_EMERGENCY.beds)
-  const canEditBox = true
-  const canReadHce = true
-  const canReadInfo = true
-  
+  const canReadTriage = usePermiso(PERMISOS_EMERGENCY.triage.read);
+  const canWriteTriage = usePermiso(PERMISOS_EMERGENCY.triage.write);
+  const canReadBeds = usePermiso(PERMISOS_EMERGENCY.beds);
+  const canEditBox = true;
+  const canReadHce = true;
+  const canReadInfo = true;
+
+  const { t } = useTranslation("emergency");
+  useEffect(() => {
+    registerEmergencyNamespace();
+  }, []);
+
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedPatient, setSelectedPatient] = useState<MonitorTableRow | null>(
-    null,
-  );
+  const [selectedPatient, setSelectedPatient] =
+    useState<MonitorTableRow | null>(null);
   const [triajeOpen, setTriajeOpen] = useState(false);
-  const [triajeModo, setTriajeModo]  = useState<"read" | "write">("write");
-  const [selectedTriageId, setSelectedTriageId] = useState<number | undefined>(undefined);
+  const [triajeModo, setTriajeModo] = useState<"read" | "write">("write");
+  const [selectedTriageId, setSelectedTriageId] = useState<number | undefined>(
+    undefined,
+  );
   const [medicoOpen, setMedicoOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
-  const [boxModalOpen, setBoxModalOpen] = useState(false)
-  const [boxModalType, setBoxModalType] = useState<"change" | "assign">("assign")
+  const [boxModalOpen, setBoxModalOpen] = useState(false);
+  const [boxModalType, setBoxModalType] = useState<"change" | "assign">(
+    "assign",
+  );
   const [selectedBoxPatient, setSelectedBoxPatient] =
-    useState<MonitorTableRow | null>(null)  
+    useState<MonitorTableRow | null>(null);
   const [disponibilidadOpen, setDisponibilidadOpen] = useState(false);
-  const [attentionWarningOpen, setAttentionWarningOpen] = useState(false)
-   //const [patientDetailsOpen, setPatientDetailsOpen] = useState(false)
+  const [attentionWarningOpen, setAttentionWarningOpen] = useState(false);
+  //const [patientDetailsOpen, setPatientDetailsOpen] = useState(false)
 
-   const navigate = useNavigate()
-  const sede = useSede()
+  const navigate = useNavigate();
+  const sede = useSede();
 
-  const {
-    beds:    bedBoardData,
-    loading: bedBoardLoading,
-  } = useBedBoard({ locationId: sede?.id, enabled: disponibilidadOpen })
+  const { beds: bedBoardData, loading: bedBoardLoading } = useBedBoard({
+    locationId: sede?.id,
+    enabled: disponibilidadOpen,
+  });
 
-  const bedBoard = useMemo(() => bedBoardData.map(mapBedApiItemToAvailabilityItem), [bedBoardData])
+  const bedBoard = useMemo(
+    () => bedBoardData.map(mapBedApiItemToAvailabilityItem),
+    [bedBoardData],
+  );
 
   const {
     data: monitorData,
@@ -255,67 +265,57 @@ export default function MonitorPage() {
   } = useEmergencyMonitor({
     page: currentPage,
     limit: PAGE_SIZE,
-  })
+  });
 
-
-  const response = monitorData as MonitorApiResponse | null
+  const response = monitorData as MonitorApiResponse | null;
 
   const rows = useMemo<MonitorTableRow[]>(() => {
-    if (!response?.data?.items) return []
+    if (!response?.data?.items) return [];
 
     return response.data.items
       .map(mapMonitorApiItemToTableRow)
-      .sort(monitorSortComparator)
-  }, [response])
+      .sort(monitorSortComparator);
+  }, [response]);
 
   const summary = useMemo<MonitorSummary[]>(() => {
-    if (!response?.data?.summary) return []
+    if (!response?.data?.summary) return [];
 
-    return mapMonitorApiSummaryToSummary(response.data.summary)
-  }, [response])
+    return mapMonitorApiSummaryToSummary(response.data.summary);
+  }, [response]);
 
+  const meta = response?.data?.meta;
 
+  const totalPages = meta?.totalPages ?? 1;
 
-
-  
-  const meta = response?.data?.meta
- 
-
-
-  const totalPages = meta?.totalPages ?? 1
-
-  
   useEffect(() => {
     setCurrentPage(1);
   }, [sede?.id]);
 
   useEffect(() => {
-  if (currentPage > totalPages) {
-    setCurrentPage(1);
-  }
-}, [currentPage, totalPages]);
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, totalPages]);
 
   const handleOpenTriageWrite = useCallback(() => {
-
-    
-    setTriajeModo("write")
-    setTriajeOpen(true)
-  }, [])
+    setTriajeModo("write");
+    setTriajeOpen(true);
+  }, []);
 
   const handleOpenAsignarMedicos = useCallback(() => {
     // No requiere paciente preseleccionado: el modal muestra la lista de
     // pacientes disponibles (sin médico, o asignados a otro médico según
     // el modo Asignar/Reasignar) y el usuario elige de ahí.
-    setMedicoOpen(true)
-  }, [])
+    setMedicoOpen(true);
+  }, []);
 
   const handleReportes = useCallback(() => {
-    console.info("[MonitorPage] Reportes")
-  }, [])
+    console.info("[MonitorPage] Reportes");
+  }, []);
 
   const handleDisponibilidad = useCallback(() => {
-    setDisponibilidadOpen(true)
-  }, [])
+    setDisponibilidadOpen(true);
+  }, []);
 
   // MonitoActionBar ya no trae Triaje/Reportes/Disponibilidad hardcodeados
   // (ver MonitoActionBarProps en @hce/design-system) -- cada consumidor arma
@@ -327,105 +327,103 @@ export default function MonitorPage() {
   // publicado de @hce/design-system no lo reexporta (solo MonitoActionBar),
   // asi que se deriva localmente desde las props del propio componente en
   // vez de importarlo por nombre.
-  type MonitorActionsProp = ComponentProps<typeof MonitoActionBar>["actions"]
+  // type MonitorActionsProp = ComponentProps<typeof MonitoActionBar>["actions"]
 
-  const monitorActions = useMemo<MonitorActionsProp>(() => [
-    {
-      key: "triaje",
-      icon: <UiStethoscopeIcon size={17} color="currentColor" />,
-      tooltip: "Triaje",
-      onClick: handleOpenTriageWrite,
-      disabled: !canWriteTriage,
-    },
-    {
-      key: "reportes",
-      icon: <UiPrintingIcon size={17} color="currentColor" />,
-      tooltip: "Reportes",
-      onClick: handleReportes,
-    },
-    {
-      key: "disponibilidad",
-      icon: <UiMedicalRoomIcon size={17} color="currentColor" />,
-      tooltip: "Disponibilidad de camas",
-      onClick: handleDisponibilidad,
-      disabled: !canReadBeds,
-    },
-  ], [handleOpenTriageWrite, canWriteTriage, handleReportes, handleDisponibilidad, canReadBeds])
+  // const monitorActions = useMemo<MonitorActionsProp>(() => [
+  //   {
+  //     key: "triaje",
+  //     icon: <UiStethoscopeIcon size={17} color="currentColor" />,
+  //     tooltip: "Triaje",
+  //     onClick: handleOpenTriageWrite,
+  //     disabled: !canWriteTriage,
+  //   },
+  //   {
+  //     key: "reportes",
+  //     icon: <UiPrintingIcon size={17} color="currentColor" />,
+  //     tooltip: "Reportes",
+  //     onClick: handleReportes,
+  //   },
+  //   {
+  //     key: "disponibilidad",
+  //     icon: <UiMedicalRoomIcon size={17} color="currentColor" />,
+  //     tooltip: "Disponibilidad de camas",
+  //     onClick: handleDisponibilidad,
+  //     disabled: !canReadBeds,
+  //   },
+  // ], [handleOpenTriageWrite, canWriteTriage, handleReportes, handleDisponibilidad, canReadBeds])
 
   const handlePatientClick = useCallback((row: MonitorTableRow) => {
+    console.info("[MonitorPage] Abrir HCE:", row);
 
-    console.info("[MonitorPage] Abrir HCE:", row)
-
-    navigate("historiacli")
-
-
+    navigate("historiacli");
 
     //setSelectedPatientId((prev) => (prev === row.id ? null : row.id))
-   // console.info("[MonitorPage] Abrir HCE:", row)
-  
-  }, [])
+    // console.info("[MonitorPage] Abrir HCE:", row)
+  }, []);
 
   const handlePriorityClick = useCallback(
     (row: MonitorTableRow) => {
       if (!canReadTriage) {
-        console.info("[MonitorPage] No tiene permiso para leer triaje:", row)
-        return
+        console.info("[MonitorPage] No tiene permiso para leer triaje:", row);
+        return;
       }
       if (row.triage_id == null) {
-        console.info("[MonitorPage] La fila no tiene triaje vinculado todavía:", row)
-        return
+        console.info(
+          "[MonitorPage] La fila no tiene triaje vinculado todavía:",
+          row,
+        );
+        return;
       }
-      if (row.priority == null || row.priority== 'none') {
-        console.info("[MonitorPage] El paciente no tiene prioridad todavía:", row)
-        return
+      if (row.priority == null || row.priority == "none") {
+        console.info(
+          "[MonitorPage] El paciente no tiene prioridad todavía:",
+          row,
+        );
+        return;
       }
 
-      setSelectedTriageId(row.triage_id)
-      setTriajeModo("read")
-      setTriajeOpen(true)
+      setSelectedTriageId(row.triage_id);
+      setTriajeModo("read");
+      setTriajeOpen(true);
 
-      console.info("[MonitorPage] Abrir triaje solo lectura:", row)
+      console.info("[MonitorPage] Abrir triaje solo lectura:", row);
     },
     [canReadTriage],
-  )
+  );
 
   const handleBoxClick = useCallback((row: MonitorTableRow) => {
-    const stage = row.box.stage
+    const stage = row.box.stage;
 
     if (stage === "ESPERA") {
-      setAttentionWarningOpen(true)
-      return
+      setAttentionWarningOpen(true);
+      return;
     }
 
-    setSelectedBoxPatient(row)
+    setSelectedBoxPatient(row);
 
     if (stage === "SALA_D") {
-      setBoxModalType("assign")
-      setBoxModalOpen(true)
-      return
+      setBoxModalType("assign");
+      setBoxModalOpen(true);
+      return;
     }
 
-    setBoxModalType("change")
-    setBoxModalOpen(true)
-  }, [])
+    setBoxModalType("change");
+    setBoxModalOpen(true);
+  }, []);
 
   const handleInfo = useCallback((row: MonitorTableRow) => {
-
-    setInfoOpen(true)
-    setSelectedPatient(row)
-  
-
-  }, [])
+    setInfoOpen(true);
+    setSelectedPatient(row);
+  }, []);
 
   const handleSaveAdditionalInfo = useCallback(
     async (updatedPaciente: MonitorTableRow) => {
-      console.info("Guardar cambios al cerrar modal:", updatedPaciente)
+      console.info("Guardar cambios al cerrar modal:", updatedPaciente);
     },
     [],
-  )
+  );
 
-
-   const columns = useMemo(
+  const columns = useMemo(
     () =>
       createMonitorDskColumns({
         canReadTriage,
@@ -447,13 +445,31 @@ export default function MonitorPage() {
       handleBoxClick,
       handleInfo,
     ],
-  )
+  );
+
+  const actions = [
+    {
+      key: "Triage",
+      icon: <UiStethoscopeIcon size={17} color="currentColor" />,
+      tooltip: t('MonitorPage.actions.triage'),
+      onClick: canWriteTriage ? handleOpenTriageWrite : undefined,
+    },
+    {
+      key: "Reportes",
+      icon: <UiPrintingIcon size={17} color="currentColor" />,
+      tooltip: t('MonitorPage.actions.reports'),
+      onClick: handleReportes,
+    },
+    {
+      key: "Disponibilidad",
+      icon: <UiMedicalRoomIcon size={17} color="currentColor" />,
+      tooltip: t('MonitorPage.actions.availability'),
+      onClick: canReadBeds ? handleDisponibilidad : undefined,
+    },
+  ];
 
   return (
     <>
-
-
-  
       <Box
         sx={{
           inset: 0,
@@ -463,7 +479,6 @@ export default function MonitorPage() {
           backgroundColor: hceClinicalColors.rowAlternate,
           overflow: "hidden",
           zIndex: 1,
-          
         }}
       >
         <Box
@@ -480,13 +495,16 @@ export default function MonitorPage() {
         >
           {/* Barra de acciones de monitoreo — ancho completo, iconos a la izquierda */}
           <Box sx={{ flexShrink: 0 }}>
-
             <MonitoActionBar
               tooltipPlacement="bottom"
               orientation="horizontal"
-              actions={monitorActions}
+              actions={actions}
+              // onTriaje={canWriteTriage ? handleOpenTriageWrite : undefined}
               onAsignarMedicos={handleOpenAsignarMedicos}
-              labelBtn="Asignar médico"
+              labelBtn={t('MonitorPage.AssignDoctorButton')}
+              // onReportes={handleReportes}
+              // onDisponibilidad={canReadBeds ? handleDisponibilidad : undefined}
+              // actions={monitorActions}
             />
           </Box>
 
@@ -496,31 +514,36 @@ export default function MonitorPage() {
               GenericTable internamente) es lo que evita el hueco en blanco al
               achicar la ventana; antes había un maxHeight="45vh" fijo en
               GenericTable que no tenía relación con el espacio real disponible. */}
-         <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
-          {monitorLoading ? (
-            <Box sx={{ p: 2 }}>Cargando monitor...</Box>
-          ) : monitorError ? (
-            <Box sx={{ p: 2 }}>Error: {monitorError}</Box>
-          ) : (
-            <Box sx={{ flex: 1, minHeight: 0, overflowX: "auto" }}>
-            <GenericTable
-              rows={rows}
-              columns={columns}
-              getRowId={(row) => row.id}
-              maxHeight="100%"
-              rowAlertGetter={(row) => row.row_alert_color === "red"}
+          <Box
+            sx={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              minHeight: 0,
+              overflow: "hidden",
+            }}
+          >
+            {monitorLoading ? (
+              <Box sx={{ p: 2 }}>Cargando monitor...</Box>
+            ) : monitorError ? (
+              <Box sx={{ p: 2 }}>Error: {monitorError}</Box>
+            ) : (
+              <Box sx={{ flex: 1, minHeight: 0, overflowX: "auto" }}>
+                <GenericTable
+                  rows={rows}
+                  columns={columns}
+                  getRowId={(row) => row.id}
+                  maxHeight="100%"
+                  rowAlertGetter={(row) => row.row_alert_color === "red"}
+                />
+              </Box>
+            )}
+          </Box>
+          {/* <EmergencyPatientTable rows={paginatedRows} header={HEADER_COLUMNS} /> */}
 
-            />
-            </Box>
-          )}
-
-        </Box>
-            {/* <EmergencyPatientTable rows={paginatedRows} header={HEADER_COLUMNS} /> */}
-          
           <Box
             sx={{
               flexShrink: 0,
-             
             }}
           >
             <EmergencyPagination
@@ -528,7 +551,7 @@ export default function MonitorPage() {
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={(page) => {
-                setCurrentPage(page)
+                setCurrentPage(page);
               }}
             />
           </Box>
@@ -540,7 +563,11 @@ export default function MonitorPage() {
         open={disponibilidadOpen}
         onClose={() => setDisponibilidadOpen(false)}
         beds={bedBoard}
-        title={bedBoardLoading ? "Disponibilidad de camas (cargando...)" : "Disponibilidad de camas"}
+        title={
+          bedBoardLoading
+            ? "Disponibilidad de camas (cargando...)"
+            : "Disponibilidad de camas"
+        }
       />
 
       {/* Modal de Triaje */}
@@ -559,7 +586,7 @@ export default function MonitorPage() {
             mode={triajeModo}
             triageId={selectedTriageId}
             onClose={() => setTriajeOpen(false)}
-            onGuardar={(form:TriajeForm) => {
+            onGuardar={(form: TriajeForm) => {
               // El POST ya ocurrió dentro de Triage.tsx (createTriage) antes de llamar
               // a este callback; acá solo queda refrescar la data del monitor para que
               // el triaje recién guardado se refleje sin esperar al próximo auto-refetch.
@@ -575,11 +602,14 @@ export default function MonitorPage() {
         open={medicoOpen}
         onClose={() => setMedicoOpen(false)}
         onAsignar={({ encounterId, username }) => {
-          console.info("[MonitorPage] Asignación médico:", { encounterId, username });
+          console.info("[MonitorPage] Asignación médico:", {
+            encounterId,
+            username,
+          });
           // TODO: llamar a POST /api/pacientes/medico con { encounter_id: encounterId, username }
           // y luego refetchMonitor() para reflejar el nuevo physician_name_display.
         }}
-        />
+      />
       {/* Modal de Información Adicional */}
       <AditionalInfoModal
         open={infoOpen}
@@ -588,35 +618,29 @@ export default function MonitorPage() {
         onSaveChanges={handleSaveAdditionalInfo}
       />
 
+      {/* Modal de Box */}
+      <BoxModal
+        open={boxModalOpen}
+        onClose={() => setBoxModalOpen(false)}
+        paciente={selectedBoxPatient ?? undefined}
+        type={boxModalType}
+        onSaved={async () => {
+          refetchMonitor();
+        }}
+      />
 
-   {/* Modal de Box */}
-    <BoxModal
-      open={boxModalOpen}
-      onClose={() => setBoxModalOpen(false)}
-      paciente={selectedBoxPatient ?? undefined}
-      type={boxModalType}
-      onSaved={async () => {
-        refetchMonitor()
-      }}
-    />
-
-
-   {/* Modal de Box - ESPERA */}
-    <HceModal
-  maxWidth={460}
-  open={attentionWarningOpen}
-  title="Paciente aún no cuenta con atención"
-  description="Por favor comunicarse con el medico."
-  icon= {<UiWarningIcon/>}
-  confirmButton={{
-    label: "Aceptar",
-    onClick: () => setAttentionWarningOpen(false),
-  }}
-/>
-
-
-
-
+      {/* Modal de Box - ESPERA */}
+      <HceModal
+        maxWidth={460}
+        open={attentionWarningOpen}
+        title="Paciente aún no cuenta con atención"
+        description="Por favor comunicarse con el medico."
+        icon={<UiWarningIcon />}
+        confirmButton={{
+          label: "Aceptar",
+          onClick: () => setAttentionWarningOpen(false),
+        }}
+      />
     </>
   );
 }

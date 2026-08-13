@@ -1,0 +1,10 @@
+{
+  "MonitorPage": {
+    "actions": {
+      "triage": "Triage",
+      "reports": "Report",
+      "availability": "Bed Availability"
+    },
+    "AssignDoctorButton": "Asignar médico"
+  }
+}

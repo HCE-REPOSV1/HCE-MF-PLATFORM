@@ -18,7 +18,7 @@ const labelSx = {
   mb: 0.5,
 }
 
-const valueSx = {
+const valueSx: any = {
   fontFamily: hceTypography.fontFamily,
   fontSize: "0.875rem",
   fontWeight: 400,
