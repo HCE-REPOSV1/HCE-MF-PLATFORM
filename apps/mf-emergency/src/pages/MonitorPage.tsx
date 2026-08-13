@@ -1,13 +1,12 @@
 
 import { useEmergencyMonitor } from "../hooks/useEmergencyMonitor";
-import { useState, useCallback, lazy, Suspense, useMemo, useEffect } from "react";
+import { useState, useCallback, lazy, Suspense, useMemo, useEffect, type ComponentProps } from "react";
 import {
   Box,
   hceClinicalColors,
   hceSpacing,
 
   MonitoActionBar,
-  type MonitoAction,
   EmergencyPagination,
   BedAvailabilityDrawerV2,
   HceModal,
@@ -323,7 +322,14 @@ export default function MonitorPage() {
   // su propia lista de `actions`. Iconos/tooltips iguales a los que el
   // componente traia fijos antes del refactor (UiStethoscopeIcon/
   // UiPrintingIcon/UiMedicalRoomIcon), para no cambiar nada visualmente.
-  const monitorActions = useMemo<MonitoAction[]>(() => [
+  //
+  // El tipo `MonitoAction` existe en el componente fuente pero el paquete
+  // publicado de @hce/design-system no lo reexporta (solo MonitoActionBar),
+  // asi que se deriva localmente desde las props del propio componente en
+  // vez de importarlo por nombre.
+  type MonitorActionsProp = ComponentProps<typeof MonitoActionBar>["actions"]
+
+  const monitorActions = useMemo<MonitorActionsProp>(() => [
     {
       key: "triaje",
       icon: <UiStethoscopeIcon size={17} color="currentColor" />,
