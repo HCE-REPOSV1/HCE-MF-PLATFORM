@@ -7,13 +7,13 @@ import {
   PasswordInput,
   SelectField,
   Button,
-  CSFLoading,
+  LoadingOverlay,
   HceModal,
   hceColors,
   UiWarningIcon,
   DoctorIcon,
   ForgotPasswordIcon,
-  UiIsotipoClinicaIcon,
+  useCompanyBranding,
 } from "@hce/design-system";
 import { login } from "shell/AuthService";
 
@@ -30,15 +30,18 @@ const wallpaper = `data:image/svg+xml;utf8,${encodeURIComponent(wallpaperRaw)}`;
 
 // ─── Empresa fija ─────────────────────────────────────────
 // Disabled en el login — pre-seleccionada, no editable
-const EMPRESA_VALUE = "clinica-san-felipe";
-const EMPRESA_OPTION = [{ value: EMPRESA_VALUE, label: "Clínica San Felipe" }];
-
 interface LoginProps {
   onSuccess?: (sede: string) => void;
 }
 
 export default function Login({ onSuccess }: LoginProps) {
   const navigate = useNavigate();
+  const {
+    Isotype: CompanyIsotype,
+    selectValue: companyValue,
+    displayName: companyName,
+  } = useCompanyBranding();
+  const companyOptions = [{ value: companyValue, label: companyName }];
 
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
@@ -123,6 +126,7 @@ export default function Login({ onSuccess }: LoginProps) {
         minHeight: "100vh",
         backgroundImage: `url(${wallpaper})`,
         backgroundSize: "cover",
+        backgroundColor: "var(--ds-color-primary-light)",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
         display: "flex",
@@ -132,11 +136,9 @@ export default function Login({ onSuccess }: LoginProps) {
       }}
     >
       {/* ── Loading overlay — cubre la pantalla mientras espera la API ── */}
-      <CSFLoading
+      <LoadingOverlay
         open={loading}
-        overlay
         message={t('login.msgLoading')}
-        frameDuration={100}
       />
 
       {/* ── Modal: cuenta bloqueada (codigo 7) ── */}
@@ -145,7 +147,7 @@ export default function Login({ onSuccess }: LoginProps) {
         title={t('errors.accountBlockedTitle')}
         description={blockedMessage}
         icon={<UiWarningIcon size={28} />}
-        iconBgColor={hceColors.primary.blue[600]}
+        iconBgColor={"var(--ds-color-interactive)"}
         confirmButton={{
           label: t('common:actions.accept'),
           onClick: () => setBlockedModal(false),
@@ -172,7 +174,7 @@ export default function Login({ onSuccess }: LoginProps) {
             width: 138,
             height: 138,
             borderRadius: "69px",
-            backgroundColor: hceColors.primary.green[600],
+            backgroundColor: "var(--ds-color-interactive-button, #89C93D)",
             display: "flex",
             flexDirection: "column",
             alignItems: "flex-start",
@@ -181,16 +183,16 @@ export default function Login({ onSuccess }: LoginProps) {
             zIndex: 2,
           }}
         >
-          <UiIsotipoClinicaIcon size={106} color="white" />
+          <CompanyIsotype size={106} color="white" />
         </Box>
 
         {/* ── Tarjeta ── */}
         <Box
           sx={{
             backgroundColor: hceColors.neutro.white[50],
-            border: `1.5px solid ${hceColors.primary.blue[600]}`,
+            border: `1.5px solid ${"var(--ds-color-interactive)"}`,
             borderRadius: "16px",
-            pt: "6rem",
+            pt: "3.9rem",
             pb: 5,
             px: { xs: "2.5rem", sm: "2.5rem" },
             width: { xs: "100%", sm: 440 },
@@ -202,9 +204,9 @@ export default function Login({ onSuccess }: LoginProps) {
           <Typography
             sx={{
               textAlign: "center",
-              fontWeight: 500,
+              fontWeight: 700,
               fontSize: "1.375rem",
-              color: hceColors.primary.blue[600],
+              color: "var(--ds-color-interactive)",
               lineHeight: 1.3,
               mb: 1,
             }}
@@ -215,9 +217,9 @@ export default function Login({ onSuccess }: LoginProps) {
           <Typography
             sx={{
               textAlign: "center",
-              fontWeight: 500,
+              fontWeight: 700,
               fontSize: "1.375rem",
-              color: hceColors.primary.blue[600],
+              color: "var(--ds-color-interactive)",
               lineHeight: 1.3,
               mb: 1,
             }}
@@ -229,7 +231,7 @@ export default function Login({ onSuccess }: LoginProps) {
           <Typography
             sx={{
               textAlign: "center",
-              color: hceColors.primary.blue[600],
+              color: "var(--ds-color-interactive)",
               fontSize: "0.875rem",
               mb: 3.5,
             }}
@@ -241,9 +243,9 @@ export default function Login({ onSuccess }: LoginProps) {
             {/* Empresa (disabled, pre-seleccionada) */}
             <SelectField
               label={t("login.CompanySelect")}
-              value={EMPRESA_VALUE}
+              value={companyValue}
               onChange={() => {}}
-              options={EMPRESA_OPTION}
+              options={companyOptions}
               disabled
             />
 
@@ -280,13 +282,13 @@ export default function Login({ onSuccess }: LoginProps) {
               </Typography>
             )}
 
-            <Box sx={{ mt: 1.5 }}>
+            <Box sx={{ mt: 1.0 }}>
               <Button
                 label={t("login.submitButton")}
                 onClick={handleLogin}
                 fullWidth
-                color={hceColors.primary.green[600]}
-                sx={{ px: "30px", py: "12px" }}
+                color={"var(--ds-color-interactive-button)"}
+                sx={{px: "30px", py: "12px", fontFamily: "var(--ds-font-family)"}}
               />
             </Box>
           </Box>

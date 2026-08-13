@@ -1,6 +1,6 @@
 
 import {
-  hceColors,
+
   hceTypography,
   Box,
   Typography
@@ -14,7 +14,7 @@ const labelSx = {
   fontFamily: hceTypography.fontFamily,
   fontSize: "0.625rem",
   fontWeight: 700,
-  color: hceColors.primary.blue[500],
+  color:"var(--ds-color-primary, #0043a5)",
   mb: 0.5,
 }
 
@@ -22,8 +22,8 @@ const valueSx: any = {
   fontFamily: hceTypography.fontFamily,
   fontSize: "0.875rem",
   fontWeight: 400,
-  color: hceColors.primary.blue[500],
-  overflowWrap: "anywhere",
+  color:"var(--ds-color-primary, #0043a5)",
+ // overflowWrap: "anywhere",
 }
 
 export function PatientField({

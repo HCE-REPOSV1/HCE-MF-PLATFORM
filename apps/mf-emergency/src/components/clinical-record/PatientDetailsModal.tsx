@@ -2,7 +2,9 @@ import {
   DataCardModal,
   StatusBadge,
   hceColors,
-  Box
+  Box,
+  Avatar,
+  User
 } from "@hce/design-system"
 
 import type { ClinicalRecordPatient } from "../../types/clinical.record.types"
@@ -40,8 +42,8 @@ export function PatientDetailsModal({
       disableOutsideClose
       maxWidth={304}
       maxHeight="98vh"
-      backgroundColor={hceColors.primary.green[50]}
-      borderColor={hceColors.primary.blue[500]}
+      backgroundColor={"var(--ds-color-secondary-light, #0043a5)"}
+      borderColor={"var(--ds-color-primary, #0043a5)"}
       borderWidth={2}
       borderRadius="12px"
       contentPadding="24px"
@@ -63,10 +65,26 @@ export function PatientDetailsModal({
       <Box>
        <Box
           sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 1,
             textAlign: "center",
             mb: 2.5,
           }}
         >
+
+           <Avatar
+            sx={{
+              width: 42,
+              height: 42,
+              backgroundColor: "var(--ds-color-interactive-button, #0043a5)",
+              color: hceColors.neutro.white[50],
+            }}
+          >
+            <User size={24} />
+          </Avatar>
+
           <PatientField
             label="Paciente:"
             value={patient.fullName}

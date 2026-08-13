@@ -1,4 +1,7 @@
 {
+  "description":"Bienvenido a las Historias Clínicas",
+  "reorderButton": "Reordenar",
+  "customizeButton": "Personalizar",
   "quickLinks": {
     "title":"Accesos Rápidos",
     "description":"Secciones más utilizadas del sistema",

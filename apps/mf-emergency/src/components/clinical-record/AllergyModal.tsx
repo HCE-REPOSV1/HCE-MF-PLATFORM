@@ -80,12 +80,12 @@ const createInfoColumns = ({
     type: "icon",
     field: "edit",
     icon: UiEditingIcon,
-    iconSize: 10,
+    iconSize: 18,
     width: 20,
     align: "center",
     clickable: true,
     disabledGetter: () => !canEdit,
-    colorGetter: () => (canEdit ? hceColors.primary.green[600] : "#A0A0A0"),
+    colorGetter: () => (canEdit ? "var(--ds-color-interactive-button, #0043a5)" : "#A0A0A0"),
     onClick: (row) => {
       onEdit(row);
     },
@@ -330,16 +330,8 @@ export function AllergyModal({
                       textAlign: "start",
                     }}
                   >
-                    <Grid
-                      container
-                      columns={5}
-                      spacing={2}
-                      sx={{
-                        width: "100%",
-                        alignItems: "flex-end",
-                      }}
-                    >
-                      <Grid size={{ xs: 5, sm: 2, md: 2 }}>
+                  <Grid container spacing={2} alignItems="flex-end" wrap="nowrap">
+                  <Grid item xs={12} sm={4} md={4} zeroMinWidth>
                         <RadioGroup
                           disabled={
                             !canAlergiasTriage || !enabledAlergiasTriage
@@ -357,7 +349,7 @@ export function AllergyModal({
                         />
                       </Grid>
 
-                      <Grid size={{ xs: 5, sm: 3, md: 3 }}>
+                      <Grid item xs={12} sm={8} md={8} zeroMinWidth>
                         <MultiSelect
                           disabled={
                             !canAlergiasTriage ||
@@ -374,39 +366,45 @@ export function AllergyModal({
                         />
                       </Grid>
                     </Grid>
-                    <TextareaField
-                      label="Alimentos"
-                      value={form.food ?? ""}
-                      onChange={(v) => set("food", v)}
-                      maxLength={100}
-                      placeholder="Describa alergias alimentarias"
-                      disabled={
-                        !canAlergiasTriage ||
-                        !enabledAlergiasTriage ||
-                        form.has_allergy == false
-                      }
-                    />
-                    <TextareaField
-                      label="Otros"
-                      value={form.other ?? ""}
-                      onChange={(v) => set("other", v)}
-                      maxLength={100}
-                      placeholder="Otros tipos de alergia"
-                      disabled={
-                        !canAlergiasTriage ||
-                        !enabledAlergiasTriage ||
-                        form.has_allergy == false
-                      }
-                    />
+
+                    <Box sx={{ mt: "20px" }}>
+                  <TextareaField
+                    label="Alimentos"
+                    value={form.food || ''}
+                    onChange={(v) => set("food", v)}
+                    maxLength={100}
+                    placeholder="Describa alergias alimentarias"
+                    disabled={
+                      !canAlergiasTriage ||
+                      !enabledAlergiasTriage ||
+                      form.has_allergy == false
+                    }
+                  />
+                </Box>
+                <Box sx={{ mt: "20px" }}>
+                  <TextareaField
+                    label="Otros"
+                    value={form.other ||'' }
+                    onChange={(v) => set("other", v)}
+                    maxLength={100}
+                    placeholder="Otros tipos de alergia"
+                    disabled={
+                      !canAlergiasTriage ||
+                      !enabledAlergiasTriage ||
+                      form.has_allergy == false
+                    }
+                  />
+                </Box>
+              </Box>
                   </Box>
 
                   <Box sx={{ display: "flex", justifyContent: "end" }}>
                     <Button
                       variant="contained"
-                      color={hceColors.primary.green[600]}
-                      hoverColor={hceColors.primary.green[600]}
+                      color={"var(--ds-color-interactive-button)"}
+                      hoverColor={"var(--ds-color-interactive-button)"}
                       hoverShadow="none"
-                      focusRingColor={hceColors.primary.blue[600]}
+                      focusRingColor={"var(--ds-color-interactive)"}
                       disabledBackground={hceColors.neutro.black[50]}
                       disabledColor={hceColors.neutro.black[200]}
                       onClick={handleSave}
@@ -426,7 +424,7 @@ export function AllergyModal({
                     </Button>
                   </Box>
                 </Box>
-              </Box>
+         
             )}
           </Box>
         </HceFormModal>

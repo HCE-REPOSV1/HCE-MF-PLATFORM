@@ -101,15 +101,13 @@ export default function Home() {
       }}
     >
       {/* ── Bienvenida ────────────────────────────────────── */}
-      <Typography
-        sx={{
-          fontFamily: hceTypography.fontFamily,
-          fontSize: "0.85rem",
-          fontWeight: 600,
-          color: hceColors.primary.blue[500],
-        }}
-      >
-        Bienvenido a las Historias Clínicas
+      <Typography sx={{
+        fontFamily: hceTypography.fontFamily,
+        fontSize:   "0.85rem",
+        fontWeight: 600,
+        color:      "var(--ds-color-primary, #0043a5)",
+      }}>
+        {t('description')}
       </Typography>
 
       {/* ── Carrusel ──────────────────────────────────────── */}
@@ -133,25 +131,21 @@ export default function Home() {
       >
         {/* Izquierda */}
         <Box>
-          <Typography
-            sx={{
-              fontFamily: hceTypography.fontFamily,
-              fontWeight: 700,
-              fontSize: "1.35rem",
-              color: hceColors.primary.green[600],
-              lineHeight: 1.2,
-            }}
-          >
-            {t('quickLinks.title')}
+          <Typography sx={{
+            fontFamily: hceTypography.fontFamily,
+            fontWeight: 700,
+            fontSize:   "1.35rem",
+            color:      "var(--ds-color-secondary, #0043a5)",
+            lineHeight: 1.2,
+          }}>
+           {t('quickLinks.title')}
           </Typography>
-          <Typography
-            sx={{
-              fontFamily: hceTypography.fontFamily,
-              fontSize: "0.82rem",
-              color: hceColors.primary.blue[600],
-              mt: "2px",
-            }}
-          >
+          <Typography sx={{
+            fontFamily: hceTypography.fontFamily,
+            fontSize:   "0.82rem",
+            color:      "var(--ds-color-text-interactive, #6b7280)",
+            mt:         "2px",
+          }}>
             {t('quickLinks.description')}
           </Typography>
         </Box>
@@ -160,20 +154,16 @@ export default function Home() {
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, pt: "2px" }}>
           <Button
             size="sm"
-            label="Reordenar"
-            startIcon={
-              <HceConfigIcon size={14} color={hceColors.neutro.white[50]} />
-            }
-            color={hceColors.primary.blue[600]}
+            label={t('reorderButton')}
+            startIcon={<HceConfigIcon size={14}color={hceColors.neutro.white[50]}/>}
+            color={"var(--ds-color-interactive, #0043a5)"}
           />
           <Button
             variant="outlined"
             size="sm"
-            label="Personalizar"
-            startIcon={
-              <HceStarIcon size={14} color={hceColors.primary.blue[600]} />
-            }
-            color={hceColors.primary.blue[600]}
+            label={t('customizeButton')}
+            startIcon={<HceStarIcon size={14}color={"var(--ds-color-interactive, #0043a5)"}/>}
+            color={"var(--ds-color-interactive, #0043a5)"}
           />
           {/* <Button
             variant="outlined"
@@ -184,7 +174,7 @@ export default function Home() {
               fontWeight:  500,
               fontSize:    "0.8rem",
               borderColor: hceColors.primary.blue[300],
-              color:       hceColors.primary.blue[600],
+              color:       "var(--ds-color-interactive, #0043a5)",
               borderRadius: "8px",
               px:          1.5,
               "&:hover": {

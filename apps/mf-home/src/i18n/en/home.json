@@ -1,4 +1,7 @@
 {
+  "description":"Welcome to Medical Records",
+  "reorderButton": "Reorder",
+  "customizeButton": "Customize",
   "quickLinks": {
     "title":"Quick Links",
     "description":"Most frequently used sections of the system",
