@@ -1,5 +1,12 @@
 import { useEmergencyMonitor } from "../hooks/useEmergencyMonitor";
-import { useState, useCallback, lazy, Suspense, useMemo, useEffect } from "react";
+import {
+  useState,
+  useCallback,
+  lazy,
+  Suspense,
+  useMemo,
+  useEffect,
+} from "react";
 import {
   Box,
   hceClinicalColors,
@@ -46,7 +53,23 @@ import { useTranslation } from "@hce/i18n-core";
 
 const PAGE_SIZE = 10;
 
-const createMonitorDskColumns = ({
+
+const Triage = lazy(() => import("triage/Triage"));
+
+export default function MonitorPage() {
+  const canReadTriage = usePermiso(PERMISOS_EMERGENCY.triage.read);
+  const canWriteTriage = usePermiso(PERMISOS_EMERGENCY.triage.write);
+  const canReadBeds = usePermiso(PERMISOS_EMERGENCY.beds);
+  const canEditBox = true;
+  const canReadHce = true;
+  const canReadInfo = true;
+
+  const { t } = useTranslation("emergency");
+  useEffect(() => {
+    registerEmergencyNamespace();
+  }, []);
+
+  const createMonitorDskColumns = ({
   canReadTriage,
   canEditBox,
   canReadHce,
@@ -67,7 +90,7 @@ const createMonitorDskColumns = ({
 }): GenericTableColumn<MonitorTableRow>[] => [
   {
     key: "priority",
-    header: "Prioridad",
+    header: t('MonitorPage.dataTableMonitor.colPriority'),
     type: "priority",
     field: "priority",
     width: 100,
@@ -82,7 +105,7 @@ const createMonitorDskColumns = ({
   },
   {
     key: "box",
-    header: "Box",
+    header: t('MonitorPage.dataTableMonitor.colBox'),
     type: "box",
     field: "box",
     width: 100,
@@ -94,7 +117,7 @@ const createMonitorDskColumns = ({
   },
   {
     key: "document",
-    header: "N.Documento",
+    header: t('MonitorPage.dataTableMonitor.colDocumentNumber'),
     type: "text",
     width: 100,
     valueGetter: (row) =>
@@ -103,7 +126,7 @@ const createMonitorDskColumns = ({
   },
   {
     key: "patient",
-    header: "Paciente",
+    header: t('MonitorPage.dataTableMonitor.colPatient'),
     type: "patient-name",
     width: 200,
     align: "left",
@@ -119,7 +142,7 @@ const createMonitorDskColumns = ({
   },
   {
     key: "age",
-    header: "Edad",
+    header: t('MonitorPage.dataTableMonitor.colAge'),
     type: "text",
     field: "age",
     width: 70,
@@ -129,7 +152,7 @@ const createMonitorDskColumns = ({
   },
   {
     key: "sex",
-    header: "Sexo",
+    header: t('MonitorPage.dataTableMonitor.colGender'),
     type: "text",
     field: "sex",
     width: 70,
@@ -139,7 +162,7 @@ const createMonitorDskColumns = ({
   },
   {
     key: "doctor",
-    header: "Médico",
+    header: t('MonitorPage.dataTableMonitor.colDoctor'),
     type: "text",
     field: "physician_name_display",
     width: 200,
@@ -148,7 +171,7 @@ const createMonitorDskColumns = ({
   },
   {
     key: "lab",
-    header: "Lab",
+    header: t('MonitorPage.dataTableMonitor.colLaboratory'),
     type: "clinical-status",
     field: "lab",
     clinicalIcon: "lab",
@@ -158,7 +181,7 @@ const createMonitorDskColumns = ({
   },
   {
     key: "img",
-    header: "Img",
+    header: t('MonitorPage.dataTableMonitor.colImage'),
     type: "clinical-status",
     field: "img",
     clinicalIcon: "img",
@@ -168,7 +191,7 @@ const createMonitorDskColumns = ({
   },
   {
     key: "indication",
-    header: "Indc. Med.",
+    header: t('MonitorPage.dataTableMonitor.colMedicalIndication'),
     type: "clinical-status",
     field: "indication",
     clinicalIcon: "indication",
@@ -178,7 +201,7 @@ const createMonitorDskColumns = ({
   },
   {
     key: "interconsult",
-    header: "Interc.",
+    header: t('MonitorPage.dataTableMonitor.colConsultation'),
     type: "clinical-status",
     field: "interconsult",
     clinicalIcon: "interconsult",
@@ -190,7 +213,7 @@ const createMonitorDskColumns = ({
   },
   {
     key: "attentionCode",
-    header: "Atención",
+    header: t('MonitorPage.dataTableMonitor.colAttention'),
     type: "attention-code",
     field: "attention_id",
     width: 90,
@@ -198,7 +221,7 @@ const createMonitorDskColumns = ({
   },
   {
     key: "info",
-    header: "Info",
+    header: t('MonitorPage.dataTableMonitor.colInformation'),
     type: "info-button",
     width: 60,
     maxWidth: 60,
@@ -208,21 +231,6 @@ const createMonitorDskColumns = ({
     onClick: (row) => onOpenInfo(row),
   },
 ];
-
-const Triage = lazy(() => import("triage/Triage"));
-
-export default function MonitorPage() {
-  const canReadTriage = usePermiso(PERMISOS_EMERGENCY.triage.read);
-  const canWriteTriage = usePermiso(PERMISOS_EMERGENCY.triage.write);
-  const canReadBeds = usePermiso(PERMISOS_EMERGENCY.beds);
-  const canEditBox = true;
-  const canReadHce = true;
-  const canReadInfo = true;
-
-  const { t } = useTranslation("emergency");
-  useEffect(() => {
-    registerEmergencyNamespace();
-  }, []);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedPatient, setSelectedPatient] =
@@ -444,6 +452,7 @@ export default function MonitorPage() {
       handlePatientClick,
       handleBoxClick,
       handleInfo,
+      t
     ],
   );
 
@@ -451,19 +460,19 @@ export default function MonitorPage() {
     {
       key: "Triage",
       icon: <UiStethoscopeIcon size={17} color="currentColor" />,
-      tooltip: t('MonitorPage.actions.triage'),
+      tooltip: t("MonitorPage.actions.triage"),
       onClick: canWriteTriage ? handleOpenTriageWrite : undefined,
     },
     {
       key: "Reportes",
       icon: <UiPrintingIcon size={17} color="currentColor" />,
-      tooltip: t('MonitorPage.actions.reports'),
+      tooltip: t("MonitorPage.actions.reports"),
       onClick: handleReportes,
     },
     {
       key: "Disponibilidad",
       icon: <UiMedicalRoomIcon size={17} color="currentColor" />,
-      tooltip: t('MonitorPage.actions.availability'),
+      tooltip: t("MonitorPage.actions.availability"),
       onClick: canReadBeds ? handleDisponibilidad : undefined,
     },
   ];
@@ -501,7 +510,7 @@ export default function MonitorPage() {
               actions={actions}
               // onTriaje={canWriteTriage ? handleOpenTriageWrite : undefined}
               onAsignarMedicos={handleOpenAsignarMedicos}
-              labelBtn={t('MonitorPage.AssignDoctorButton')}
+              labelBtn={t("MonitorPage.AssignDoctorButton")}
               // onReportes={handleReportes}
               // onDisponibilidad={canReadBeds ? handleDisponibilidad : undefined}
               // actions={monitorActions}
@@ -524,9 +533,9 @@ export default function MonitorPage() {
             }}
           >
             {monitorLoading ? (
-              <Box sx={{ p: 2 }}>Cargando monitor...</Box>
+              <Box sx={{ p: 2 }}>{t('MonitorPage.loadingMonitor')}</Box>
             ) : monitorError ? (
-              <Box sx={{ p: 2 }}>Error: {monitorError}</Box>
+              <Box sx={{ p: 2 }}>{t('MonitorPage.errorPrefix')} {monitorError}</Box>
             ) : (
               <Box sx={{ flex: 1, minHeight: 0, overflowX: "auto" }}>
                 <GenericTable
@@ -565,8 +574,8 @@ export default function MonitorPage() {
         beds={bedBoard}
         title={
           bedBoardLoading
-            ? "Disponibilidad de camas (cargando...)"
-            : "Disponibilidad de camas"
+            ? t('MonitorPage.bedAvailabilityLoading')
+            : t('MonitorPage.bedAvailability')
         }
       />
 
@@ -633,11 +642,11 @@ export default function MonitorPage() {
       <HceModal
         maxWidth={460}
         open={attentionWarningOpen}
-        title="Paciente aún no cuenta con atención"
-        description="Por favor comunicarse con el medico."
+        title={t('MonitorPage.attentionPendingTitle')}
+        description={t('MonitorPage.attentionPendingDescription')}
         icon={<UiWarningIcon />}
         confirmButton={{
-          label: "Aceptar",
+          label: t('BoxModal.accept'),
           onClick: () => setAttentionWarningOpen(false),
         }}
       />

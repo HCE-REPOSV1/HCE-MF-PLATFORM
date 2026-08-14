@@ -7,7 +7,9 @@ interface SidebarProps {
     opciones?:       OpcionMAC[],
     currentPath?:    string,
     onNavigate?:     (vista: any) => void,
-    onHome?:         () => void
+    onHome?:         () => void,
+    labelHome?:      string,
+    titleOptions?:   string
 }
 
 export default function Sidebar({
@@ -17,7 +19,9 @@ onToggle,
 opciones,
 currentPath,
 onNavigate,
-onHome
+onHome,
+labelHome,
+titleOptions
 }:SidebarProps){
     return(
         <HceSidebar
@@ -29,6 +33,8 @@ onHome
             currentPath={currentPath}
             onNavigate={onNavigate ?? (() => {})}
             onHome={onHome}
+            labelHome={labelHome}
+            titleOptions={titleOptions}
         />
     )
 }
