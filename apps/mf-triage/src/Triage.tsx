@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+﻿import { useState, useCallback, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -28,6 +28,7 @@ import {
   Grid,
   IconButton,
 } from "@hce/design-system";
+import { useTranslation } from "@hce/i18n-core";
 import type {
   TriagePriority,
   SearchOption,
@@ -35,6 +36,7 @@ import type {
 } from "@hce/design-system";
 // import { buscarDiagnosticoMock } from "./mock/triage.mock";
 
+import { registerTriageNamespace } from "./i18n";
 import { usePatient } from "./hooks/usePatient";
 import { useCatalog } from "./hooks/useCatalog";
 import { useTriage } from "./hooks/useTriage";
@@ -57,17 +59,6 @@ const TRIAGE_LEVEL_MAP: Record<TriagePriority, number> = {
   III: 3,
   IV: 4,
 };
-
-const SEARCH_MODES_MOTIVO: any[] = [
-  { value: "cie_description", label: "Por nombre" },
-  { value: "cie_code", label: "CIE-10" },
-];
-
-const SEARCH_MODES_T_ENFERMEDAD: any[] = [
-  { value: "minutos", label: "minutos" },
-  { value: "horas", label: "horas" },
-  { value: "dias", label: "dias" },
-];
 
 const TRIAGE_LEVEL_MAP_REVERSE: Record<number, TriagePriority> = {
   1: "I",
@@ -291,6 +282,12 @@ export function Triage({
   mode = "write",
   triageId,
 }: TriajeModalProps) {
+ 
+
+
+
+  
+
   const readOnly = mode === "read";
   const [form, setForm] = useState<TriajeForm>(INITIAL_FORM);
   const [buscandoPaciente, setBuscandoPaciente] = useState(false);
@@ -371,6 +368,8 @@ export function Triage({
     [],
   );
 
+ 
+
   // IMC calculado
   const imc = (() => {
     const p = parseFloat(form.peso.replace(",", "."));
@@ -426,17 +425,44 @@ export function Triage({
     loadingAgeGroups;
   //Usuario y sede activa (federados desde mf-shell)
   const { user, sedeActual } = useUser();
+
+  const { t, i18n } = useTranslation("triage");
+
+  const localeLabelKey =
+    i18n.resolvedLanguage === "en"
+      ? "display_en"
+      : i18n.resolvedLanguage === "pt"
+        ? "display_pt"
+        : "display_es";
+
+
+  useEffect(() => {
+    registerTriageNamespace();
+  }, []);
+
+
+  const SEARCH_MODES_MOTIVO: { value: string; label: string }[] = [
+    { value: "cie_description", label: t('triage.searchModes.motive.name') },
+    { value: "cie_code", label: "CIE-10" },
+  ];
+
+  const SEARCH_MODES_T_ENFERMEDAD: { value: string; label: string }[] = [
+    { value: "minutos", label: t('triage.searchModes.time.minutes') },
+    { value: "horas", label: t('triage.searchModes.time.hours') },
+    { value: "dias", label: t('triage.searchModes.time.days') },
+  ];
+
   const opcionesRadio = [
-    { value: "S", label: "Si" },
-    { value: "N", label: "No" },
+    { value: "S", label: t("triage.generic.yes") },
+    { value: "N", label: t("triage.generic.no") },
   ];
   const opcionesRadioAlergia = [
-    { value: "S", label: "Si" },
-    { value: "N", label: "Niega alergias" },
+    { value: "S", label: t("triage.generic.yes") },
+    { value: "N", label: t("triage.allergies.rejects") },
   ];
   const opcionesRadioSignosVitales = [
-    { value: true, label: "Trauma Shock" },
-    { value: false, label: "No es posible tomar signos vitales" },
+    { value: true, label: t("triage.vitalSigns.traumaShock") },
+    { value: false, label: t("triage.vitalSigns.notPossible") },
   ];
 
   const [loadingSearchMotivo, setLoadingSearchMotivo] = useState(false);
@@ -464,7 +490,7 @@ export function Triage({
             genders
               .filter((g) => g.is_active)
               .sort((a, b) => a.sort_order - b.sort_order)
-              .map((g) => ({ value: g.code, label: g.display_es })),
+              .map((g) => ({ value: g.code, label: String(g[localeLabelKey as keyof typeof g] ?? g.display_es) })),
           );
         }
 
@@ -473,7 +499,7 @@ export function Triage({
             ageGroups
               .filter((g) => g.is_active)
               .sort((a, b) => a.sort_order - b.sort_order)
-              .map((g) => ({ value: g.code, label: g.display_es })),
+              .map((g) => ({ value: g.code, label: String(g[localeLabelKey as keyof typeof g] ?? g.display_es) })),
           );
         }
 
@@ -492,12 +518,10 @@ export function Triage({
             identifierTypes
               .filter((t) => t.is_active)
               .sort((a, b) => a.sort_order - b.sort_order)
-              .map((t) => ({ value: t.code, label: t.display_es })),
+              .map((t) => ({ value: t.code, label: String(t[localeLabelKey as keyof typeof t] ?? t.display_es) })),
           );
         } else {
-          setLoadError(
-            "No se pudieron cargar los tipos de documento. Recargue el formulario.",
-          );
+          setLoadError(t("errors.catalog.loadIdentifierTypes"));
         }
 
         if (timeUnits && Array.isArray(timeUnits)) {
@@ -508,9 +532,7 @@ export function Triage({
         }
       } catch (err) {
         console.error("Error al cargar información", err);
-        setLoadError(
-          "No se pudo cargar la información de catálogos. Recargue el formulario.",
-        );
+        setLoadError(t("errors.catalog.loadCatalogs"));
       }
     };
 
@@ -525,7 +547,7 @@ export function Triage({
     fetchTriageFull(triageId).then(async (full) => {
       if (cancelled) return;
       if (!full) {
-        setLoadError("No se pudo cargar el triaje solicitado.");
+        setLoadError(t("errors.loadData.title"));
         return;
       }
       if (full.triage) {
@@ -692,27 +714,19 @@ export function Triage({
 
     if (form.noIdentificado) {
       if (!form.sexo || !form.grupoEtario) {
-        setSaveError(
-          "Para un paciente no identificado debe indicar sexo y grupo etario estimado.",
-        );
+        setSaveError(t("errors.validation.unknownPatientMissingFields"));
         return;
       }
     } else if (!patientId) {
-      setSaveError(
-        "Debe buscar un paciente por documento antes de guardar el triaje.",
-      );
+      setSaveError(t("errors.validation.mustSearchPatientBeforeSave"));
       return;
     }
     if (!form.motivoSelected || !form.prioridad) {
-      setSaveError(
-        "El motivo de ingreso y la clasificación de triaje son obligatorios.",
-      );
+      setSaveError(t("errors.validation.requiredReasonAndClassification"));
       return;
     }
     if (!sedeActual) {
-      setSaveError(
-        "No se pudo determinar la sede activa. Vuelva a iniciar sesión.",
-      );
+      setSaveError(t("errors.validation.missingActiveBranch"));
       return;
     }
 
@@ -833,63 +847,64 @@ export function Triage({
     }
     setConfirmCloseOpen(true);
   }
+    
 
   return (
     <Box>
       <LoadingOverlay
         open={formBusy}
-        message={guardandoTriaje ? "Guardando triaje..." : "Cargando..."}
+        message={guardandoTriaje ? t("actions.saving") : t("actions.charge")}
       />
       <HceModal
         maxWidth={460}
         open={modalPacienteNoEncontrado}
-        title="El documento no se ha encontrado."
-        description="Le solicitamos ingresar los datos de manera manual."
+        title={t("errors.patientNotFound.title")}
+        description={t("errors.patientNotFound.description")}
         icon={<UiWarningIcon />}
         confirmButton={{
-          label: "Aceptar",
+          label: t("actions.confirm"),
           onClick: () => setModalPacienteNoEncontrado(false),
         }}
       />
       <HceModal
         maxWidth={460}
         open={!!loadError}
-        title="Error al cargar datos"
+        title={t("errors.loadData.title")}
         description={loadError ?? ""}
         icon={<UiWarningIcon />}
         confirmButton={{
           // Sin datos cargados no queda un formulario válido detrás: al confirmar se
           // cierra todo el modal en vez de dejar el form de lectura vacío/roto abierto.
-          label: "Aceptar",
+          label: t("actions.confirm"),
           onClick: handleClose,
         }}
       />
       <HceModal
         maxWidth={460}
         open={!!saveError}
-        title="No se pudo guardar el triaje"
+        title={t("errors.save.title")}
         description={saveError ?? ""}
         icon={<UiWarningIcon />}
         confirmButton={{
-          label: "Aceptar",
+          label: t("actions.confirm"),
           onClick: () => setSaveError(null),
         }}
       />
       <HceModal
         maxWidth={460}
         open={confirmCloseOpen}
-        title="¿Desea cerrar el formulario?"
-        description="Si cierra la ventana, se perderá la información escrita."
+        title={t("actions.close.title")}
+        description={t("actions.close.description")}
         icon={<UiWarningIcon />}
         confirmButton={{
-          label: "Aceptar",
+          label: t("actions.confirm"),
           onClick: () => {
             setConfirmCloseOpen(false);
             handleClose();
           },
         }}
         cancelButton={{
-          label: "Cancelar",
+          label: t("actions.cancel.editable"),
           onClick: () => setConfirmCloseOpen(false),
         }}
       />
@@ -897,7 +912,7 @@ export function Triage({
         // Con loadError seteado no hay datos válidos que mostrar: se oculta el form
         // completo y queda únicamente la alerta de error visible.
         open={open && !loadError}
-        title={readOnly ? "Triaje — Solo lectura" : "Triaje"}
+        title={readOnly ? t("triage.readonly") : t("triage.title")}
         onClose={handleRequestClose}
         closeOnBackdrop={false}
         maxWidth={1050}
@@ -905,7 +920,7 @@ export function Triage({
           readOnly
             ? undefined
             : {
-                label: "Guardar triaje",
+                label: t("actions.save"),
                 onClick: handleGuardar,
                 color: "var(--ds-color-interactive-button , #0043a5)",
                 icon: <UiDisketteIcon size={16} color="#ffffff" />,
@@ -919,7 +934,7 @@ export function Triage({
               }
         }
         secondaryButton={{
-          label: readOnly ? "Cerrar" : "Cancelar",
+          label: readOnly ? t("actions.cancel.readonly") : t("actions.cancel.editable"),
           onClick: handleRequestClose,
           color: "var(--ds-color-interactive, #0043a5)",
           icon: <CloseIcon size={16} color={"var(--ds-color-interactive, #0043a5)"} />,
@@ -939,7 +954,7 @@ export function Triage({
                 mb: 1.5,
               }}
             >
-              Datos del paciente
+              {t("triage.pacientInfo.title")}
             </Typography>
 
             {/* Búsqueda por documento */}
@@ -959,11 +974,11 @@ export function Triage({
             >
               <Box>
                 <SelectField
-                  label="Tipo de documento *"
+                  label={t("triage.pacientInfo.firstBox.documentType.title")}
                   value={form.tipoDoc}
                   onChange={(v) => set("tipoDoc", v)}
                   options={tipoDocOptions}
-                  placeholder="-Seleccionar opción-"
+                  placeholder={t("triage.pacientInfo.firstBox.documentType.placeholder")}
                   disabled={
                     form.noIdentificado ||
                     !canDatosPacienteTriage ||
@@ -973,10 +988,10 @@ export function Triage({
               </Box>
               <Box sx={{ flex: 1, minWidth: 140 }}>
                 <TextInput
-                  label="Número de documento"
+                  label={t("triage.pacientInfo.firstBox.documentNumber.title")}
                   value={form.numeroDoc}
                   onChange={(v) => set("numeroDoc", v)}
-                  placeholder="Ingrese documento"
+                  placeholder={t("triage.pacientInfo.firstBox.documentNumber.placeholder")}
                   disabled={
                     form.noIdentificado ||
                     !canDatosPacienteTriage ||
@@ -1020,7 +1035,7 @@ export function Triage({
               >
                 <Checkbox
                   disabled={!canDatosPacienteTriage || !enabledPacienteTriage}
-                  label="No identificado"
+                  label={t("triage.pacientInfo.firstBox.noIdentifier")}
                   sideLabel="end"
                   checked={form.noIdentificado}
                   onChange={(v) => {
@@ -1062,31 +1077,31 @@ export function Triage({
                 sx={{ mt: "20px" }}
               >
                 <Grid item xs={12} sm={6} md zeroMinWidth>
-                  <FieldCol label="Documento">
+                  <FieldCol label={t("triage.pacientInfo.firstBox.documentLabel")}>
                     <TextInput value="NI" disabled onChange={() => {}} />
                   </FieldCol>
                 </Grid>
                 <Grid item xs={12} sm={6} md zeroMinWidth>
-                  <FieldCol label="Número de documento">
-                    <TextInput value="XXXXXXXX" disabled onChange={() => {}} />
+                  <FieldCol label={t("triage.pacientInfo.firstBox.documentNumber.title")}>
+                    <TextInput value={t("triage.pacientInfo.firstBox.placeholderDocument")} disabled onChange={() => {}} />
                   </FieldCol>
                 </Grid>
                 <Grid item xs={12} sm={6} md zeroMinWidth>
                   <SelectField
-                    label="Sexo *"
+                    label={t("triage.pacientInfo.secondBox.genderRequired")}
                     value={form.sexo}
                     onChange={(v) => set("sexo", v)}
                     options={genderOptions}
-                    placeholder="-Seleccionar opción-"
+                    placeholder={t("triage.pacientInfo.secondBox.genderPlaceholder")}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6} md zeroMinWidth>
                   <SelectField
-                    label="Grupo etario estimado *"
+                    label={t("triage.pacientInfo.secondBox.ageGroupRequired")}
                     value={form.grupoEtario}
                     onChange={(v) => set("grupoEtario", v)}
                     options={ageGroupOptions}
-                    placeholder="-Seleccionar opción-"
+                    placeholder={t("triage.pacientInfo.secondBox.genderPlaceholder")}
                   />
                 </Grid>
               </Grid>
@@ -1100,43 +1115,43 @@ export function Triage({
               >
                 <Grid item xs={12} sm={6} md zeroMinWidth>
                   <TextInput
-                    label="Nombres"
+                    label={t("triage.pacientInfo.secondBox.firstName.title")}
                     value={form.nombres}
                     onChange={(v) => set("nombres", v)}
-                    placeholder="Ingrese datos"
+                    placeholder={t("triage.pacientInfo.secondBox.firstName.placeholder")}
                     disabled={disableNombres}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6} md zeroMinWidth>
                   <TextInput
-                    label="Apellido Paterno"
+                    label={t("triage.pacientInfo.secondBox.lastName.title")}
                     value={form.apellidoPaterno}
                     onChange={(v) => set("apellidoPaterno", v)}
-                    placeholder="Ingrese datos"
+                    placeholder={t("triage.pacientInfo.secondBox.lastName.placeholder")}
                     disabled={disableApellidoPaterno}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6} md zeroMinWidth>
                   <TextInput
-                    label="Apellido Materno"
+                    label={t("triage.pacientInfo.secondBox.secondLastName.title")}
                     value={form.apellidoMaterno}
                     onChange={(v) => set("apellidoMaterno", v)}
-                    placeholder="Ingrese datos"
+                    placeholder={t("triage.pacientInfo.secondBox.secondLastName.placeholder")}
                     disabled={disableApellidoMaterno}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6} md zeroMinWidth>
                   {pacienteNoEncontrado ? (
                     <TextInput
-                      label="Fecha de nacimiento"
+                      label={t("triage.pacientInfo.secondBox.birthDate.title")}
                       value={form.fechaNacimiento}
                       onChange={(v) => set("fechaNacimiento", v)}
-                      placeholder="dd-mm-yyyy"
+                      placeholder={t("triage.pacientInfo.secondBox.birthDate.placeholder")}
                       disabled={disableFechaNacimiento}
                     />
                   ) : (
                     <DatePicker
-                      label="Fecha de nacimiento"
+                      label={t("triage.pacientInfo.secondBox.birthDate.title")}
                       value={form.fechaNacimiento}
                       onChange={(v) => set("fechaNacimiento", v)}
                       disabled={disableFechaNacimiento}
@@ -1149,11 +1164,11 @@ export function Triage({
                     resto del form). */}
                 <Grid item xs={12} sm={6} md zeroMinWidth>
                   <SelectField
-                    label="Sexo"
+                    label={t("triage.pacientInfo.secondBox.gender.title")}
                     value={form.sexo}
                     onChange={(v) => set("sexo", v)}
                     options={genderOptions}
-                    placeholder="Ingrese datos"
+                    placeholder={t("triage.pacientInfo.secondBox.gender.placeholder")}
                     disabled={disableSexo}
                   />
                 </Grid>
@@ -1164,7 +1179,7 @@ export function Triage({
           {/* ── Sección 2: Datos clínicos (colapsable) ────────────────────── */}
           <Box>
             <SectionHeader
-              title="Datos clínicos"
+              title={t("triage.clinicInfo.title")}
               expanded={expDatosClinicos}
               onToggle={() => setExpDatosClinicos((e) => !e)}
             />
@@ -1181,7 +1196,7 @@ export function Triage({
                 <SearchComboInput
                   modes={SEARCH_MODES_MOTIVO}
                   loading={loadingSearchMotivo}
-                  label="Motivo de ingreso *"
+                  label={t("triage.clinicInfo.reasonOfAdmission.label")}
                   searchMode={form.modoMotivo}
                   onSearchModeChange={(m) => {
                     set("modoMotivo", m);
@@ -1201,7 +1216,7 @@ export function Triage({
                   disabled={
                     !canDatosClinicosTriage || !enabledDatosClinicosTriage
                   }
-                  placeholder="Ingrese texto"
+                  placeholder={t("triage.clinicInfo.reasonOfAdmission.placeholder")}
                 />
 
                 {/* Aislamiento + Gestante + FUR + Tiempo de enfermedad.
@@ -1223,7 +1238,7 @@ export function Triage({
                   <Grid item xs={12} sm={6} md={2} zeroMinWidth>
                     <Box sx={{ width: "100%" }}>
                       <RadioGroup
-                        legend="Aislamiento"
+                        legend={t("triage.clinicInfo.isolation")}
                         value={form.aislamiento}
                         options={opcionesRadio}
                         onChange={(v) => set("aislamiento", v)}
@@ -1236,7 +1251,7 @@ export function Triage({
                   <Grid item xs={12} sm={6} md={2} zeroMinWidth>
                     <Box sx={{ width: "100%" }}>
                       <RadioGroup
-                        legend="Gestante"
+                        legend={t("triage.clinicInfo.pregnant")}
                         value={form.gestante}
                         options={opcionesRadio}
                         onChange={(v) => set("gestante", v)}
@@ -1285,7 +1300,7 @@ export function Triage({
                       <Grid item xs={12} sm={8} md={8} zeroMinWidth>
                         <FieldCol minWidth={10}>
                           <DatePicker
-                            label="Fecha FUR"
+                            label={t("triage.clinicInfo.fur.label")}
                             value={form.fur}
                             onChange={(v) => set("fur", v)}
                             disabled={
@@ -1305,7 +1320,7 @@ export function Triage({
                         <Box sx={{ display: "flex", width: "100%" }}>
                           <SearchComboInput
                             modes={SEARCH_MODES_T_ENFERMEDAD}
-                            label="T. de enfermedad"
+                            label={t("triage.clinicInfo.timeOfIllness.label")}
                             onSearchModeChange={(m) => {
                               set("tiempoUnidad", m);
                             }}
@@ -1320,7 +1335,7 @@ export function Triage({
                               !enabledDatosClinicosTriage
                             }
                             modePosition="right"
-                            placeholder="Ej:12"
+                            placeholder={t("triage.clinicInfo.timeOfIllness.placeholder")}
                           />
                         </Box>
                       </FieldCol>
@@ -1329,11 +1344,11 @@ export function Triage({
                 </Grid>
                 <Box sx={{ mt: "24px" }}>
                   <TextareaField
-                    label="Comentarios"
+                    label={t("triage.clinicInfo.comments.label")}
                     value={form.comentarios}
                     onChange={(v) => set("comentarios", v)}
                     maxLength={100}
-                    placeholder="Ingrese comentarios"
+                    placeholder={t("triage.clinicInfo.comments.placeholder")}
                     disabled={
                       !canDatosClinicosTriage || !enabledDatosClinicosTriage
                     }
@@ -1373,10 +1388,10 @@ export function Triage({
                   </Grid>
                   <Grid item xs={12} sm={3} md={2} zeroMinWidth>
                     <NumericField
-                      label="Peso"
+                      label={t("triage.vitalSigns.weight.label")}
                       value={form.peso}
                       onChange={(v) => set("peso", v)}
-                      suffix="Kg"
+                      suffix={t("triage.vitalSigns.weight.suffix")}
                       numberType="decimal"
                       disabled={
                         !canSignosVitalesTriage || !enabledSignosVitalesTriage
@@ -1385,10 +1400,10 @@ export function Triage({
                   </Grid>
                   <Grid item xs={12} sm={3} md={2} zeroMinWidth>
                     <NumericField
-                      label="Talla"
+                      label={t("triage.vitalSigns.height.label")}
                       value={form.talla}
                       onChange={(v) => set("talla", v)}
-                      suffix="cm"
+                      suffix={t("triage.vitalSigns.height.suffix")}
                       numberType="natural"
                       disabled={
                         !canSignosVitalesTriage || !enabledSignosVitalesTriage
@@ -1397,9 +1412,9 @@ export function Triage({
                   </Grid>
                   <Grid item xs={12} sm={3} md={2} zeroMinWidth>
                     <NumericField
-                      label="IMC"
+                      label={t("triage.vitalSigns.bmi.label")}
                       value={imc}
-                      suffix=""
+                      suffix={t("triage.vitalSigns.bmi.suffix")}
                       readOnly
                       disabled={
                         !canSignosVitalesTriage || !enabledSignosVitalesTriage
@@ -1418,38 +1433,38 @@ export function Triage({
                   {[
                     {
                       key: "frCardiaca",
-                      label: "Fr. Cardiaca",
-                      suffix: "LPM",
+                      label: t("triage.vitalSigns.heartRate.label"),
+                      suffix: t("triage.vitalSigns.heartRate.suffix"),
                       numberType: "natural" as const,
                     },
                     {
                       key: "frRespiratoria",
-                      label: "Fr. Respiratoria",
-                      suffix: "RPM",
+                      label: t("triage.vitalSigns.respiratoryRate.label"),
+                      suffix: t("triage.vitalSigns.respiratoryRate.suffix"),
                       numberType: "natural" as const,
                     },
                     {
                       key: "pSistolica",
-                      label: "P. Sistólica",
-                      suffix: "mmHg",
+                      label: t("triage.vitalSigns.systolic.label"),
+                      suffix: t("triage.vitalSigns.systolic.suffix"),
                       numberType: "natural" as const,
                     },
                     {
                       key: "pDiastolica",
-                      label: "P. Diastólica",
-                      suffix: "mmHg",
+                      label: t("triage.vitalSigns.diastolic.label"),
+                      suffix: t("triage.vitalSigns.diastolic.suffix"),
                       numberType: "natural" as const,
                     },
                     {
                       key: "temperatura",
-                      label: "Temperatura",
-                      suffix: "°C",
+                      label: t("triage.vitalSigns.temperature.label"),
+                      suffix: t("triage.vitalSigns.temperature.suffix"),
                       numberType: "decimal" as const,
                     },
                     {
                       key: "saturacionO2",
-                      label: "Saturación O2",
-                      suffix: "%",
+                      label: t("triage.vitalSigns.oxygenSaturation.label"),
+                      suffix: t("triage.vitalSigns.oxygenSaturation.suffix"),
                       numberType: "natural" as const,
                     },
                   ].map((f) => (
@@ -1503,7 +1518,7 @@ export function Triage({
                         color: "var(--ds-color-interactive, #0043a5)",
                       }}
                     >
-                      Escala de Glasgow
+                      {t("triage.vitalSigns.glasgow.title")}
                     </Box>
                     <Grid
                       container
@@ -1520,9 +1535,9 @@ export function Triage({
                             }
                             label={
                               {
-                                ocular: "R. Ocular",
-                                verbal: "R. Verbal",
-                                motora: "R. Motora",
+                                ocular: t("triage.vitalSigns.glasgow.ocular"),
+                                verbal: t("triage.vitalSigns.glasgow.verbal"),
+                                motora: t("triage.vitalSigns.glasgow.motor"),
                               }[key]
                             }
                             value={form.glasgow[key]}
@@ -1550,9 +1565,9 @@ export function Triage({
                           implícito de MUI Grid v2 en vez de alinearse con sus 3 hermanos. */}
                       <Grid item xs={12} sm={3} md={3} zeroMinWidth>
                         <NumericField
-                          label="Resultado"
+                          label={t("triage.vitalSigns.glasgow.result.label")}
                           value={String(glasgowTotal)}
-                          suffix="pts"
+                          suffix={t("triage.vitalSigns.glasgow.result.suffix")}
                           readOnly
                           disabled={
                             !canSignosVitalesTriage ||
@@ -1585,7 +1600,7 @@ export function Triage({
                         color: "var(--ds-color-interactive, #0043a5)",
                       }}
                     >
-                      FAST
+                      {t("triage.vitalSigns.fast.title")}
                     </Box>
                     <Grid
                       container
@@ -1610,10 +1625,10 @@ export function Triage({
                               }
                               label={
                                 {
-                                  cara: "Cara",
-                                  brazos: "Brazos",
-                                  habla: "Habla",
-                                  tiempo: "Tiempo",
+                                  cara: t("triage.vitalSigns.fast.face"),
+                                  brazos: t("triage.vitalSigns.fast.arms"),
+                                  habla: t("triage.vitalSigns.fast.speech"),
+                                  tiempo: t("triage.vitalSigns.fast.time"),
                                 }[key]
                               }
                               value={form.fast[key]}
@@ -1621,8 +1636,8 @@ export function Triage({
                                 set("fast", { ...form.fast, [key]: v })
                               }
                               options={[
-                                { value: "No", label: "No" },
-                                { value: "Sí", label: "Sí" },
+                                { value: t("triage.vitalSigns.fast.no"), label: t("triage.vitalSigns.fast.no") },
+                                { value: t("triage.vitalSigns.fast.yes"), label: t("triage.vitalSigns.fast.yes") },
                               ]}
                             />
                           </Grid>
@@ -1638,7 +1653,7 @@ export function Triage({
           {/* ── Sección 4: Declaratoria de alergias (colapsable) ──────────── */}
           <Box>
             <SectionHeader
-              title="Declaratoria de alergias"
+              title={t("triage.allergies.title")}
               expanded={expAlergias}
               onToggle={() => setExpAlergias((e) => !e)}
             />
@@ -1676,7 +1691,7 @@ export function Triage({
                         form.tieneAlergia == "N"
                       }
                       options={optionsActivePrinciples}
-                      label="Principio activo"
+                      label={t("triage.allergies.activePrinciple")}
                       value={valuePrincipioActivo}
                       onChange={setValuePrincipioActivo}
                     />
@@ -1684,11 +1699,11 @@ export function Triage({
                 </Grid>
                 <Box sx={{ mt: "20px" }}>
                   <TextareaField
-                    label="Alimentos"
+                    label={t("triage.allergies.foods.label")}
                     value={form.alimentos}
                     onChange={(v) => set("alimentos", v)}
                     maxLength={100}
-                    placeholder="Describa alergias alimentarias"
+                    placeholder={t("triage.allergies.foods.placeholder")}
                     disabled={
                       !canAlergiasTriage ||
                       !enabledAlergiasTriage ||
@@ -1698,11 +1713,11 @@ export function Triage({
                 </Box>
                 <Box sx={{ mt: "20px" }}>
                   <TextareaField
-                    label="Otros"
+                    label={t("triage.allergies.others.label")}
                     value={form.otrosAlergias}
                     onChange={(v) => set("otrosAlergias", v)}
                     maxLength={100}
-                    placeholder="Otros tipos de alergia"
+                    placeholder={t("triage.allergies.others.placeholder")}
                     disabled={
                       !canAlergiasTriage ||
                       !enabledAlergiasTriage ||
@@ -1717,7 +1732,7 @@ export function Triage({
           {/* ── Sección 5: Escala EVA (colapsable) ───────────────────────── */}
           <Box>
             <SectionHeader
-              title="Escala de dolor (EVA)"
+              title={t("triage.painScale.title")}
               expanded={expEva}
               onToggle={() => setExpEva((e) => !e)}
             />
@@ -1735,7 +1750,7 @@ export function Triage({
           {/* ── Sección 6: Clasificación de triaje (colapsable) ───────────── */}
           <Box>
             <SectionHeader
-              title="Clasificación de triaje"
+              title={t("triage.classification.title")}
               expanded={expTriaje}
               onToggle={() => setExpTriaje((e) => !e)}
             />
@@ -1760,3 +1775,6 @@ export function Triage({
 }
 
 export default Triage;
+
+
+
