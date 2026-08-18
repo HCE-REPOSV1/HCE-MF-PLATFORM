@@ -5,6 +5,49 @@
       "reports": "Report",
       "availability": "Bed Availability"
     },
-    "AssignDoctorButton": "Asignar médico"
+    "AssignDoctorButton": "Asignar médico",
+    "dataTableMonitor": {
+      "colPriority": "Prioridad",
+      "colBox": "Box",
+      "colDocumentNumber": "N.Documento",
+      "colPatient": "Paciente",
+      "colAge": "Edad",
+      "colGender": "Sexo",
+      "colDoctor": "Médico",
+      "colLaboratory": "Lab",
+      "colImage": "Img",
+      "colMedicalIndication": "Indc. Med.",
+      "colConsultation": "Interc.",
+      "colAttention": "Atención",
+      "colInformation": "Info"
+    },
+    "bedAvailability": "Disponibilidad de camas",
+    "bedAvailabilityLoading": "Disponibilidad de camas (cargando...)",
+    "loadingMonitor": "Cargando monitor...",
+    "errorPrefix": "Error:",
+    "attentionPendingTitle": "Paciente aún no cuenta con atención",
+    "attentionPendingDescription": "Por favor comunicarse con el médico."
+  },
+  "BoxModal": {
+    "titleAssign": "Asignación de box",
+    "titleChange": "Cambio de box",
+    "contentTitle": "Cambio de camas entre servicio",
+    "savedSuccessTitle": "Cambio guardado con éxito",
+    "accept": "Aceptar",
+    "saving": "Guardando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "loadingPatient": "Cargando información del paciente",
+    "patientLabel": "Paciente:",
+    "bedsLabel": "Camas disponibles",
+    "loadingBedsPlaceholder": "-Cargando camas-",
+    "noBedsPlaceholder": "-No hay camas disponibles-",
+    "selectPlaceholder": "-Seleccionar opción-",
+    "errors": {
+      "noSede": "No se encontró la sede para cargar camas disponibles",
+      "loadBedsFailed": "No se pudieron cargar las camas disponibles",
+      "assignFailed": "No se pudo asignar la cama",
+      "refreshFailed": "No se pudo refrescar la información"
+    }
   }
 }

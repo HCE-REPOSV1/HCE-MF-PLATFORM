@@ -1,0 +1,12 @@
+{
+    "title":"Clinical Record",
+    "labelCloseSesion": "Close Session",
+    "breadcrumb": {
+        "home": "Home",
+        "emergency": "Emergency",
+        "clinicalRecord": "ClinicalRecord",
+        "hospital": "Hospital",
+        "ambulatory": "Ambulatory",
+        "audit":"Audit"
+    }
+}

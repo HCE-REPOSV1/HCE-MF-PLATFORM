@@ -1,21 +1,19 @@
 import "./layout.css";
-import { useState, useEffect, lazy, useMemo } from "react";
+import { useState, useEffect, lazy } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import {
-  HceModal,
-  UiWarningIcon,
-  useMediaQuery
-} from "@hce/design-system";
+import { HceModal, UiWarningIcon, useMediaQuery } from "@hce/design-system";
 import { useUser } from "./context/UserContext";
-import { buildSidebarOpciones } from "./config/sidebarConfig";
+import { useSidebarOpciones } from "./config/sidebarConfig";
+import { useTranslation } from "@hce/i18n-core";
+import { registerShellNamespace } from "./i18n";
 
 const SIDEBAR_LEFT = 12; // padding izquierdo de la fila central (desktop)
 const SIDEBAR_TOP = 12; // padding superior de la fila central
 const CONTENT_GAP = 8; // gap entre sidebar y columna de contenido (desktop)
 
-const Header  = lazy(() => import("header/Header"));
+const Header = lazy(() => import("header/Header"));
 const Sidebar = lazy(() => import("sidebar/Sidebar"));
-const Footer  = lazy(() => import("footer/Footer"));
+const Footer = lazy(() => import("footer/Footer"));
 // ─────────────────────────────────────────────────────────
 export default function AppLayout() {
   const navigate = useNavigate();
@@ -34,13 +32,19 @@ export default function AppLayout() {
     if (!isMobile) setMobileOpen(false);
   }, [isMobile]);
 
-  const { user, hasPermission, sede, setSede, logout, loading, sucursalesDisponibles } = useUser();
+  const {
+    user,
+    hasPermission,
+    sede,
+    setSede,
+    logout,
+    loading,
+    sucursalesDisponibles,
+  } = useUser();
 
   // Construye los items del sidebar desde el sidebarConfig + hasPermission (vía macMapping).
-  const sidebarOpciones = useMemo(
-    () => buildSidebarOpciones(hasPermission),
-    [hasPermission]
-  );
+
+  const sidebarOpciones = useSidebarOpciones(hasPermission);
 
   // sucursalesDisponibles viene ya procesado desde UserContext (MAC → sedeMapping → org locations)
   const sucursales = sucursalesDisponibles;
@@ -60,7 +64,6 @@ export default function AppLayout() {
       return;
     }
     setSinPermisosModal(false);
-
   }, [user, loading, sidebarOpciones]);
 
   const handleSinSedesAceptar = async () => {
@@ -81,6 +84,12 @@ export default function AppLayout() {
   };
 
   const closeMobileSidebar = () => setMobileOpen(false);
+
+  const { t } = useTranslation("shell");
+
+  useEffect(() => {
+    registerShellNamespace();
+  }, []);
 
   return (
     /*
@@ -176,6 +185,8 @@ export default function AppLayout() {
                 closeMobileSidebar();
                 navigate("/home");
               }}
+              labelHome={t("optHome")}
+              titleOptions={t("titleOptions")}
             ></Sidebar>
           </div>
         </>
@@ -197,20 +208,22 @@ export default function AppLayout() {
         {/* SIDEBAR DESKTOP — en flujo normal, oculto en mobile */}
         {!isMobile && (
           <Sidebar
-              multiLevel={false}
-              collapsed={collapsed}
-              onToggle={() => setCollapsed((prev) => !prev)}
-              opciones={sidebarOpciones}
-              currentPath={location.pathname}
-              onNavigate={(vista) => {
-                closeMobileSidebar();
-                if (vista) navigate(vista);
-              }}
-              onHome={() => {
-                closeMobileSidebar();
-                navigate("/home");
-              }}
-            ></Sidebar>
+            multiLevel={false}
+            collapsed={collapsed}
+            onToggle={() => setCollapsed((prev) => !prev)}
+            opciones={sidebarOpciones}
+            currentPath={location.pathname}
+            onNavigate={(vista) => {
+              closeMobileSidebar();
+              if (vista) navigate(vista);
+            }}
+            onHome={() => {
+              closeMobileSidebar();
+              navigate("/home");
+            }}
+            labelHome={t("optHome")}
+            titleOptions={t("titleOptions")}
+          ></Sidebar>
         )}
 
         {/* COLUMNA DERECHA: header + contenido */}
@@ -243,7 +256,7 @@ export default function AppLayout() {
       </div>
 
       {/* ── FOOTER — ancho completo fuera de la fila ────────────────── */}
-      <Footer/>
+      <Footer />
     </div>
   );
 }
