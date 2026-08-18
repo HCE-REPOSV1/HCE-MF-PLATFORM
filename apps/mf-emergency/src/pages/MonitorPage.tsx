@@ -53,7 +53,6 @@ import { useTranslation } from "@hce/i18n-core";
 
 const PAGE_SIZE = 10;
 
-
 const Triage = lazy(() => import("triage/Triage"));
 
 export default function MonitorPage() {
@@ -64,173 +63,172 @@ export default function MonitorPage() {
   const canReadHce = true;
   const canReadInfo = true;
 
+  registerEmergencyNamespace();
   const { t } = useTranslation("emergency");
-  useEffect(() => {
-    registerEmergencyNamespace();
-  }, []);
-
+  
   const createMonitorDskColumns = ({
-  canReadTriage,
-  canEditBox,
-  canReadHce,
-  canReadInfo,
-  onOpenTriage,
-  onOpenHce,
-  onOpenBox,
-  onOpenInfo,
-}: {
-  canReadTriage: boolean;
-  canEditBox: boolean;
-  canReadHce: boolean;
-  canReadInfo: boolean;
-  onOpenTriage: (row: MonitorTableRow) => void;
-  onOpenHce: (row: MonitorTableRow) => void;
-  onOpenBox: (row: MonitorTableRow) => void;
-  onOpenInfo: (row: MonitorTableRow) => void;
-}): GenericTableColumn<MonitorTableRow>[] => [
-  {
-    key: "priority",
-    header: t('MonitorPage.dataTableMonitor.colPriority'),
-    type: "priority",
-    field: "priority",
-    width: 100,
-    maxWidth: 100,
-    align: "center",
-    clickable: true,
-    // Solo se puede abrir el triaje (modo lectura) desde este campo, y solo si la fila
-    // ya tiene un triage_id vinculado — sin eso no hay nada que cargar.
-    disabledGetter: (row) =>
-      !canReadTriage || row.triage_id == null || row.priority == "none",
-    onClick: (row) => onOpenTriage(row),
-  },
-  {
-    key: "box",
-    header: t('MonitorPage.dataTableMonitor.colBox'),
-    type: "box",
-    field: "box",
-    width: 100,
-    maxWidth: 170,
-    align: "center",
-    clickable: true,
-    disabledGetter: () => !canEditBox,
-    onClick: (row) => onOpenBox(row),
-  },
-  {
-    key: "document",
-    header: t('MonitorPage.dataTableMonitor.colDocumentNumber'),
-    type: "text",
-    width: 100,
-    valueGetter: (row) =>
-      row.is_vip ? row.document_number_masked : row.document_number,
-    boldGetter: (row) => row.has_discharge,
-  },
-  {
-    key: "patient",
-    header: t('MonitorPage.dataTableMonitor.colPatient'),
-    type: "patient-name",
-    width: 200,
-    align: "left",
-    clickable: true,
-    valueGetter: (row) =>
-      row.is_vip ? row.patient_name_masked : row.patient_name,
-    disabledGetter: (row) => !canReadHce || !row.physician_assigned,
-    boldGetter: (row) => row.has_discharge,
-    onClick: (row) => onOpenHce(row),
-    cellSx: {
-      padding: "0 12px",
+    canReadTriage,
+    canEditBox,
+    canReadHce,
+    canReadInfo,
+    onOpenTriage,
+    onOpenHce,
+    onOpenBox,
+    onOpenInfo,
+  }: {
+    canReadTriage: boolean;
+    canEditBox: boolean;
+    canReadHce: boolean;
+    canReadInfo: boolean;
+    onOpenTriage: (row: MonitorTableRow) => void;
+    onOpenHce: (row: MonitorTableRow) => void;
+    onOpenBox: (row: MonitorTableRow) => void;
+    onOpenInfo: (row: MonitorTableRow) => void;
+  }): GenericTableColumn<MonitorTableRow>[] => [
+    {
+      key: "priority",
+      header: t("MonitorPage.dataTableMonitor.colPriority"),
+      type: "priority",
+      field: "priority",
+      width: 100,
+      maxWidth: 100,
+      align: "center",
+      clickable: true,
+      // Solo se puede abrir el triaje (modo lectura) desde este campo, y solo si la fila
+      // ya tiene un triage_id vinculado — sin eso no hay nada que cargar.
+      disabledGetter: (row) =>
+        !canReadTriage || row.triage_id == null || row.priority == "none",
+      onClick: (row) => onOpenTriage(row),
     },
-  },
-  {
-    key: "age",
-    header: t('MonitorPage.dataTableMonitor.colAge'),
-    type: "text",
-    field: "age",
-    width: 70,
-    maxWidth: 70,
-    align: "center",
-    boldGetter: (row) => row.has_discharge,
-  },
-  {
-    key: "sex",
-    header: t('MonitorPage.dataTableMonitor.colGender'),
-    type: "text",
-    field: "sex",
-    width: 70,
-    maxWidth: 70,
-    align: "center",
-    boldGetter: (row) => row.has_discharge,
-  },
-  {
-    key: "doctor",
-    header: t('MonitorPage.dataTableMonitor.colDoctor'),
-    type: "text",
-    field: "physician_name_display",
-    width: 200,
-    align: "left",
-    boldGetter: (row) => row.has_discharge,
-  },
-  {
-    key: "lab",
-    header: t('MonitorPage.dataTableMonitor.colLaboratory'),
-    type: "clinical-status",
-    field: "lab",
-    clinicalIcon: "lab",
-    width: 60,
-    maxWidth: 60,
-    align: "center",
-  },
-  {
-    key: "img",
-    header: t('MonitorPage.dataTableMonitor.colImage'),
-    type: "clinical-status",
-    field: "img",
-    clinicalIcon: "img",
-    width: 60,
-    maxWidth: 60,
-    align: "center",
-  },
-  {
-    key: "indication",
-    header: t('MonitorPage.dataTableMonitor.colMedicalIndication'),
-    type: "clinical-status",
-    field: "indication",
-    clinicalIcon: "indication",
-    width: 70,
-    maxWidth: 70,
-    align: "center",
-  },
-  {
-    key: "interconsult",
-    header: t('MonitorPage.dataTableMonitor.colConsultation'),
-    type: "clinical-status",
-    field: "interconsult",
-    clinicalIcon: "interconsult",
-    width: 80,
-    maxWidth: 80,
-    align: "center",
-    clickable: true,
-    onClick: (row) => onOpenInfo(row),
-  },
-  {
-    key: "attentionCode",
-    header: t('MonitorPage.dataTableMonitor.colAttention'),
-    type: "attention-code",
-    field: "attention_id",
-    width: 90,
-    maxWidth: 90,
-  },
-  {
-    key: "info",
-    header: t('MonitorPage.dataTableMonitor.colInformation'),
-    type: "info-button",
-    width: 60,
-    maxWidth: 60,
-    align: "center",
-    clickable: true,
-    disabledGetter: (row) => !canReadInfo || row.box.stage === "ESPERA",
-    onClick: (row) => onOpenInfo(row),
-  },
-];
+    {
+      key: "box",
+      header: t("MonitorPage.dataTableMonitor.colBox"),
+      type: "box",
+      field: "box",
+      width: 100,
+      maxWidth: 170,
+      align: "center",
+      clickable: true,
+      disabledGetter: () => !canEditBox,
+      onClick: (row) => onOpenBox(row),
+    },
+    {
+      key: "document",
+      header: t("MonitorPage.dataTableMonitor.colDocumentNumber"),
+      type: "text",
+      width: 100,
+      valueGetter: (row) =>
+        row.is_vip ? row.document_number_masked : row.document_number,
+      boldGetter: (row) => row.has_discharge,
+    },
+    {
+      key: "patient",
+      header: t("MonitorPage.dataTableMonitor.colPatient"),
+      type: "patient-name",
+      width: 200,
+      align: "left",
+      clickable: true,
+      valueGetter: (row) =>
+        row.is_vip ? row.patient_name_masked : row.patient_name,
+      disabledGetter: (row) => !canReadHce || !row.physician_assigned,
+      boldGetter: (row) => row.has_discharge,
+      onClick: (row) => onOpenHce(row),
+      cellSx: {
+        padding: "0 12px",
+      },
+    },
+    {
+      key: "age",
+      header: t("MonitorPage.dataTableMonitor.colAge"),
+      type: "text",
+      field: "age",
+      width: 70,
+      maxWidth: 70,
+      align: "center",
+      boldGetter: (row) => row.has_discharge,
+    },
+    {
+      key: "sex",
+      header: t("MonitorPage.dataTableMonitor.colGender"),
+      type: "text",
+      field: "sex",
+      width: 70,
+      maxWidth: 70,
+      align: "center",
+      boldGetter: (row) => row.has_discharge,
+    },
+    {
+      key: "doctor",
+      header: t("MonitorPage.dataTableMonitor.colDoctor"),
+      type: "text",
+      field: "physician_name_display",
+      width: 200,
+      align: "left",
+      boldGetter: (row) => row.has_discharge,
+    },
+    {
+      key: "lab",
+      header: t("MonitorPage.dataTableMonitor.colLaboratory"),
+      type: "clinical-status",
+      field: "lab",
+      clinicalIcon: "lab",
+      width: 60,
+      maxWidth: 60,
+      align: "center",
+    },
+    {
+      key: "img",
+      header: t("MonitorPage.dataTableMonitor.colImage"),
+      type: "clinical-status",
+      field: "img",
+      clinicalIcon: "img",
+      width: 60,
+      maxWidth: 60,
+      align: "center",
+    },
+    {
+      key: "indication",
+      header: t("MonitorPage.dataTableMonitor.colMedicalIndication"),
+      type: "clinical-status",
+      field: "indication",
+      clinicalIcon: "indication",
+      width: 70,
+      maxWidth: 70,
+      align: "center",
+    },
+    {
+      key: "interconsult",
+      header: t("MonitorPage.dataTableMonitor.colConsultation"),
+      type: "clinical-status",
+      field: "interconsult",
+      clinicalIcon: "interconsult",
+      width: 80,
+      maxWidth: 80,
+      align: "center",
+      clickable: true,
+      onClick: (row) => onOpenInfo(row),
+    },
+    {
+      key: "attentionCode",
+      header: t("MonitorPage.dataTableMonitor.colAttention"),
+      type: "attention-code",
+      field: "attention_id",
+      width: 90,
+      maxWidth: 90,
+    },
+    {
+      key: "info",
+      header: t("MonitorPage.dataTableMonitor.colInformation"),
+      type: "info-button",
+      width: 60,
+      maxWidth: 60,
+      align: "center",
+      clickable: true,
+      disabledGetter: (row) => !canReadInfo || row.box.stage === "ESPERA",
+      onClick: (row) => onOpenInfo(row),
+      tooltip: t("MonitorPage.infoButtonTooltip"),
+    },
+  ];
 
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedPatient, setSelectedPatient] =
@@ -452,7 +450,7 @@ export default function MonitorPage() {
       handlePatientClick,
       handleBoxClick,
       handleInfo,
-      t
+      t,
     ],
   );
 
@@ -533,9 +531,11 @@ export default function MonitorPage() {
             }}
           >
             {monitorLoading ? (
-              <Box sx={{ p: 2 }}>{t('MonitorPage.loadingMonitor')}</Box>
+              <Box sx={{ p: 2 }}>{t("MonitorPage.loadingMonitor")}</Box>
             ) : monitorError ? (
-              <Box sx={{ p: 2 }}>{t('MonitorPage.errorPrefix')} {monitorError}</Box>
+              <Box sx={{ p: 2 }}>
+                {t("MonitorPage.errorPrefix")} {monitorError}
+              </Box>
             ) : (
               <Box sx={{ flex: 1, minHeight: 0, overflowX: "auto" }}>
                 <GenericTable
@@ -574,8 +574,8 @@ export default function MonitorPage() {
         beds={bedBoard}
         title={
           bedBoardLoading
-            ? t('MonitorPage.bedAvailabilityLoading')
-            : t('MonitorPage.bedAvailability')
+            ? t("MonitorPage.bedAvailabilityLoading")
+            : t("MonitorPage.bedAvailability")
         }
       />
 
@@ -642,11 +642,11 @@ export default function MonitorPage() {
       <HceModal
         maxWidth={460}
         open={attentionWarningOpen}
-        title={t('MonitorPage.attentionPendingTitle')}
-        description={t('MonitorPage.attentionPendingDescription')}
+        title={t("MonitorPage.attentionPendingTitle")}
+        description={t("MonitorPage.attentionPendingDescription")}
         icon={<UiWarningIcon />}
         confirmButton={{
-          label: t('BoxModal.accept'),
+          label: t("BoxModal.accept"),
           onClick: () => setAttentionWarningOpen(false),
         }}
       />
