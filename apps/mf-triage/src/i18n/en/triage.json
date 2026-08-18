@@ -1,0 +1,216 @@
+{
+  "triage": {
+    "title": "Triage",
+    "readonly": "Triage — Read only",
+    "pacientInfo": {
+      "title": "Patient data",
+      "firstBox": {
+        "documentType": {
+          "title": "Document type *",
+          "placeholder": "Select document type"
+        },
+        "documentNumber": {
+          "title": "Document number",
+          "placeholder": "Enter document number"
+        },
+        "searchButton": "Search",
+        "noIdentifier": "Unidentified",
+        "documentLabel": "Document",
+        "placeholderDocument": "XXXXXXXX"
+      },
+      "secondBox": {
+        "firstName": {
+          "title": "First name",
+          "placeholder": "Enter data"
+        },
+        "lastName": {
+          "title": "Father's last name",
+          "placeholder": "Enter data"
+        },
+        "secondLastName": {
+          "title": "Mother's last name",
+          "placeholder": "Enter data"
+        },
+        "birthDate": {
+          "title": "Date of birth",
+          "placeholder": "dd-mm-yyyy"
+        },
+        "gender": {
+          "title": "Sex",
+          "placeholder": "Enter data"
+        },
+        "genderRequired": "Sex *",
+        "ageGroupRequired": "Estimated age group *",
+        "genderPlaceholder": "-Select an option-",
+        "birthDateRequired": "Date of birth *",
+        "birthDatePlaceholder": "dd/mm/yyyy"
+      }
+    },
+    "clinicInfo": {
+      "title": "Clinical data",
+      "reasonOfAdmission": {
+        "label": "Reason for admission *",
+        "placeholder": "Enter text"
+      },
+      "isolation": "Isolation",
+      "pregnant": "Pregnant",
+      "fur": {
+        "label": "FUR date",
+        "placeholder": "Select date"
+      },
+      "timeOfIllness": {
+        "label": "Illness duration",
+        "placeholder": "Ex:12"
+      },
+      "comments": {
+        "label": "Comments",
+        "placeholder": "Enter comments"
+      }
+    },
+    "vitalSigns": {
+      "title": "Vital signs",
+      "traumaShock": "Trauma / Shock",
+      "notPossible": "It is not possible to take vital signs",
+      "weight": {
+        "label": "Weight",
+        "suffix": "Kg"
+      },
+      "height": {
+        "label": "Height",
+        "suffix": "cm"
+      },
+      "bmi": {
+        "label": "BMI",
+        "suffix": ""
+      },
+      "heartRate": {
+        "label": "Heart rate",
+        "suffix": "BPM"
+      },
+      "respiratoryRate": {
+        "label": "Respiratory rate",
+        "suffix": "RPM"
+      },
+      "systolic": {
+        "label": "Systolic BP",
+        "suffix": "mmHg"
+      },
+      "diastolic": {
+        "label": "Diastolic BP",
+        "suffix": "mmHg"
+      },
+      "temperature": {
+        "label": "Temperature",
+        "suffix": "°C"
+      },
+      "oxygenSaturation": {
+        "label": "O2 saturation",
+        "suffix": "%"
+      },
+      "glasgow": {
+        "title": "Glasgow scale",
+        "ocular": "Eye response",
+        "verbal": "Verbal response",
+        "motor": "Motor response",
+        "result": {
+          "label": "Result",
+          "suffix": "pts"
+        }
+      },
+      "fast": {
+        "title": "FAST",
+        "face": "Face",
+        "arms": "Arms",
+        "speech": "Speech",
+        "time": "Time",
+        "yes": "Yes",
+        "no": "No"
+      }
+    },
+    "allergies": {
+      "title": "Allergy declaration",
+      "hasAllergy": "Has allergy?",
+      "activePrinciple": "Active ingredient",
+      "rejects": "Denies allergies",
+      "foods": {
+        "label": "Foods",
+        "placeholder": "Describe food allergies"
+      },
+      "others": {
+        "label": "Others",
+        "placeholder": "Other types of allergy"
+      }
+    },
+    "painScale": {
+      "title": "Pain scale (VAS)"
+    },
+    "classification": {
+      "title": "Triage classification",
+      "boxlabel": "Priority"
+    },
+    "searchModes": {
+      "motive": {
+        "name": "By name"
+      },
+      "time": {
+        "minutes": "minutes",
+        "hours": "hours",
+        "days": "days"
+      }
+    },
+    "generic": {
+      "placeholderSelect": "-Select an option-",
+      "placeholderInput": "Enter data",
+      "placeholderText": "Enter text",
+      "placeholderComments": "Enter comments",
+      "placeholderOthers": "Other types of allergy",
+      "placeholderDate": "dd/mm/yyyy",
+      "placeholderDateAlt": "dd-mm-yyyy",
+      "yes": "Yes",
+      "no": "No"
+    }
+  },
+  "errors": {
+    "serviceUnavailable": "Patient service unavailable. Please try again in a few moments.",
+    "timeout": "The server took too long to respond. Please try again.",
+    "generic": "An unexpected error occurred.",
+    "patientNotFound": {
+      "title": "The document was not found.",
+      "description": "Please enter the data manually."
+     
+    },
+    "loadData": {
+      "title": "Error loading data"
+     
+    },
+    "save": {
+      "title": "Could not save triage"
+    },
+    "validation": {
+      "unknownPatientMissingFields": "For an unidentified patient, you must indicate sex and estimated age group.",
+      "mustSearchPatientBeforeSave": "You must search for a patient by document before saving the triage.",
+      "requiredReasonAndClassification": "The reason for admission and the triage classification are required.",
+      "missingActiveBranch": "The active branch could not be determined. Please log in again."
+    },
+    "catalog": {
+      "loadIdentifierTypes": "The document types could not be loaded. Please reload the form.",
+      "loadCatalogs": "Catalog information could not be loaded. Please reload the form."
+    },
+    "badGateway": "The server could not process the request. Please try again."
+  },
+  "actions": {
+    "saving": "Saving triage...",
+    "save": "Save triage",
+    "cancel": {
+      "readonly": "Close",
+      "editable": "Cancel"
+    },
+    "charge": "Loading...",
+    "saveSuccess": "Triage saved successfully",
+    "close": {
+      "title": "Do you want to close the form?",
+      "description": "If you close the window, the written information will be lost."
+    },
+    "confirm": "Accept"
+  }
+}

@@ -1,0 +1,12 @@
+{
+    "title":"Historia Clínica",
+    "labelCloseSesion": "Cerrar Sesión",
+    "breadcrumb": {
+        "home": "Inicio",
+        "emergency": "Emergencia",
+        "clinicalRecord": "Historia Clínica",
+        "hospital": "Hospital",
+        "ambulatory": "Ambulatorio",
+        "audit":"Auditoría"
+    }
+}

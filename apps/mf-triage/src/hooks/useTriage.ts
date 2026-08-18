@@ -16,9 +16,16 @@ export function useTriage() {
       return { data, error: null };
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "Error al registrar el triaje";
+        err instanceof Error
+          ? err.message
+          : "errors.generic";
+
       setError(message);
-      return { data: null, error: message };
+
+      return {
+        data: null,
+        error: message,
+      };
     } finally {
       setLoading(false);
     }

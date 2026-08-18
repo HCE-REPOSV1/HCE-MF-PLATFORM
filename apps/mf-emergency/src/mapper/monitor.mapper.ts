@@ -1,5 +1,20 @@
 import type { MonitorApiItem, MonitorApiSummary, SemaphoreColor } from "../types/monitor.api.types"
 import type { MonitorSummary, MonitorTableRow } from "../types/monitor.table.types"
+import { i18n } from "@hce/i18n-core"
+
+// Mapeo de idioma activo -> locale completo para Intl.DateTimeFormat.
+// Se resuelve dinámicamente en cada llamada (no una vez al importar el
+// archivo), para que si el usuario cambia de idioma en caliente, los
+// próximos formateos de fecha/hora usen el locale correcto sin recargar.
+const INTL_LOCALE_BY_LANG: Record<string, string> = {
+  es: "es-PE",
+  en: "en-US",
+  pt: "pt-BR",
+}
+
+function getIntlLocale(): string {
+  return INTL_LOCALE_BY_LANG[i18n.language] ?? "es-PE"
+}
 
 const mapGender = (gender: MonitorApiItem["gender"]): "F" | "M" | "-" => {
   if (gender === "female") return "F"
@@ -37,7 +52,7 @@ const formatDate = (isoDate: string | null): string => {
 
   if (Number.isNaN(date.getTime())) return "-"
 
-  return new Intl.DateTimeFormat("es-PE", {
+  return new Intl.DateTimeFormat(getIntlLocale(), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -51,7 +66,7 @@ const formatHour = (isoDate: string | null): string => {
 
   if (Number.isNaN(date.getTime())) return "-"
 
-  return new Intl.DateTimeFormat("es-PE", {
+  return new Intl.DateTimeFormat(getIntlLocale(), {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
@@ -60,9 +75,8 @@ const formatHour = (isoDate: string | null): string => {
 
 const getBoxLabel = (item: MonitorApiItem): string => {
   if (item.box_code != null) return item.box_code
-  if (item.box_status === "ESPERA") return "ESPERA"
-  if (item.box_status === "SALA_D") return "SALA D"
-
+  if (item.box_status === "ESPERA") return i18n.t("MonitorPage.box.waiting", { ns: "emergency" })
+  if (item.box_status === "SALA_D") return i18n.t("MonitorPage.box.roomD", { ns: "emergency" })
 
   return "-"
 }
@@ -80,15 +94,15 @@ export const mapMonitorApiSummaryToSummary = (
 ): MonitorSummary[] => {
   return [
     {
-      label: "pacientes",
+      label: i18n.t("MonitorPage.summary.activePatients", { ns: "emergency" }),
       value: summary.active_patients,
     },
     {
-      label: "pacientes de alta",
+      label: i18n.t("MonitorPage.summary.dischargedPatients", { ns: "emergency" }),
       value: summary.discharged_patients,
     },
     {
-      label: "pacientes totales",
+      label: i18n.t("MonitorPage.summary.totalPatients", { ns: "emergency" }),
       value: summary.total_patients,
     },
   ]

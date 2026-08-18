@@ -1,0 +1,11 @@
+{
+    "optHome":"Home",
+    "titleOptions": "Menu",
+    "sidebarOptions": {
+        "title": "Medical Records",
+        "optEmergency": "HCE Emergency",
+        "optAmbulatory": "HCE Ambulatory",
+        "optHospital": "HCE Hospital",
+        "optAudit": "Medical audit"
+    }
+}

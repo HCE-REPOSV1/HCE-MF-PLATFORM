@@ -10,9 +10,14 @@ const BUILD_TIME = new Date().toISOString();
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, "");
 
-  const required = ["VITE_REMOTE_SHELL", "VITE_APIGW_CNL_CROSS", "VITE_APIGW_CNL_WEB_EMERGENCY"];
+  const required = [
+    "VITE_REMOTE_SHELL",
+    "VITE_APIGW_CNL_CROSS",
+    "VITE_APIGW_CNL_WEB_EMERGENCY",
+  ];
   for (const key of required) {
-    if (!env[key]) throw new Error(`[mf-header] Falta variable de entorno: ${key}`);
+    if (!env[key])
+      throw new Error(`[mf-header] Falta variable de entorno: ${key}`);
   }
 
   return {
@@ -39,14 +44,23 @@ export default defineConfig(({ mode }) => {
           "./menuConfig": "./src/menuConfig.ts",
         },
         shared: [
-          "react", "react-dom", "react-router-dom", "lucide-react", "@emotion/react", "@emotion/styled", "@hce/design-system",
+          "react",
+          "react-dom",
+          "react-router-dom",
+          "lucide-react",
+          "@emotion/react",
+          "@emotion/styled",
+          "@hce/design-system",
+          "i18next",
+          "react-i18next",
+          "@hce/i18n-core",
         ],
       }),
     ],
     resolve: {
-    dedupe: ["react", "react-dom"],
+      dedupe: ["react", "react-dom"],
     },
-     server:  { port: 10507 },
+    server: { port: 10507 },
     preview: { port: 10507 },
     build: { target: "esnext", minify: false, cssCodeSplit: false },
   };

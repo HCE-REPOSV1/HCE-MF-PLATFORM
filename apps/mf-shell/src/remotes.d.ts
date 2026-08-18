@@ -110,6 +110,8 @@ declare module "sidebar/Sidebar" {
     currentPath?: string
     onNavigate?:  (vista: string) => void
     onHome?:      () => void
+    labelHome?:      string,
+    titleOptions?:   string
   }
   const Sidebar: ComponentType<SidebarProps>
   export default Sidebar
