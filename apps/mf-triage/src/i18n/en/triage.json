@@ -145,7 +145,8 @@
       "title": "Pain scale (VAS)"
     },
     "classification": {
-      "title": "Triage classification"
+      "title": "Triage classification",
+      "boxlabel": "Priority"
     },
     "searchModes": {
       "motive": {
@@ -194,7 +195,8 @@
     "catalog": {
       "loadIdentifierTypes": "The document types could not be loaded. Please reload the form.",
       "loadCatalogs": "Catalog information could not be loaded. Please reload the form."
-    }
+    },
+    "badGateway": "The server could not process the request. Please try again."
   },
   "actions": {
     "saving": "Saving triage...",

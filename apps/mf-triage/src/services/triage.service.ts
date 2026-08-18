@@ -11,6 +11,11 @@ import { ENDPOINTS } from "../config/endpoints";
 import { apiFetch } from "shell/ApiClient";
 import type { TriageFormRequest, TriageFormResponse, TriageFullData, TriageFullResponse } from "../types/triage.types";
 
+import { resolveStatusError, TRIAGE_ERROR_CODES } from "../i18n/errorCodes";
+
+
+
+
 export async function postTriageForm(
   payload: TriageFormRequest,
 ): Promise<unknown> {
@@ -23,7 +28,16 @@ export async function postTriageForm(
   const json = (await res.json().catch(() => null)) as TriageFormResponse | null;
 
   if (!res.ok || !json?.success) {
-    throw new Error(json?.message || `Error ${res.status} al registrar el triaje`);
+
+     const codigo = res.status;
+
+    const translationKey =
+      TRIAGE_ERROR_CODES[codigo] ??
+      resolveStatusError(res.status);
+
+    throw new Error(translationKey);
+   //throw new Error(json?.message || `Error ${res.status} al registrar el triaje`);
+   
   }
 
   return json.data;

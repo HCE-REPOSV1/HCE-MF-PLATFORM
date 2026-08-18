@@ -145,7 +145,8 @@
       "title": "Escala de dolor (EVA)"
     },
     "classification": {
-      "title": "Clasificación de triaje"
+      "title": "Clasificación de triaje",
+      "boxlabel": "Prioridad"
     },
     "searchModes": {
       "motive": {
@@ -195,7 +196,8 @@
     "catalog": {
       "loadIdentifierTypes": "No se pudieron cargar los tipos de documento. Recargue el formulario.",
       "loadCatalogs": "No se pudo cargar la información de catálogos. Recargue el formulario."
-    }
+    },
+    "badGateway": "El servidor no pudo procesar la solicitud. Intenta nuevamente."
   },
   "actions": {
     "saving": "Guardando triaje...",

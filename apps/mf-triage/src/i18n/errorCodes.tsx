@@ -10,5 +10,6 @@ export const TRIAGE_ERROR_CODES: Record<number, string> = {
 export function resolveStatusError(status?: number): string {
   if (status === 503) return 'errors.serviceUnavailable';
   if (status === 504) return 'errors.timeout';
+  if(status===502)return 'errors.badGateway';
   return 'errors.generic';
 }
