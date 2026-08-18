@@ -730,6 +730,8 @@ export function Triage({
       return;
     }
 
+     
+
     const username = user?.username ?? "";
     // El valor real que valida el backend (illness_duration_unit) es exactamente
     // time_unit_name del catálogo — no se traduce ni se hardcodea en el frontend.
@@ -818,7 +820,7 @@ export function Triage({
 
     const { error } = await createTriage(payload);
     if (error) {
-      setSaveError(error);
+      setSaveError(t(error));
       return;
     }
 
@@ -1763,6 +1765,7 @@ export function Triage({
                     !canClasificacionTriage || !enabledClasificacionTriage
                   }
                   selected={form.prioridad}
+                  label={t("triage.classification.boxlabel")}
                   onSelect={(p) => set("prioridad", p)}
                 />
               </Box>
