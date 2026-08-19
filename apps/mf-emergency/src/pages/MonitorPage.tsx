@@ -361,13 +361,15 @@ export default function MonitorPage() {
   // ], [handleOpenTriageWrite, canWriteTriage, handleReportes, handleDisponibilidad, canReadBeds])
 
   const handlePatientClick = useCallback((row: MonitorTableRow) => {
-    console.info("[MonitorPage] Abrir HCE:", row);
 
-    navigate("historiacli");
+   // console.info("[MonitorPage] Abrir HCE:", row);
 
-    //setSelectedPatientId((prev) => (prev === row.id ? null : row.id))
-    // console.info("[MonitorPage] Abrir HCE:", row)
-  }, []);
+    navigate("historiacli", {
+      state: {
+        patient: row,
+      },
+    });
+  },[navigate],);
 
   const handlePriorityClick = useCallback(
     (row: MonitorTableRow) => {

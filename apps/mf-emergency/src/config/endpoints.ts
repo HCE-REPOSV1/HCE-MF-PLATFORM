@@ -43,6 +43,16 @@ export const ENDPOINTS = {
     ActivePrinciples: () => `${AG_CLN_CROSS}/api/v1/catalogs/active-principles`,
     ActivePrinciplesSearch: (text: string) =>
       `${AG_CLN_CROSS}/api/v1/catalogs/active-principles/search?text=${encodeURIComponent(text)}`,
+    IdentifierTypes: (entityType: string) =>
+      `${AG_CLN_CROSS}/api/v1/catalogs/identifier-types?entity_type=${encodeURIComponent(entityType)}`,
+    TimeUnits: () => `${AG_CLN_CROSS}/api/v1/catalogs/time-units`,
+    AgeGroups: () => `${AG_CLN_CROSS}/api/v1/catalogs/age-groups`,
   },
+
+  patientRecord: {
+    /** Obtener los datos de un paciente por su ID. */
+    patientInfo: (patientId: string) =>
+      `${AG_WEB_EMERGENCY}/api/v1/patient/${patientId}/full`,
+  }
 
 } as const

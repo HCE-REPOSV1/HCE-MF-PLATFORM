@@ -36,6 +36,7 @@ export interface MonitorApiItem {
   triage_id: number | null
   attention_id: string | null
 
+  patient_id: string | null
   patient_name: string | null
   patient_name_masked: string | null
   document_number: string | null

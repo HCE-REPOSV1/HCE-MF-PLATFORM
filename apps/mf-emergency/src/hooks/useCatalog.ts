@@ -2,10 +2,12 @@ import { useState } from "react";
 import {
   getActivePrinciples,
   getActivePrinciplesSearch,
+  getAgeGroups,
   
 } from "../services/catalog.service";
 import type {
   CatalogActivePrinciples,
+  CatalogAgeGroup,
 } from "../types/catalog.types";
 
 // Estado de loading/error/data de un recurso de catálogo. Nota: fetchCatalogActivePrinciples
@@ -22,6 +24,7 @@ function useResourceState<T>() {
 export function useCatalog() {
   
   const catalogActivePrinciples = useResourceState<CatalogActivePrinciples[]>();
+    const ageGroups = useResourceState<CatalogAgeGroup[]>();
  
 
   const fetchCatalogActivePrinciples = async (): Promise<
@@ -68,13 +71,34 @@ export function useCatalog() {
     }
   };
 
+   const fetchAgeGroups = async (): Promise<CatalogAgeGroup[] | null> => {
+    ageGroups.setLoading(true);
+    ageGroups.setError(null);
+    try {
+      const response = await getAgeGroups();
+      ageGroups.setData(response);
+      return response;
+    } catch (err) {
+      ageGroups.setError(
+        err instanceof Error ? err.message : "Error al cargar grupos etarios",
+      );
+      ageGroups.setData(null);
+      return null;
+    } finally {
+      ageGroups.setLoading(false);
+    }
+  };
+
 
   return {
-   
+    fetchAgeGroups,
     fetchCatalogActivePrinciples,
     fetchCatalogActivePrinciplesSearch,
     dataCatalogActivePrinciples: catalogActivePrinciples.data,  
     loadingCatalogActivePrinciples: catalogActivePrinciples.loading,
     errorCatalogActivePrinciples: catalogActivePrinciples.error,
+    dataAgeGroups: ageGroups.data,
+    loadingAgeGroups: ageGroups.loading,
+    errorAgeGroups: ageGroups.error,
   };
 }

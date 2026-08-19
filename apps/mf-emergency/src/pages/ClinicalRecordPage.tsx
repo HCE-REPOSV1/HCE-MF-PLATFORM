@@ -24,13 +24,18 @@ import {
 } from "@hce/design-system";
 
 import type { ClinicalRecordPatient } from "../types/clinical.record.types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MedicalRecordPanel } from "../components/MedicalRecordPanel";
 import { AllergyModal } from "../components/clinical-record/AllergyModal";
 import { PatientField } from "../components/clinical-record/PatientField";
 import { PatientDetailsModal } from "../components/clinical-record/PatientDetailsModal";
+import { useLocation } from "react-router-dom";
+import type { MonitorTableRow } from "../types/monitor.table.types";
+import { usePatientRecord } from "../hooks/usePatientRecord";
+import { useTranslation } from "@hce/i18n-core";
+import { useCatalog } from "../hooks/useCatalog";
 
-const patient: ClinicalRecordPatient = {
+const patient2: ClinicalRecordPatient = {
   patientId: "1",
   fullName: "Sofía González Pérez",
   gender: "Femenino",
@@ -53,6 +58,52 @@ const patient: ClinicalRecordPatient = {
 };
 
 export default function ClinicalRecordPage() {
+
+
+ const { state } = useLocation();
+
+  const patient = state?.patient as MonitorTableRow ;
+
+  const [allergyDetailsOpen, setAllergyDetailsOpen] =
+    useState(false);
+
+  const [patientDetailsOpen, setPatientDetailsOpen] =
+    useState(false);
+
+  const [openMedicalHistory, setOpenMedicalHistory] =
+    useState(false);
+
+  const { t, i18n } = useTranslation("triage");
+
+  const localeLabelKey =
+    i18n.resolvedLanguage === "en"
+      ? "display_en"
+      : i18n.resolvedLanguage === "pt"
+        ? "display_pt"
+        : "display_es";
+
+
+    const {
+   
+    fetchIdentifierTypes,
+    fetchAgeGroups,
+    loadingIdentifierTypes,
+    loadingAgeGroups,
+  } = useCatalog();
+
+  const {
+    data: patientRecord,
+    loading,
+    error,
+    refetch,
+  } = usePatientRecord(patient?.patient_id);
+
+  console.log(
+    "Paciente proveniente del monitor:",
+    patient,
+  );
+  console.log("Información completa del endpoint:", patientRecord);
+
   const LIST_ACTION_BAR: ExtraAction[] = [
     {
       id: "monitor",
@@ -121,12 +172,98 @@ export default function ClinicalRecordPage() {
     },
   ];
 
+  const fullName = patientRecord
+  ? [
+      patientRecord.first_name,
+      patientRecord.last_name_father,
+      patientRecord.last_name_mother,
+    ]
+      .filter(Boolean)
+      .join(" ")
+  : "-";
 
+  const primaryIdentifier =
+  patientRecord?.identifiers?.find(
+    (identifier) => identifier.is_primary,
+  ) ?? patientRecord?.identifiers?.[0];
 
-    const [allergyDetailsOpen, setAllergyDetailsOpen] = useState(false)
+  const calculateAge = (birthDate?: string) => {
+  if (!birthDate) return null;
 
-  const [patientDetailsOpen, setPatientDetailsOpen] = useState(false);
-  const [openMedicalHistory, setOpenMedicalHistory] = useState(false);
+  const birth = new Date(`${birthDate}T00:00:00`);
+  const today = new Date();
+
+  let age =
+    today.getFullYear() - birth.getFullYear();
+
+  const monthDifference =
+    today.getMonth() - birth.getMonth();
+
+  if (
+    monthDifference < 0 ||
+    (monthDifference === 0 &&
+      today.getDate() < birth.getDate())
+  ) {
+    age--;
+  }
+
+  return age;
+};
+
+const age = calculateAge(patientRecord?.birth_date);
+
+ useEffect(() => {
+    const loadData = async () => {
+      try {
+        const results = await Promise.all([
+         
+          fetchIdentifierTypes("patient"),
+          fetchAgeGroups(),
+        ]);
+        const [
+          
+          identifierTypes,
+        
+          genders,
+          ageGroups,
+        ] = results;
+
+        if (genders && Array.isArray(genders)) {
+          
+            genders
+              .filter((g) => g.is_active)
+              .sort((a, b) => a.sort_order - b.sort_order)
+              .map((g) => ({ value: g.code, label: String(g[localeLabelKey as keyof typeof g] ?? g.display_es) }))
+        }
+
+        if (ageGroups && Array.isArray(ageGroups)) {
+        
+            ageGroups
+              .filter((g) => g.is_active)
+              .sort((a, b) => a.sort_order - b.sort_order)
+              .map((g) => ({ value: g.code, label: String(g[localeLabelKey as keyof typeof g] ?? g.display_es) }))
+          
+        }
+
+       
+        if (identifierTypes && Array.isArray(identifierTypes)) {
+       
+            identifierTypes
+              .filter((t) => t.is_active)
+              .sort((a, b) => a.sort_order - b.sort_order)
+              .map((t) => ({ value: t.code, label: String(t[localeLabelKey as keyof typeof t] ?? t.display_es) }))
+        }
+
+      
+      } catch (err) {
+        console.error("Error al cargar información", err);
+       // setLoadError(t("errors.catalog.loadCatalogs"));
+      }
+    };
+
+    loadData();
+  }, []);
+
 
   function handleCloseMedicalHistory() {
     setOpenMedicalHistory(false);
@@ -333,7 +470,7 @@ export default function ClinicalRecordPage() {
 
       <PatientDetailsModal
         open={patientDetailsOpen}
-        patient={patient}
+        patient={patient2}
         onClose={() => setPatientDetailsOpen(false)}
       />
 
