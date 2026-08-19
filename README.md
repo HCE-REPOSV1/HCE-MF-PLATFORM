@@ -180,8 +180,20 @@ Federation no sirva el `remoteEntry.js` viejo cacheado.
 
 ## Instalación
 
-> **Requisito:** Verdaccio debe estar activo en `http://localhost:10100` con
-> `@hce/design-system` publicado antes de ejecutar `npm install`.
+> **Requisito:** Verdaccio activo y accesible con `@hce/design-system` y
+> `@hce/i18n-core` publicados antes de ejecutar `npm install` — este repo no
+> tiene Verdaccio propio, corre en el repo hermano
+> [`hce-verdaccio-registry`](../hce-verdaccio-registry). El `.npmrc`
+> commiteado en la raíz apunta al Verdaccio **compartido del equipo**
+> (`@hce:registry=http://192.168.42.44:10100`), así que un `npm install`
+> normal ya resuelve contra ese servidor sin configuración extra — no hace
+> falta tener Verdaccio corriendo en tu propia máquina para esto.
+>
+> Para probar contra un Verdaccio **local** propio en cambio (por ejemplo
+> para validar una versión de `@hce/design-system` que aún no publicaste al
+> compartido), editar `.npmrc` apuntando a `http://localhost:10100` — **sin
+> commitear ese cambio**, ver [`hce-verdaccio-registry`](../hce-verdaccio-registry)
+> para levantarlo.
 
 ```bash
 git clone <repo-url> jarvis-mf-platform
@@ -293,9 +305,24 @@ El shell toma el cambio en el siguiente reload del navegador.
 
 ### Producción (Docker)
 
-> **Requisito:** Verdaccio activo en `http://localhost:10100` con
-> `@hce/design-system` publicado. Solo se necesita en build-time — una vez
-> construidas las imágenes, Verdaccio puede detenerse sin afectar los contenedores.
+> **Requisito:** Verdaccio accesible (con `@hce/design-system` y
+> `@hce/i18n-core` publicados) al momento del build — no en runtime, una vez
+> construidas las imágenes Verdaccio puede detenerse sin afectar los
+> contenedores. Este repo no tiene Verdaccio propio, corre en el repo hermano
+> [`hce-verdaccio-registry`](../hce-verdaccio-registry).
+>
+> El build-arg `VERDACCIO_URL` de cada servicio en `docker-compose.dev.yml`
+> ya viene **hardcodeado a `http://192.168.42.44:10100`** (el Verdaccio
+> compartido del equipo) — por eso corriendo `docker-compose.dev.yml` tal
+> cual, tanto en tu máquina como en el servidor de pruebas, el build ya
+> resuelve contra el mismo registry compartido sin nada que levantar en
+> local. Si necesitás construir contra un Verdaccio **local** propio en
+> cambio, pasar el override explícito:
+> ```bash
+> docker compose -f docker-compose.dev.yml build --build-arg VERDACCIO_URL=http://host.docker.internal:10100 mf-shell
+> ```
+> (Levantar antes ese Verdaccio local desde
+> [`hce-verdaccio-registry`](../hce-verdaccio-registry) — `docker compose up -d`.)
 
 Cada microfrontend tiene su propio `Dockerfile` y genera una imagen nginx
 independiente, desplegable de forma aislada. No hay red Docker interna entre
