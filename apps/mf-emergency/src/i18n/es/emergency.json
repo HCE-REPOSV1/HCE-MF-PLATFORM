@@ -5,6 +5,7 @@
       "reports": "Report",
       "availability": "Bed Availability"
     },
+    "infoButtonTooltip": "Ver información del paciente",
     "AssignDoctorButton": "Asignar médico",
     "dataTableMonitor": {
       "colPriority": "Prioridad",
@@ -20,6 +21,15 @@
       "colConsultation": "Interc.",
       "colAttention": "Atención",
       "colInformation": "Info"
+    },
+    "box": {
+      "waiting": "ESPERA",
+      "roomD": "SALA D"
+    },
+    "summary": {
+      "activePatients": "pacientes",
+      "dischargedPatients": "pacientes de alta",
+      "totalPatients": "pacientes totales"
     },
     "bedAvailability": "Disponibilidad de camas",
     "bedAvailabilityLoading": "Disponibilidad de camas (cargando...)",
@@ -49,5 +59,37 @@
       "assignFailed": "No se pudo asignar la cama",
       "refreshFailed": "No se pudo refrescar la información"
     }
+  },
+  "AditionalInfoModal": {
+    "title": "Información adicional",
+    "loadingPatient": "Cargando información del paciente",
+    "colWaitingBox": "Tiempo de espera - BOX",
+    "colWaitingPhysician": "Tiempo de espera - Médico",
+    "colAttentionDate": "F. atención",
+    "colAttentionHour": "H. atención",
+    "colDischargeDate": "Fecha de alta",
+    "colDischargeHour": "Hora de alta",
+    "colVip": "Paciente VIP",
+    "colUndoDischarge": "Deshacer alta"
+  },
+  "AsignarMedicoModal": {
+    "title": "Asignar o reasignar médico a paciente",
+    "assign": "Asignar",
+    "reassign": "Reasignar",
+    "assigning": "Asignando...",
+    "reassigning": "Reasignando...",
+    "cancel": "Cancelar",
+    "assignmentTypeLegend": "Tipo de asignación",
+    "patientListLabel": "Lista de pacientes",
+    "loadingPatientsPlaceholder": "-Cargando pacientes-",
+    "noPatientsPlaceholder": "-No hay pacientes disponibles-",
+    "selectPatientPlaceholder": "-Seleccionar paciente-",
+    "currentPhysicianLabel": "Médico actual asignado:",
+    "successTitle": "Paciente {{action}} correctamente",
+    "accept": "Aceptar",
+    "noPermissionTitle": "No tienes permisos para esta acción",
+    "noPermissionDescription": "Tu usuario no está registrado como médico — solo un médico puede asignarse como tratante.",
+    "actionAssigned": "asignado",
+    "actionReassigned": "reasignado"
   }
 }

@@ -12,7 +12,8 @@ export default defineConfig(({ mode }) => {
 
   const required = ["VITE_REMOTE_SHELL"];
   for (const key of required) {
-    if (!env[key]) throw new Error(`[mf-footer] Falta variable de entorno: ${key}`);
+    if (!env[key])
+      throw new Error(`[mf-footer] Falta variable de entorno: ${key}`);
   }
 
   return {
@@ -22,6 +23,7 @@ export default defineConfig(({ mode }) => {
         name: "version-json",
         closeBundle() {
           const outDir = path.resolve(__dirname, "dist");
+          fs.mkdirSync(outDir, { recursive: true });
           fs.writeFileSync(
             path.join(outDir, "version.json"),
             JSON.stringify({ buildTime: BUILD_TIME }),
@@ -35,17 +37,26 @@ export default defineConfig(({ mode }) => {
           shell: env.VITE_REMOTE_SHELL,
         },
         exposes: {
-          "./Footer": "./src/Footer.tsx"
+          "./Footer": "./src/Footer.tsx",
         },
         shared: [
-          "react", "react-dom", "react-router-dom", "lucide-react", "@emotion/react", "@emotion/styled", "@hce/design-system",
+          "react",
+          "react-dom",
+          "react-router-dom",
+          "lucide-react",
+          "@emotion/react",
+          "@emotion/styled",
+          "@hce/design-system",
+          "i18next",
+          "react-i18next",
+          "@hce/i18n-core",
         ],
       }),
     ],
     resolve: {
-    dedupe: ["react", "react-dom"],
+      dedupe: ["react", "react-dom"],
     },
-     server:  { port: 10509 },
+    server: { port: 10509 },
     preview: { port: 10509 },
     build: { target: "esnext", minify: false, cssCodeSplit: false },
   };

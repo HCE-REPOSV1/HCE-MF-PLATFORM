@@ -1,35 +1,40 @@
+import type { MonitorTableRow } from "../../types/monitor.table.types"
 
-import type {  MonitorTableRow } from "../../types/monitor.table.types"
-
-import type {  GenericTableColumn } from "@hce/design-system";
+import type { GenericTableColumn } from "@hce/design-system";
 import {
   HceFormModal,
   hceColors, hceTypography,
-   GenericTable,
+  GenericTable,
   Box,
   UiCloseIcon,
- 
 } from "@hce/design-system"
 import { useCallback, useEffect, useMemo, useState } from "react";
-
+import { useTranslation } from "@hce/i18n-core";
+import { registerEmergencyNamespace } from "../../i18n";
 
 export interface AditionalInfoModalProps {
-  open:       boolean
-  onClose:    () => void
+  open: boolean
+  onClose: () => void
   /** Nombre del paciente al que se asigna el médico (opcional, para mostrar en el modal) */
-  paciente?:  MonitorTableRow
+  paciente?: MonitorTableRow
 
   onSaveChanges?: (paciente: MonitorTableRow) => void | Promise<void>
- 
 }
 
- const createInfoColumns = ({ canReadVIP,onChangeVIP, onChangeDischarge }: {canReadVIP: boolean
+const createInfoColumns = ({
+  canReadVIP,
+  onChangeVIP,
+  onChangeDischarge,
+  t,
+}: {
+  canReadVIP: boolean
   onChangeVIP: (row: MonitorTableRow, checked: boolean) => void
   onChangeDischarge: (row: MonitorTableRow) => void
+  t: (key: string) => string
 }): GenericTableColumn<MonitorTableRow>[] => [
-   {
-     key: "waitingBoxTime",
-    header: "Tiempo de espera - BOX",
+  {
+    key: "waitingBoxTime",
+    header: t("AditionalInfoModal.colWaitingBox"),
     type: "waiting-time",
     field: "waiting_time_box_display",
     colorField: "waiting_time_box_color",
@@ -37,8 +42,8 @@ export interface AditionalInfoModalProps {
     align: "center",
   },
   {
-     key: "waitingPhysicianTime",
-    header: "Tiempo de espera - Médico",
+    key: "waitingPhysicianTime",
+    header: t("AditionalInfoModal.colWaitingPhysician"),
     type: "waiting-time",
     field: "waiting_time_physician_display",
     colorField: "waiting_time_physician_color",
@@ -47,7 +52,7 @@ export interface AditionalInfoModalProps {
   },
   {
     key: "attentionDate",
-    header: "F. atención",
+    header: t("AditionalInfoModal.colAttentionDate"),
     type: "text",
     field: "attentionDate",
     width: 120,
@@ -55,8 +60,8 @@ export interface AditionalInfoModalProps {
     boldGetter: (row) => row.has_discharge,
   },
   {
-   key: "attentionHour",
-    header: "H. atención",
+    key: "attentionHour",
+    header: t("AditionalInfoModal.colAttentionHour"),
     type: "text",
     field: "attentionHour",
     width: 80,
@@ -65,7 +70,7 @@ export interface AditionalInfoModalProps {
   },
   {
     key: "dischargeDate",
-    header: "Fecha de alta",
+    header: t("AditionalInfoModal.colDischargeDate"),
     type: "text",
     field: "dischargeDate",
     width: 100,
@@ -73,8 +78,8 @@ export interface AditionalInfoModalProps {
     boldGetter: (row) => row.has_discharge,
   },
   {
-   key: "dischargeHour",
-    header: "Hora de alta",
+    key: "dischargeHour",
+    header: t("AditionalInfoModal.colDischargeHour"),
     type: "text",
     field: "dischargeHour",
     width: 80,
@@ -83,72 +88,80 @@ export interface AditionalInfoModalProps {
   },
   {
     key: "vip",
-    header: "Paciente VIP",
+    header: t("AditionalInfoModal.colVip"),
     type: "switch",
     field: "is_vip",
     width: 150,
     align: "center",
     disabledGetter: () => !canReadVIP,
-     onClick: (row, checked) => onChangeVIP(row, Boolean(checked)),
+    onClick: (row, checked) => onChangeVIP(row, Boolean(checked)),
   },
-   {
-  key: "has_discharge",
-  header: "Deshacer alta",
-  type: "icon",
-  field: "has_discharge",
-  icon: UiCloseIcon,
-  iconSize: 20,
-  width: 80,
-  align: "center",
-  clickable: true,
-  disabledGetter: (row) => !row.has_discharge,
-  colorGetter: (row) => (row.has_discharge ? "#BD0000" : "#A0A0A0"),
-  onClick: (row) => {
-    onChangeDischarge(row)
+  {
+    key: "has_discharge",
+    header: t("AditionalInfoModal.colUndoDischarge"),
+    type: "icon",
+    field: "has_discharge",
+    icon: UiCloseIcon,
+    iconSize: 20,
+    width: 80,
+    align: "center",
+    clickable: true,
+    disabledGetter: (row) => !row.has_discharge,
+    colorGetter: (row) => (row.has_discharge ? "#BD0000" : "#A0A0A0"),
+    onClick: (row) => {
+      onChangeDischarge(row)
+    },
   },
-}
-
 ]
 
+export function AditionalInfoModal({
+  open,
+  onClose,
+  paciente,
+  onSaveChanges,
+}: AditionalInfoModalProps) {
+  // Registro del namespace SÍNCRONO, en el cuerpo del componente — no en
+  // useEffect. addResourceBundle() no es async, así que no hay razón para
+  // esperar al efecto: si se registra ahí, el primer render (justo el que
+  // arma columns con t()) puede ocurrir ANTES de que el namespace exista,
+  // dejando las claves crudas "horneadas" dentro del useMemo para siempre.
+  registerEmergencyNamespace();
+  const { t } = useTranslation("emergency");
 
+  const canReadVIP = true
 
-
-export function AditionalInfoModal({ open, onClose, paciente,onSaveChanges }: AditionalInfoModalProps) { 
-
-    const canReadVIP = true
-
-    const [localPaciente, setLocalPaciente] = useState<MonitorTableRow | null>(
+  const [localPaciente, setLocalPaciente] = useState<MonitorTableRow | null>(
     paciente ?? null,
   )
 
   const [hasChanges, setHasChanges] = useState(false)
 
-    useEffect(() => {
+  useEffect(() => {
     if (!open) return
 
     setLocalPaciente(paciente ? { ...paciente } : null)
     setHasChanges(false)
   }, [open, paciente])
 
- const handleVIPClick = useCallback(
-  (row: MonitorTableRow, checked: boolean) => {
-    setLocalPaciente((prev) => {
-      if (!prev || prev.id !== row.id) return prev
+  const handleVIPClick = useCallback(
+    (row: MonitorTableRow, checked: boolean) => {
+      setLocalPaciente((prev) => {
+        if (!prev || prev.id !== row.id) return prev
 
-      setHasChanges(true)
+        setHasChanges(true)
 
-      const updated = {
-        ...prev,
-        is_vip: checked,
-      }
+        const updated = {
+          ...prev,
+          is_vip: checked,
+        }
 
-      console.info("Cambios en paciente VIP:", updated)
+        console.info("Cambios en paciente VIP:", updated)
 
-      return updated
-    })
-  },
-  [],
-)
+        return updated
+      })
+    },
+    [],
+  )
 
   const handleClose = useCallback(async () => {
     if (hasChanges && localPaciente) {
@@ -164,14 +177,11 @@ export function AditionalInfoModal({ open, onClose, paciente,onSaveChanges }: Ad
 
       setHasChanges(true)
 
-      
-       const updated = {
+      const updated = {
         ...prev,
         has_discharge: !prev.has_discharge,
         dischargeDate: "-",
         dischargeHour: "-",
-        
-       
       }
       console.info("Cambios en paciente con alta:", updated)
       return updated
@@ -184,54 +194,45 @@ export function AditionalInfoModal({ open, onClose, paciente,onSaveChanges }: Ad
         canReadVIP,
         onChangeVIP: handleVIPClick,
         onChangeDischarge: handleDischargeClick,
+        t,
       }),
-    [canReadVIP, handleVIPClick, handleDischargeClick],
+    [canReadVIP, handleVIPClick, handleDischargeClick, t], // ← "t" agregado
   )
-    return(
 
+  return (
     <HceFormModal
-        open={open}
-        onClose={handleClose}
-        title="Información adicional"
-        maxWidth='xl'
-        buttonAlign="right"
-        >
-        {/* El HceModal acepta children opcionales — aquí metemos el select */}
-      
-               
-               <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
-         
-               
-               {!localPaciente ? (
-            <Box
-              sx={{
-                py: 1.5,
-                textAlign: "center",
-                fontFamily: hceTypography.fontFamily,
-                fontSize: "0.875rem",
-                color: hceColors.neutro.black[300],
-              }}
-            >
-              Cargando informacion del paciente
-            </Box>
-          ) : (
-            <Box sx={{ flex: 1, minHeight: 0, overflowX: "auto" }}>
-           
+      open={open}
+      onClose={handleClose}
+      title={t("AditionalInfoModal.title")}
+      maxWidth="xl"
+      buttonAlign="right"
+    >
+      {/* El HceModal acepta children opcionales — aquí metemos el select */}
+
+      <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
+        {!localPaciente ? (
+          <Box
+            sx={{
+              py: 1.5,
+              textAlign: "center",
+              fontFamily: hceTypography.fontFamily,
+              fontSize: "0.875rem",
+              color: hceColors.neutro.black[300],
+            }}
+          >
+            {t("AditionalInfoModal.loadingPatient")}
+          </Box>
+        ) : (
+          <Box sx={{ flex: 1, minHeight: 0, overflowX: "auto" }}>
             <GenericTable
               rows={[localPaciente]}
               columns={columns}
               getRowId={(row) => row.id}
               maxHeight="100%"
             />
-            </Box>
-          )}
-          </Box> 
-        
-        </HceFormModal>
-
-)
-
-
-
-
+          </Box>
+        )}
+      </Box>
+    </HceFormModal>
+  )
 }

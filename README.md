@@ -313,8 +313,7 @@ microfrontends — la integración ocurre en el browser, que carga cada
 
 ```bash
 docker compose -f docker-compose.dev.yml down
-docker compose -f docker-compose.dev.yml build
-docker compose -f docker-compose.dev.yml up -d
+bash scripts/build-mf-batched.sh
 ```
 
 > **⚠️ No construyas las 11 imágenes en paralelo en un servidor con poco
@@ -327,31 +326,29 @@ docker compose -f docker-compose.dev.yml up -d
 > device` a mitad de un `npm install`, y **no se arregla moviendo el
 > `data-root` de Docker a otro disco** — el problema es el pico de
 > concurrencia, no la ubicación.
->
-> Si ves `ENOSPC`, construye **de a 2 como máximo** — probado en el servidor
-> de dev: 2 en simultáneo funciona de forma consistente, 4 en simultáneo
-> vuelve a fallar aunque cada imagen ya instale solo sus propias
-> dependencias:
-> ```bash
-> docker compose -f docker-compose.dev.yml build mf-header mf-sidebar
-> docker compose -f docker-compose.dev.yml build mf-home mf-shell
-> docker compose -f docker-compose.dev.yml build mf-auth mf-auditoria
-> docker compose -f docker-compose.dev.yml build mf-triage mf-footer
-> docker compose -f docker-compose.dev.yml build mf-emergency mf-hospital
-> docker compose -f docker-compose.dev.yml build mf-ambulatorio
-> docker compose -f docker-compose.dev.yml up -d   # sin --build, las imágenes ya existen
-> ```
-> **Importante:** una vez que ya tengas TODAS las imágenes construidas
-> (`docker images | grep hce-mf-platform` debe listar las 11), corré
-> `up -d` sin `-build` — si te faltan imágenes, `up -d` intenta construir
-> todas las que falten **en paralelo** y puede volver a pegar en el mismo
-> límite. Si una tanda de 2 sigue fallando, bajá a una por una. También
-> ayuda correr `docker builder prune -af` antes de reintentar (libera
-> caché de build reclamable, no requiere permisos de sistema) y, si el
-> servidor tiene una partición separada llenándose con archivos ya
-> borrados pero aún retenidos por un proceso vivo, pedirle a alguien con
-> `sudo` que corra `lsof +L1` y reinicie el proceso dueño — eso sí
-> requiere acceso de root y está fuera del alcance de este repo.
+
+`scripts/build-mf-batched.sh` automatiza el patrón probado en el servidor
+de dev (2 imágenes a la vez — 4 en simultáneo vuelve a fallar aunque cada
+imagen ya instale solo sus propias dependencias): lee los servicios
+directo de `docker-compose.dev.yml` (así que no queda desactualizado si
+se agrega un microfrontend nuevo), los construye en tandas de 2, y al
+final corre `up -d` sin `--build` (las imágenes ya existen, evita que
+`up -d --build` intente construir en paralelo lo que falte).
+
+```bash
+bash scripts/build-mf-batched.sh                # tandas de 2 (default)
+bash scripts/build-mf-batched.sh --jobs 1        # de a una, si 2 sigue fallando
+bash scripts/build-mf-batched.sh --no-cache      # fuerza rebuild completo
+bash scripts/build-mf-batched.sh --jobs 1 --no-cache
+```
+
+> Si una tanda de 2 sigue fallando, usar `--jobs 1`. También ayuda correr
+> `docker builder prune -af` antes de reintentar (libera caché de build
+> reclamable, no requiere permisos de sistema) y, si el servidor tiene una
+> partición separada llenándose con archivos ya borrados pero aún
+> retenidos por un proceso vivo, pedirle a alguien con `sudo` que corra
+> `lsof +L1` y reinicie el proceso dueño — eso sí requiere acceso de root
+> y está fuera del alcance de este repo.
 
 **Con Vault (recomendado)** — `docker-compose.yml` no funciona ejecutado solo:
 sus `build.args` son `${VAR}`, sin esas variables exportadas el build queda con
