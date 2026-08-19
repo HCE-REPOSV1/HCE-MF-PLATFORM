@@ -18,8 +18,8 @@
     "start": "npm run clean && npm run build:shell && npm run build:remotes:dev && concurrently -n shell,remotes -c bgGreen,bgBlue \"npm run preview:shell\" \"wait-on http://localhost:10500 && npm run preview:remotes\"",
     "build": "npm run build:shell && npm run build:remotes",
     "storybook": "npm --workspace packages/design-system run storybook",
-    "deps:check": "syncpack list-mismatches",
-    "deps:fix": "syncpack fix-mismatches"
+    "deps:check": "syncpack lint",
+    "deps:fix": "syncpack fix"
   },
   "dependencies": {
     "@babel/node": "^7.29.0",
