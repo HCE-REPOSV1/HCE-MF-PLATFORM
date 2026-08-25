@@ -24,7 +24,7 @@ import {
 } from "@hce/design-system";
 
 import type { ClinicalRecordPatient } from "../types/clinical.record.types";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MedicalRecordPanel } from "../components/MedicalRecordPanel";
 import { AllergyModal } from "../components/clinical-record/AllergyModal";
 import { PatientField } from "../components/clinical-record/PatientField";
@@ -34,35 +34,19 @@ import type { MonitorTableRow } from "../types/monitor.table.types";
 import { usePatientRecord } from "../hooks/usePatientRecord";
 import { useTranslation } from "@hce/i18n-core";
 import { useCatalog } from "../hooks/useCatalog";
+import { CSI_GENDER } from "../config/endpoints";
+import { getLocalizedCatalogDisplay } from "../utils/catalogLocalization";
 
-const patient2: ClinicalRecordPatient = {
-  patientId: "1",
-  fullName: "Sofía González Pérez",
-  gender: "Femenino",
-  ageDisplay: "19 Años",
-  documentType: "DNI",
-  documentNumber: "80001234",
-  bloodType: "A+",
-  specialty: "Oncología",
-
-  doctorName: "Neymar Sanchez",
-  attentionCode: "087999",
-  clinicalHistoryNumber: "087999",
-  insuranceName: "Rimac",
-  insuranceProduct: "EPS",
-  email: "santivea@gmail.com",
-  phone: "966420859",
-  address: "Av. Gregorio Escobedo 650, Jesús María",
-
-  hasAllergies: true,
-};
 
 export default function ClinicalRecordPage() {
+  const { state } = useLocation();
+ const patient =
+    (state as { patient?: MonitorTableRow } | null)?.patient;
 
+  const [encounterId] = useState<number | undefined>(
+    () => patient?.encounter_id ?? undefined,
+  );
 
- const { state } = useLocation();
-
-  const patient = state?.patient as MonitorTableRow ;
 
   const [allergyDetailsOpen, setAllergyDetailsOpen] =
     useState(false);
@@ -73,36 +57,40 @@ export default function ClinicalRecordPage() {
   const [openMedicalHistory, setOpenMedicalHistory] =
     useState(false);
 
-  const { t, i18n } = useTranslation("triage");
 
-  const localeLabelKey =
-    i18n.resolvedLanguage === "en"
-      ? "display_en"
-      : i18n.resolvedLanguage === "pt"
-        ? "display_pt"
-        : "display_es";
-
+  const {  i18n , t} = useTranslation("emergency");
 
     const {
-   
-    fetchIdentifierTypes,
-    fetchAgeGroups,
-    loadingIdentifierTypes,
-    loadingAgeGroups,
-  } = useCatalog();
+      fetchAgeGroups,
+      fetchIdentifierTypes,
+      fetchCodeSystemValues,
+      dataCatalogCodeSystemValue: genders,
 
-  const {
+    } = useCatalog();
+
+ 
+
+ const {
     data: patientRecord,
-    loading,
-    error,
-    refetch,
-  } = usePatientRecord(patient?.patient_id);
+    loading: patientRecordLoading,
+    error: patientRecordError,
+  
+  } = usePatientRecord(encounterId);
 
-  console.log(
-    "Paciente proveniente del monitor:",
+
+
+  useEffect(() => {
+    console.log("Paciente del monitor:", patient);
+    console.log("Patient record:", patientRecord);
+    console.log("Loading:", patientRecordLoading);
+    console.log("Error:", patientRecordError);
+  }, [
     patient,
-  );
-  console.log("Información completa del endpoint:", patientRecord);
+    patientRecord,
+    patientRecordLoading,
+    patientRecordError,
+  ]);
+
 
   const LIST_ACTION_BAR: ExtraAction[] = [
     {
@@ -172,52 +160,59 @@ export default function ClinicalRecordPage() {
     },
   ];
 
-  const fullName = patientRecord
-  ? [
-      patientRecord.first_name,
-      patientRecord.last_name_father,
-      patientRecord.last_name_mother,
-    ]
-      .filter(Boolean)
-      .join(" ")
-  : "-";
 
-  const primaryIdentifier =
-  patientRecord?.identifiers?.find(
-    (identifier) => identifier.is_primary,
-  ) ?? patientRecord?.identifiers?.[0];
+  const localizedPatientRecord = useMemo<ClinicalRecordPatient | null>(() => {
+    if (!patientRecord) return null;
 
-  const calculateAge = (birthDate?: string) => {
-  if (!birthDate) return null;
+    const catalogGender = genders?.find(
+      ({ code, is_active }) =>
+        is_active &&
+        code.toLowerCase() === patientRecord.gender?.toLowerCase(),
+    );
+    const practitioner = patientRecord.attending_practitioner;
 
-  const birth = new Date(`${birthDate}T00:00:00`);
-  const today = new Date();
+    return {
+      patientId: String(patientRecord.patient_id),
+      fullName: patientRecord.full_name,
+      gender: getLocalizedCatalogDisplay(
+        catalogGender,
+        i18n.resolvedLanguage,
+        patientRecord.gender || "-",
+      ),
+      ageDisplay: patientRecord.age_display || "-",
+      documentType: patientRecord.document_type || "-",
+      documentNumber: patientRecord.document_number || "-",
+      bloodType: patientRecord.blood_type || "-",
+      specialty: getLocalizedCatalogDisplay(
+        practitioner
+          ? {
+              display_es: practitioner.speciality_es,
+              display_en: practitioner.speciality_en,
+            }
+          : null,
+        i18n.resolvedLanguage,
+      ),
+      doctorName: practitioner?.doctor_name ?? "-",
+      attentionCode: patientRecord.attention_code ?? "-",
+      clinicalHistoryNumber: patientRecord.clinical_history_number ?? "-",
+      insuranceName: patientRecord.insurance ?? "-",
+      insuranceProduct: "-",
+      email: patientRecord.email ?? "-",
+      phone: patientRecord.phone ?? "-",
+      address: patientRecord.address ?? "-",
+      hasAllergies:
+        patientRecord.allergy?.declaration?.has_allergies === "S",
+    };
+  }, [patientRecord, genders, i18n.resolvedLanguage]);
 
-  let age =
-    today.getFullYear() - birth.getFullYear();
-
-  const monthDifference =
-    today.getMonth() - birth.getMonth();
-
-  if (
-    monthDifference < 0 ||
-    (monthDifference === 0 &&
-      today.getDate() < birth.getDate())
-  ) {
-    age--;
-  }
-
-  return age;
-};
-
-const age = calculateAge(patientRecord?.birth_date);
-
+ 
  useEffect(() => {
     const loadData = async () => {
       try {
         const results = await Promise.all([
          
           fetchIdentifierTypes("patient"),
+          fetchCodeSystemValues(CSI_GENDER),
           fetchAgeGroups(),
         ]);
         const [
@@ -233,7 +228,10 @@ const age = calculateAge(patientRecord?.birth_date);
             genders
               .filter((g) => g.is_active)
               .sort((a, b) => a.sort_order - b.sort_order)
-              .map((g) => ({ value: g.code, label: String(g[localeLabelKey as keyof typeof g] ?? g.display_es) }))
+              .map((g) => ({
+                value: g.code,
+                label: getLocalizedCatalogDisplay(g, i18n.resolvedLanguage),
+              }))
         }
 
         if (ageGroups && Array.isArray(ageGroups)) {
@@ -241,7 +239,10 @@ const age = calculateAge(patientRecord?.birth_date);
             ageGroups
               .filter((g) => g.is_active)
               .sort((a, b) => a.sort_order - b.sort_order)
-              .map((g) => ({ value: g.code, label: String(g[localeLabelKey as keyof typeof g] ?? g.display_es) }))
+              .map((g) => ({
+                value: g.code,
+                label: getLocalizedCatalogDisplay(g, i18n.resolvedLanguage),
+              }))
           
         }
 
@@ -251,7 +252,10 @@ const age = calculateAge(patientRecord?.birth_date);
             identifierTypes
               .filter((t) => t.is_active)
               .sort((a, b) => a.sort_order - b.sort_order)
-              .map((t) => ({ value: t.code, label: String(t[localeLabelKey as keyof typeof t] ?? t.display_es) }))
+              .map((t) => ({
+                value: t.code,
+                label: getLocalizedCatalogDisplay(t, i18n.resolvedLanguage),
+              }))
         }
 
       
@@ -393,10 +397,35 @@ const age = calculateAge(patientRecord?.birth_date);
           </Box>
         </HceFormModal>
       </Box>
-      <Box sx={{ width: "100%", p: 2 }}>
+     <Box sx={{ width: "100%", p: 2 }}>
+      {patientRecordLoading ? (
+        <Box
+          sx={{
+            width: "100%",
+            minHeight: "82px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          Cargando información del paciente...
+        </Box>
+      ) : patientRecordError ? (
+        <Box
+          sx={{
+            width: "100%",
+            minHeight: "82px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          Error al cargar la información del paciente
+        </Box>
+      ) : patientRecord ? (
         <DataCard
-          backgroundColor={"var(--ds-color-secondary-light, #0043a5)"}
-          borderColor={"var(--ds-color-primary, #0043a5)"}
+          backgroundColor="var(--ds-color-secondary-light, #0043a5)"
+          borderColor="var(--ds-color-primary, #0043a5)"
           borderWidth={2}
           borderRadius="12px"
           contentPadding="12px 14px"
@@ -417,33 +446,54 @@ const age = calculateAge(patientRecord?.birth_date);
               sx={{
                 width: 42,
                 height: 42,
-                backgroundColor: "var(--ds-color-interactive-button, #0043a5)",
+                backgroundColor:
+                  "var(--ds-color-interactive-button, #0043a5)",
                 color: hceColors.neutro.white[50],
               }}
             >
               <User size={24} />
             </Avatar>
 
-            <PatientField label="Paciente:" value="Sofía González Pérez" />
-
-            <PatientField label="Género:" value="Femenino" />
-
-            <PatientField label="Edad:" value="19 Años" />
-
-            <PatientField label="Tipo y N.Documento:" value="DNI - 80001234" />
-
-            <PatientField label="G. Sanguíneo:" value="A+" />
-
-            <PatientField label="Especialidad:" value="Oncología" />
+            <PatientField
+              label={t('ClinicalRecord.patient.patient')}
+              value={localizedPatientRecord?.fullName ?? "-"}
+            />
 
             <PatientField
-              label="Alergias:"
+              label={t('ClinicalRecord.patient.gender')}
+              value={localizedPatientRecord?.gender ?? "-"}
+            />
+
+            <PatientField
+              label={t('ClinicalRecord.patient.age')}
+              value={localizedPatientRecord?.ageDisplay ?? "-"}
+            />
+
+            <PatientField
+              label={t('ClinicalRecord.patient.document')}
+              value={`${localizedPatientRecord?.documentType ?? "-"} ${localizedPatientRecord?.documentNumber ?? "-"}`}
+            />
+
+            <PatientField
+              label={t('ClinicalRecord.patient.bloodType')}
+              value={localizedPatientRecord?.bloodType ?? "-"}
+            />
+
+            <PatientField
+              label={t('ClinicalRecord.patient.specialty')}
+              value={localizedPatientRecord?.specialty ?? "-"}
+            />
+
+            <PatientField
+              label={t('ClinicalRecord.patient.allergies')}
               value={
                 <StatusBadge
-                  label="Presenta alergias"
-                  variant="error"
+                  label={localizedPatientRecord?.hasAllergies ? t('ClinicalRecord.patient.hasAllergies') : t('ClinicalRecord.patient.noAllergies')}
+                  variant={localizedPatientRecord?.hasAllergies ? "error" : "info"}
                   clickable
-                  onClick={() => setAllergyDetailsOpen(true)}
+                  onClick={() =>
+                    setAllergyDetailsOpen(true)
+                  }
                 />
               }
             />
@@ -454,11 +504,17 @@ const age = calculateAge(patientRecord?.birth_date);
                 justifyContent: "flex-end",
               }}
             >
-              <InfoButton onClick={() => setPatientDetailsOpen(true)} />
+              <InfoButton
+                onClick={() =>
+                  setPatientDetailsOpen(true)
+                }
+                tooltip={t('ClinicalRecord.actions.info')}
+              />
             </Box>
           </Box>
         </DataCard>
-      </Box>
+      ) : null}
+    </Box>
 
       <Box>
         <ActionBar
@@ -470,12 +526,13 @@ const age = calculateAge(patientRecord?.birth_date);
 
       <PatientDetailsModal
         open={patientDetailsOpen}
-        patient={patient2}
+        patient={localizedPatientRecord}
         onClose={() => setPatientDetailsOpen(false)}
       />
 
       <AllergyModal
         open={allergyDetailsOpen}
+        encounterId={encounterId}
         onClose={() => setAllergyDetailsOpen(false)}
       />
     </Box>

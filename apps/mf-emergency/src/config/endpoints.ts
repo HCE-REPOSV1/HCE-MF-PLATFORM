@@ -1,9 +1,13 @@
 const AG_WEB_EMERGENCY = import.meta.env.VITE_APIGW_CNL_WEB_EMERGENCY
 const AG_CLN_CROSS = import.meta.env.VITE_APIGW_CLN_CROSS
 
+const AG_BS_HCE= import.meta.env.VITE_APIGW_BS_HCE
+
+
 if (!AG_WEB_EMERGENCY) throw new Error('[mf-emergency] VITE_APIGW_CNL_WEB_EMERGENCY no está configurado')
 if (!AG_CLN_CROSS) throw new Error('[mf-emergency] VITE_APIGW_CLN_CROSS no está configurado')
 
+export const CSI_GENDER = import.meta.env.VITE_CSI_GENDER;
 export const ENDPOINTS = {
 
   emergencyMonitor: {
@@ -47,12 +51,28 @@ export const ENDPOINTS = {
       `${AG_CLN_CROSS}/api/v1/catalogs/identifier-types?entity_type=${encodeURIComponent(entityType)}`,
     TimeUnits: () => `${AG_CLN_CROSS}/api/v1/catalogs/time-units`,
     AgeGroups: () => `${AG_CLN_CROSS}/api/v1/catalogs/age-groups`,
+    CodeSystemValues: (codeSystemId: string | number) =>
+      `${AG_CLN_CROSS}/api/v1/catalogs/code-system-values?code_system_id=${codeSystemId}`,
   },
 
-  patientRecord: {
+  encounter: {
     /** Obtener los datos de un paciente por su ID. */
-    patientInfo: (patientId: string) =>
-      `${AG_WEB_EMERGENCY}/api/v1/patient/${patientId}/full`,
+    patientInfo: (encounterId: number) =>
+      `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounterId}/patient-summary`,
+  
+
+    allergyInfo:(encounterId:number)=>
+       `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounterId}/allergy-declaration`,
+
+    updateAllergy:(allergy_intolerance_id:number)=>
+      `${AG_BS_HCE}/api/v1/allergy/intolerance/${allergy_intolerance_id}`,
+
+    createSubstancesAllergy:()=>
+      `${AG_BS_HCE}/api/v1/allergy/substances`,
+
+    updateSubstancesAllergy:(allergy_substance_id:number)=>
+      `${AG_BS_HCE}/api/v1/allergy/substances/${allergy_substance_id}/estado`,
+
   }
 
 } as const

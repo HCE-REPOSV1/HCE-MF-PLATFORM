@@ -360,14 +360,15 @@ export default function MonitorPage() {
 
   const handlePatientClick = useCallback((row: MonitorTableRow) => {
 
-   // console.info("[MonitorPage] Abrir HCE:", row);
+   //console.info("[MonitorPage] Abrir HCE:", row);
 
     navigate("historiacli", {
       state: {
         patient: row,
       },
     });
-  },[navigate],);
+  },[navigate
+  ],);
 
   const handlePriorityClick = useCallback(
     (row: MonitorTableRow) => {

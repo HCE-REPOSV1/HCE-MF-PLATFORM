@@ -82,3 +82,26 @@ export interface CatalogAgeGroupResponse {
   message:  string;
   data:     CatalogAgeGroup[];
 }
+
+export interface CatalogCodeSystemValue {
+    value_id:       number,
+    value_uuid:     string,
+    code_system_id: number,
+    code:           string,
+    display_es:     string,
+    display_en:     string,
+    display_pt?:    string,
+    sort_order:     number,
+    is_default:     boolean,
+    metadata_json:  string | null,
+    user_create:    string,
+    user_modify:    string | null,
+    date_create:    string,
+    date_modify:    string | null,
+    is_active:      boolean
+}
+export interface CatalogCodeSystemValueResponse {
+  success:  boolean;
+  message:  string;
+  data:     CatalogCodeSystemValue[];
+}

@@ -91,5 +91,54 @@
     "noPermissionDescription": "Tu usuario no está registrado como médico — solo un médico puede asignarse como tratante.",
     "actionAssigned": "asignado",
     "actionReassigned": "reasignado"
+  },
+  "ClinicalRecord": {
+    "loadingPatient": "Cargando información del paciente...",
+    "patientLoadError": "Error al cargar la información del paciente",
+    "patient": {
+      "patient": "Paciente:",
+      "gender": "Género:",
+      "age": "Edad:",
+      "document": "Tipo y N.° de documento:",
+      "bloodType": "Grupo sanguíneo:",
+      "doctor": "Médico:",
+      "specialty": "Especialidad:",
+      "attentionCode": "Código de atención:",
+      "clinicalHistoryNumber": "N.° de historia clínica:",
+      "insurance": "Aseguradora:",
+      "product": "Producto:",
+      "email": "Correo:",
+      "phone": "Celular:",
+      "address": "Dirección:",
+      "allergies": "Alergias:",
+      "hasAllergies": "Presenta alergias",
+      "noAllergies": "No presenta alergias"
+
+    },
+    "actions": {
+      "info": "Informacion adicional del paciente"
+   
+    },
+    "allergy": {
+      "title": "Declaratoria de alergias",
+      "activeIngredient": "Principio activo",
+      "activeIngredientWithId": "Principio activo #{{id}}",
+      "food": "Alimentos",
+      "other": "Otros",
+      "edit": "Editar",
+      "yes": "Sí",
+      "deniesAllergies": "Niega alergias",
+      "foodPlaceholder": "Describa alergias alimentarias",
+      "otherPlaceholder": "Otros tipos de alergia",
+      "confirmEdit": "¿Desea continuar con la edición de las alergias declaradas?",
+      "accept": "Aceptar",
+      "cancel": "Cancelar",
+      "loading": "Cargando información del paciente",
+      "loadError": "No se pudo cargar la declaratoria de alergias.",
+      "empty": "El paciente no tiene una declaratoria de alergias registrada.",
+      "editError": "No se pudo editar la alergia",
+      "refreshError": "No se pudo refrescar la información",
+      "catalogError": "No se pudo cargar la información de catálogos. Recargue el formulario."
+    }
   }
 }

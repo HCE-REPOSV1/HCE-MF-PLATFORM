@@ -2,38 +2,65 @@ import { useCallback, useEffect, useState } from "react";
 import { ENDPOINTS } from "../config/endpoints";
 
 export interface PatientIdentifier {
-  identifier_id: number;
-  identifier_type: string;
-  identifier_value: string;
-  is_primary: boolean;
+  practitioner_id: number;
+  doctor_name: string;
+  speciality_id: number;
+  speciality_es: string | null;
+  speciality_en: string | null;
+}
+
+export interface AllergySubstances {
+  allergy_substance_id: number ;
+  active_principle_id: number;
+  active_principle_name: string;
+ 
+}
+
+export interface Declaration {
+  allergy_intolerance_id: number;
+  triage_id: string;
+  has_allergies: "S" | "N";
+  food_allergies: string | null;
+  other_allergies: string | null;
+  declared_at: string;
+  substances: AllergySubstances[];
+}
+
+export interface PatientAllergy{
+
+  encounter_id: number;
+    has_triage: string;
+  
+    has_declaration: string;
+    declaration: Declaration | null;
 }
 
 export interface PatientRecord {
-  patient_id: number;
-  patient_uuid: string;
+  encounter_id: number;
+  encounter_class: string;
 
-  first_name: string;
-  last_name_father: string;
-  last_name_mother: string;
+  attention_code: string;
+  clinical_history_number: string;
+  patient_id: string;
 
-  birth_date: string;
+  full_name:string;
   gender: string;
+  birth_date: string;
+ age_display: string;
+ document_type:string;
+ document_number:string;
+
   blood_type: string | null;
 
   phone: string | null;
   email: string | null;
+  address: string | null;
 
-  is_unknown_patient: boolean;
-  ni_correlative: string | null;
-  estimated_age_group: string | null;
+  insurance:string| null ;
+ 
 
-  is_reniec_verified: boolean;
-  is_sic_integrated: boolean;
-  is_vip: boolean;
-
-  legacy_patient_id: string | null;
-
-  identifiers: PatientIdentifier[];
+  attending_practitioner?: PatientIdentifier  | null;
+  allergy?: PatientAllergy;
 }
 
 interface PatientRecordResponse {
@@ -49,23 +76,39 @@ export interface UsePatientRecordResult {
   error: string | null;
   refetch: () => void;
 }
-
 export function usePatientRecord(
-  patientId?: number | string,
+  patientId?: number,
 ): UsePatientRecordResult {
-  const [data, setData] = useState<PatientRecord | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [tick, setTick] = useState(0);
+  const [data, setData] =
+    useState<PatientRecord | null>(null);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  const [tick, setTick] =
+    useState(0);
 
   const refetch = useCallback(() => {
     setTick((value) => value + 1);
   }, []);
 
   useEffect(() => {
+    console.log(
+      "[usePatientRecord] patientId:",
+      patientId,
+    );
+
     if (!patientId) {
+      console.log(
+        "[usePatientRecord] No hay patientId",
+      );
+
       setData(null);
       setLoading(false);
+
       return;
     }
 
@@ -76,7 +119,15 @@ export function usePatientRecord(
         setLoading(true);
         setError(null);
 
-        const url = ENDPOINTS.patientRecord.patientInfo(patientId);
+        const url =
+          ENDPOINTS.encounter.patientInfo(
+            patientId,
+          );
+
+        console.log(
+          "[usePatientRecord] URL:",
+          url,
+        );
 
         const response = await fetch(url, {
           method: "GET",
@@ -84,17 +135,39 @@ export function usePatientRecord(
           cache: "no-store",
         });
 
+        console.log(
+          "[usePatientRecord] status:",
+          response.status,
+        );
+
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
+          throw new Error(
+            `HTTP ${response.status}`,
+          );
         }
 
         const payload: PatientRecordResponse =
           await response.json();
 
+        console.log(
+          "[usePatientRecord] payload completo:",
+          payload,
+        );
+
+        console.log(
+          "[usePatientRecord] payload.data:",
+          payload.data,
+        );
+
         if (!cancelled) {
           setData(payload.data);
         }
       } catch (err: unknown) {
+        console.error(
+          "[usePatientRecord] Error:",
+          err,
+        );
+
         if (!cancelled) {
           setError(
             err instanceof Error

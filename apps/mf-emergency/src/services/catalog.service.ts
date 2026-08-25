@@ -18,6 +18,8 @@ import type {
   CatalogActivePrinciplesResponse,
   CatalogAgeGroup,
   CatalogAgeGroupResponse,
+  CatalogCodeSystemValue,
+  CatalogCodeSystemValueResponse,
   CatalogIdentifierType,
   CatalogIdentifierTypeResponse,
   CatalogTimeUnit,
@@ -94,6 +96,21 @@ export async function getAgeGroups(): Promise<CatalogAgeGroup[] | null> {
     );
 
   const json = (await res.json()) as CatalogAgeGroupResponse;
+  if (!json.success) return null;
+  return json.data;
+}
+
+export async function getCodeSystemValues(
+  codeSystemId: string | number,
+): Promise<CatalogCodeSystemValue[] | null> {
+  const res = await apiFetch(ENDPOINTS.catalogs.CodeSystemValues(codeSystemId));
+  if (res.status === 404) return null;
+  if (!res.ok)
+    throw new Error(
+      `Error ${res.status} al obtener datos del Catalog Code System Values`,
+    );
+
+  const json = (await res.json()) as CatalogCodeSystemValueResponse;
   if (!json.success) return null;
   return json.data;
 }
