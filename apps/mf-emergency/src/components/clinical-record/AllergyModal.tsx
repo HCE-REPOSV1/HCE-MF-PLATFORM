@@ -249,6 +249,7 @@ const handleSave = useCallback(async () => {
     }
   }, [
     form,
+    hasChanges,
     allergyDeclaration,
     onSaveChanges,
     readOnly,
@@ -262,12 +263,12 @@ const handleSave = useCallback(async () => {
   const handleConfirm = useCallback(async () => {
     try {
       setConfirm(false);
+      setError(null);
       if (allergySelected) {
         setForm({ ...allergySelected });
         setValuePrincipioActivo([...allergySelected.api]);
       }
       setallergyEditionOpen(true);
-      console.log(allergyDeclaration)
     } catch (err) {
       setError(
         err instanceof Error
@@ -298,7 +299,7 @@ const handleSave = useCallback(async () => {
   });
 
   setConfirm(true);
-}, [allergyDeclaration]);
+}, []);
   
 
   const handleClose = useCallback(async () => {
@@ -307,6 +308,7 @@ const handleSave = useCallback(async () => {
     setAllergySelected(undefined);
     setallergyEditionOpen(false);
     setConfirm(false);
+    setError(null);
     onClose();
   }, [onClose]);
 
@@ -338,7 +340,6 @@ const handleSave = useCallback(async () => {
 
   const isSaveDisabled =
   saving ||
-  Boolean(error) ||
   !hasChanges;
   //||
   // (!form.tieneAlergia?  ),
@@ -532,6 +533,20 @@ const handleSave = useCallback(async () => {
                 </Box>
               </Box>
                   </Box>
+
+                  {error && (
+                    <Box
+                      role="alert"
+                      sx={{
+                        mt: "10px",
+                        color: "#b42318",
+                        fontFamily: hceTypography.fontFamily,
+                        fontSize: "0.875rem",
+                      }}
+                    >
+                      {error}
+                    </Box>
+                  )}
 
                   <Box sx={{ display: "flex", justifyContent: "end", mt:"10px" }}>
                     <Button

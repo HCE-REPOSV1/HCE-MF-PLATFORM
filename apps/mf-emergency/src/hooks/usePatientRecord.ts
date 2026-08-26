@@ -96,16 +96,7 @@ export function usePatientRecord(
   }, []);
 
   useEffect(() => {
-    console.log(
-      "[usePatientRecord] patientId:",
-      patientId,
-    );
-
     if (!patientId) {
-      console.log(
-        "[usePatientRecord] No hay patientId",
-      );
-
       setData(null);
       setLoading(false);
 
@@ -124,21 +115,11 @@ export function usePatientRecord(
             patientId,
           );
 
-        console.log(
-          "[usePatientRecord] URL:",
-          url,
-        );
-
         const response = await fetch(url, {
           method: "GET",
           credentials: "include",
           cache: "no-store",
         });
-
-        console.log(
-          "[usePatientRecord] status:",
-          response.status,
-        );
 
         if (!response.ok) {
           throw new Error(
@@ -149,25 +130,10 @@ export function usePatientRecord(
         const payload: PatientRecordResponse =
           await response.json();
 
-        console.log(
-          "[usePatientRecord] payload completo:",
-          payload,
-        );
-
-        console.log(
-          "[usePatientRecord] payload.data:",
-          payload.data,
-        );
-
         if (!cancelled) {
           setData(payload.data);
         }
       } catch (err: unknown) {
-        console.error(
-          "[usePatientRecord] Error:",
-          err,
-        );
-
         if (!cancelled) {
           setError(
             err instanceof Error

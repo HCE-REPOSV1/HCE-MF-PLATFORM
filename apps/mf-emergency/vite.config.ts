@@ -60,6 +60,11 @@ export default defineConfig(({ mode }) => {
     },
     server: { port: 10503 },
     preview: { port: 10503 },
-    build: { target: "esnext", minify: false, cssCodeSplit: false },
+    esbuild: mode === "production" ? { drop: ["console", "debugger"] } : undefined,
+    build: {
+      target: "esnext",
+      minify: mode === "production" ? "esbuild" : false,
+      cssCodeSplit: false,
+    },
   };
 });
