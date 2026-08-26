@@ -1,9 +1,13 @@
 const AG_WEB_EMERGENCY = import.meta.env.VITE_APIGW_CNL_WEB_EMERGENCY
 const AG_CLN_CROSS = import.meta.env.VITE_APIGW_CLN_CROSS
 
+
+
+
 if (!AG_WEB_EMERGENCY) throw new Error('[mf-emergency] VITE_APIGW_CNL_WEB_EMERGENCY no está configurado')
 if (!AG_CLN_CROSS) throw new Error('[mf-emergency] VITE_APIGW_CLN_CROSS no está configurado')
 
+export const CSI_GENDER = import.meta.env.VITE_CSI_GENDER;
 export const ENDPOINTS = {
 
   emergencyMonitor: {
@@ -43,6 +47,27 @@ export const ENDPOINTS = {
     ActivePrinciples: () => `${AG_CLN_CROSS}/api/v1/catalogs/active-principles`,
     ActivePrinciplesSearch: (text: string) =>
       `${AG_CLN_CROSS}/api/v1/catalogs/active-principles/search?text=${encodeURIComponent(text)}`,
+    IdentifierTypes: (entityType: string) =>
+      `${AG_CLN_CROSS}/api/v1/catalogs/identifier-types?entity_type=${encodeURIComponent(entityType)}`,
+    TimeUnits: () => `${AG_CLN_CROSS}/api/v1/catalogs/time-units`,
+    AgeGroups: () => `${AG_CLN_CROSS}/api/v1/catalogs/age-groups`,
+    CodeSystemValues: (codeSystemId: string | number) =>
+      `${AG_CLN_CROSS}/api/v1/catalogs/code-system-values?code_system_id=${codeSystemId}`,
   },
+
+  encounter: {
+    /** Obtener los datos de un paciente por su ID. */
+    patientInfo: (encounterId: number) =>
+      `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounterId}/patient-summary`,
+  
+
+    allergyInfo:(encounterId:number)=>
+       `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounterId}/allergy-declaration`,
+
+    updateAllergy:(encounterId:number)=>
+      `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounterId}/allergy-declaration`,
+
+   
+  }
 
 } as const

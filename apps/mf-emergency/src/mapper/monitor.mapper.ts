@@ -130,6 +130,7 @@ export const mapMonitorApiItemToTableRow = (
     document_number: item.document_number ?? "-",
     document_number_masked: item.document_number_masked ?? "-",
 
+    patient_id: item.patient_id ?? 0,
     patient_name: item.patient_name ?? "-",
     patient_name_masked: item.patient_name_masked ?? "-",
 

@@ -91,5 +91,54 @@
     "noPermissionDescription": "Your user is not registered as a physician — only a physician can be assigned as the attending doctor.",
     "actionAssigned": "assigned",
     "actionReassigned": "reassigned"
+  },
+  "ClinicalRecord": {
+    "loadingPatient": "Loading patient information...",
+    "patientLoadError": "Error loading patient information",
+    "patient": {
+      "patient": "Patient:",
+      "gender": "Gender:",
+      "age": "Age:",
+      "document": "Document type and number:",
+      "bloodType": "Blood type:",
+      "doctor": "Doctor:",
+      "specialty": "Specialty:",
+      "attentionCode": "Attention code:",
+      "clinicalHistoryNumber": "Clinical record number:",
+      "insurance": "Insurance provider:",
+      "product": "Product:",
+      "email": "Email:",
+      "phone": "Phone:",
+      "address": "Address:",
+      "allergies": "Allergies:",
+      "hasAllergies": "Has allergies",
+      "noAllergies": "No known allergies"
+    },
+    "actions": {
+      "info": "Additional information of the pacient"
+      
+    },
+
+    "allergy": {
+      "title": "Allergy declaration",
+      "activeIngredient": "Active ingredient",
+      "activeIngredientWithId": "Active ingredient #{{id}}",
+      "food": "Food",
+      "other": "Other",
+      "edit": "Edit",
+      "yes": "Yes",
+      "deniesAllergies": "Denies allergies",
+      "foodPlaceholder": "Describe food allergies",
+      "otherPlaceholder": "Other types of allergy",
+      "confirmEdit": "Do you want to continue editing the declared allergies?",
+      "accept": "Accept",
+      "cancel": "Cancel",
+      "loading": "Loading patient information",
+      "loadError": "The allergy declaration could not be loaded.",
+      "empty": "The patient does not have a registered allergy declaration.",
+      "editError": "The allergy could not be edited",
+      "refreshError": "The information could not be refreshed",
+      "catalogError": "Catalog information could not be loaded. Reload the form."
+    }
   }
 }
