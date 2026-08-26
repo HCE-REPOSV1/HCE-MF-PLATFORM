@@ -30,4 +30,12 @@ export const ENDPOINTS = {
     locations: `${AG_CROSS}/api/v1/organization/1/locations`,
   },
 
+  /** i18n — rutas públicas (el shell monta el namespace "common" ANTES de que exista sesión) */
+  i18n: {
+    locales:         `${AG_CROSS}/api/v1/i18n/locales`,
+    publicNamespace: (locale: string, namespace: string) => `${AG_CROSS}/api/v1/i18n/public/${locale}/${namespace}`,
+    /** Protegida — namespace propio "shell" (Layout/sidebar, post-login) */
+    namespace:       (locale: string, namespace: string) => `${AG_CROSS}/api/v1/i18n/${locale}/${namespace}`,
+  },
+
 } as const

@@ -9,13 +9,17 @@ import {
   Button,
   LoadingOverlay,
   HceModal,
+  HceLanguageSwitch,
   hceColors,
   UiWarningIcon,
   DoctorIcon,
   ForgotPasswordIcon,
   useCompanyBranding,
+  type HceLocaleOption,
 } from "@hce/design-system";
 import { login } from "shell/AuthService";
+import { i18n as i18nInstance, useLocaleSwitch, isValidLocale } from "@hce/i18n-core";
+import { ENDPOINTS } from "./config/endpoints";
 
 // ─── Wallpaper ────────────────────────────────────────────
 // Se importa como ?raw para inlinarlo como data URL.
@@ -120,6 +124,20 @@ export default function Login({ onSuccess }: LoginProps) {
     registerAuthNamespace();
   }, []);
 
+  // Idiomas disponibles para el selector del login — vienen del manifest
+  // del backend (i18n/locales, público), no de una lista hardcodeada.
+  const [locales, setLocales] = useState<HceLocaleOption[]>([]);
+  useEffect(() => {
+    fetch(ENDPOINTS.i18n.locales)
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+      .then(setLocales)
+      .catch((err) => console.error("[mf-auth] no se pudo obtener i18n/locales:", err));
+  }, []);
+  const switchLocale = useLocaleSwitch();
+  const handleLocaleChange = (code: string) => {
+    if (isValidLocale(code)) switchLocale(code);
+  };
+
   return (
     <Box
       sx={{
@@ -135,6 +153,30 @@ export default function Login({ onSuccess }: LoginProps) {
         position: "relative",
       }}
     >
+      {/* ── Selector de idioma — flotante, esquina superior derecha.
+          HceLanguageSwitch está pensado para el azul institucional del
+          header (texto/ícono blanco) -- acá el fondo es el wallpaper claro
+          del login, así que se envuelve en el mismo azul a modo de "chip"
+          para mantener contraste. ── */}
+      {locales.length > 0 && (
+        <Box
+          sx={{
+            position: "absolute",
+            top: 16,
+            right: 16,
+            zIndex: 2,
+            backgroundColor: "var(--ds-color-interactive, #003d96)",
+            borderRadius: "999px",
+          }}
+        >
+          <HceLanguageSwitch
+            locales={locales}
+            activeLocale={i18nInstance.language}
+            onLocaleChange={handleLocaleChange}
+          />
+        </Box>
+      )}
+
       {/* ── Loading overlay — cubre la pantalla mientras espera la API ── */}
       <LoadingOverlay
         open={loading}

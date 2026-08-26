@@ -20,4 +20,10 @@ export const ENDPOINTS = {
     photo:      (practitionerUuid: string) => `${AG_CROSS}/api/v1/media/practitioner/${practitionerUuid}/photo`,
   },
 
+  /** i18n — manifest público; namespace "header" protegido (requiere sesión) */
+  i18n: {
+    locales:    `${AG_CROSS}/api/v1/i18n/locales`,
+    namespace:  (locale: string, namespace: string) => `${AG_CROSS}/api/v1/i18n/${locale}/${namespace}`,
+  },
+
 } as const
