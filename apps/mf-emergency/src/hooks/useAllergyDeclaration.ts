@@ -42,18 +42,19 @@ export interface UpdateAllergyDeclarationRequest {
   has_allergies: "S" | "N";
   food_allergies: string | null;
   other_allergies: string | null;
+  active_principle_ids: number[],
   user_modify: string;
 
 }
 
 export async function updateAllergyDeclaration(
-  allergyIntoleranceId: number,
+  encounterId: number,
   declaration: UpdateAllergyDeclarationRequest,
 ): Promise<AllergyDeclaration | Declaration | null> {
   const response = await fetch(
-    ENDPOINTS.encounter.updateAllergy(allergyIntoleranceId),
+    ENDPOINTS.encounter.updateAllergy(encounterId),
     {
-      method: "PUT",
+      method: "PATCH",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(declaration),
@@ -72,77 +73,10 @@ export async function updateAllergyDeclaration(
 }
 
 
-export interface CreateAllergySubstanceRequest {
-  allergy_intolerance_id: number;
-  active_principle_id: number;
-  user_create: string;
-}
-
-export interface UpdateAllergySubstanceStatusRequest {
- 
-  is_active: boolean;
-  user_modify: string
-}
 
 
-export async function updateAllergySubstanceStatus(
-  allergySubstanceId: number,
-  request: UpdateAllergySubstanceStatusRequest,
-): Promise<unknown> {
-  const response = await fetch(
-    ENDPOINTS.encounter.updateSubstancesAllergy(
-      allergySubstanceId,
-    ),
-    {
-      method: "PATCH",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request),
-    },
-  );
 
-  const payload = await response.json().catch(() => null) as
-    | { message?: string; data?: unknown }
-    | null;
 
-  if (!response.ok) {
-    throw new Error(
-      payload?.message ?? `HTTP ${response.status}`,
-    );
-  }
-
-  return payload?.data ?? null;
-}
-
-export async function createAllergySubstance(
-  request: CreateAllergySubstanceRequest,
-): Promise<unknown> {
-  const response = await fetch(
-    ENDPOINTS.encounter.createSubstancesAllergy(),
-    {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request),
-    },
-  );
-
-  const payload = await response.json().catch(() => null) as
-    | { message?: string; data?: unknown }
-    | null;
-
-  if (!response.ok) {
-    throw new Error(
-      payload?.message ?? `HTTP ${response.status}`,
-    );
-  }
-
-  return payload?.data ?? null;
-}
 
 
 export function useAllergyDeclaration(

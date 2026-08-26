@@ -1,7 +1,7 @@
 const AG_WEB_EMERGENCY = import.meta.env.VITE_APIGW_CNL_WEB_EMERGENCY
 const AG_CLN_CROSS = import.meta.env.VITE_APIGW_CLN_CROSS
 
-const AG_BS_HCE= import.meta.env.VITE_APIGW_BS_HCE
+
 
 
 if (!AG_WEB_EMERGENCY) throw new Error('[mf-emergency] VITE_APIGW_CNL_WEB_EMERGENCY no está configurado')
@@ -64,15 +64,10 @@ export const ENDPOINTS = {
     allergyInfo:(encounterId:number)=>
        `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounterId}/allergy-declaration`,
 
-    updateAllergy:(allergy_intolerance_id:number)=>
-      `${AG_BS_HCE}/api/v1/allergy/intolerance/${allergy_intolerance_id}`,
+    updateAllergy:(encounterId:number)=>
+      `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounterId}/allergy-declaration`,
 
-    createSubstancesAllergy:()=>
-      `${AG_BS_HCE}/api/v1/allergy/substances`,
-
-    updateSubstancesAllergy:(allergy_substance_id:number)=>
-      `${AG_BS_HCE}/api/v1/allergy/substances/${allergy_substance_id}/estado`,
-
+   
   }
 
 } as const

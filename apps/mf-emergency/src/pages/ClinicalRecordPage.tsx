@@ -74,6 +74,7 @@ export default function ClinicalRecordPage() {
     data: patientRecord,
     loading: patientRecordLoading,
     error: patientRecordError,
+    refetch: refetchPatientRecord,
   
   } = usePatientRecord(encounterId);
 
@@ -272,6 +273,14 @@ export default function ClinicalRecordPage() {
   function handleCloseMedicalHistory() {
     setOpenMedicalHistory(false);
   }
+
+  const handleAllergySaved = async (
+    
+  ) => {
+  
+      await refetchPatientRecord();
+    
+  };
 
   const columnsMedicalHistory = [
     {
@@ -534,6 +543,7 @@ export default function ClinicalRecordPage() {
         open={allergyDetailsOpen}
         encounterId={encounterId}
         onClose={() => setAllergyDetailsOpen(false)}
+        onSaveChanges={handleAllergySaved}
       />
     </Box>
   );

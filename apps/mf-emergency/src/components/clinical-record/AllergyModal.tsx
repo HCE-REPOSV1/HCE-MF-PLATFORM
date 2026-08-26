@@ -24,7 +24,7 @@ import {
   type AllergyForm,
   type AllergyTableItem,
 } from "../../mapper/allergy.mapper";
-import { createAllergySubstance, updateAllergyDeclaration, updateAllergySubstanceStatus, useAllergyDeclaration } from "../../hooks/useAllergyDeclaration";
+import {  updateAllergyDeclaration, useAllergyDeclaration } from "../../hooks/useAllergyDeclaration";
 import { useTranslation } from "@hce/i18n-core";
 import { useUser } from "shell/UserContext";
 
@@ -35,7 +35,8 @@ export interface AllergyModalProps {
   encounterId?: number;
 
   mode?: "read" | "write";
-  onSaveChanges?: () => void | Promise<void>;
+  onSaveChanges?: (
+  ) => void | Promise<void>;
 }
 
 const EMPTY_FORM: AllergyForm = {
@@ -186,112 +187,57 @@ const allergyBoard = useMemo<AllergyTableItem[]>(() => {
   ];
 }, [allergyDeclaration, optionsActivePrinciples, t]);
 
+const hasChanges = useMemo(() => {
+  const original = allergyBoard[0];
+
+  if (!original) return false;
+
+  const sameActivePrinciples =
+    original.api.length === form.api.length &&
+    original.api.every((id) => form.api.includes(id));
+
+  return (
+    original.has_allergy !== form.has_allergy ||
+    !sameActivePrinciples ||
+    original.food !== form.food ||
+    original.other !== form.other
+  );
+}, [allergyBoard, form]);
+
 const handleSave = useCallback(async () => {
-    if (readOnly) return;
+    if (readOnly || !hasChanges) return;
 
-    const declaration = allergyDeclaration?.declaration;
-
-    if (!declaration) return;
+    if (!allergyDeclaration) return;
 
     try {
       setSaving(true);
       setError(null);
 
-      const originalForm = mapAllergyApiToForm({
-        ...declaration,
-        encounter_id: allergyDeclaration.encounter_id,
-      });
+      await updateAllergyDeclaration(
+        allergyDeclaration.encounter_id,
+        {
+          has_allergies:
+            form.has_allergy ? "S" : "N",
 
-      const areSameActivePrinciples = (
-        original: string[],
-        current: string[],
-      ) => {
-        if (original.length !== current.length) {
-          return false;
-        }
+          food_allergies:
+            form.food || null,
 
-        const originalSorted = [...original].sort();
-        const currentSorted = [...current].sort();
+          other_allergies:
+            form.other || null,
 
-        return originalSorted.every(
-          (id, index) => id === currentSorted[index],
-        );
-      };
+          active_principle_ids:
+            form.api.map(Number),
 
-      const activePrinciplesChanged =
-        !areSameActivePrinciples(
-          originalForm.api,
-          form.api,
-        );
-
-      const foodChanged =
-        form.food !== originalForm.food;
-
-      const otherChanged =
-        form.other !== originalForm.other;
-
-      console.log({
-        activePrinciplesChanged,
-        foodChanged,
-        otherChanged,
-      });
-
-     
-      if (activePrinciplesChanged) {
-
-        // 1. Desactivar TODAS las relaciones anteriores
-        await Promise.all(
-          declaration.substances.map((substance) =>
-            updateAllergySubstanceStatus(
-              substance.allergy_substance_id,
-              {
-                is_active: false,
-                user_modify: user,
-              },
-            ),
-          ),
-        );
-
-      
-        await Promise.all(
-          form.api.map((activePrincipleId) =>
-            createAllergySubstance({
-              allergy_intolerance_id:
-                declaration.allergy_intolerance_id,
-
-              active_principle_id:
-                Number(activePrincipleId),
-
-              user_create: user,
-            }),
-          ),
-        );
-      }
-
-     
-      if (foodChanged || otherChanged) {
-        await updateAllergyDeclaration(
-          declaration.allergy_intolerance_id,
-          {
-            has_allergies:
-              form.has_allergy ? "S" : "N",
-
-            food_allergies:
-              form.food || null,
-
-            other_allergies:
-              form.other || null,
-
-              user_modify:user
-          },
-        );
-      }
+          user_modify: user,
+        },
+      );
 
       await refetchAllergyDeclaration();
-      setallergyEditionOpen(false);
       await onSaveChanges?.();
+      setallergyEditionOpen(false);
 
      
+
     } catch (err) {
       setError(
         err instanceof Error
@@ -390,7 +336,10 @@ const handleSave = useCallback(async () => {
     return [...optionsActivePrinciples, ...rawOptions];
   }, [optionsActivePrinciples, valuePrincipioActivo]);
 
-  const isSaveDisabled = saving || Boolean(error);
+  const isSaveDisabled =
+  saving ||
+  Boolean(error) ||
+  !hasChanges;
   //||
   // (!form.tieneAlergia?  ),
 
