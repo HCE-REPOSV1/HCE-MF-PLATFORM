@@ -32,6 +32,11 @@ export function useCatalog() {
      const identifierTypes = useResourceState<CatalogIdentifierType[]>();
      
   const catalogCodeSystemValue = useResourceState<CatalogCodeSystemValue[]>();
+  const {
+    setData: setCodeSystemData,
+    setError: setCodeSystemError,
+    setLoading: setCodeSystemLoading,
+  } = catalogCodeSystemValue;
  
 
   const fetchCatalogActivePrinciples = useCallback(async (): Promise<
@@ -122,27 +127,31 @@ export function useCatalog() {
     }
   };
 
-   const fetchCodeSystemValues = async (
+   const fetchCodeSystemValues = useCallback(async (
     codeSystemId: string | number,
   ): Promise<CatalogCodeSystemValue[] | null> => {
-    catalogCodeSystemValue.setLoading(true);
-    catalogCodeSystemValue.setError(null);
+    setCodeSystemLoading(true);
+    setCodeSystemError(null);
     try {
       const response = await getCodeSystemValues(codeSystemId);
-      catalogCodeSystemValue.setData(response);
+      setCodeSystemData(response);
       return response;
     } catch (err) {
-      catalogCodeSystemValue.setError(
+      setCodeSystemError(
         err instanceof Error
           ? err.message
           : "Error al cargar valores del catálogo",
       );
-      catalogCodeSystemValue.setData(null);
+      setCodeSystemData(null);
       return null;
     } finally {
-      catalogCodeSystemValue.setLoading(false);
+      setCodeSystemLoading(false);
     }
-  };
+  }, [
+    setCodeSystemData,
+    setCodeSystemError,
+    setCodeSystemLoading,
+  ]);
 
   return {
     fetchAgeGroups,

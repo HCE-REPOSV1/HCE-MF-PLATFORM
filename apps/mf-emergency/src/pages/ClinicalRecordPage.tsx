@@ -43,9 +43,7 @@ export default function ClinicalRecordPage() {
  const patient =
     (state as { patient?: MonitorTableRow } | null)?.patient;
 
-  const [encounterId] = useState<number | undefined>(
-    () => patient?.encounter_id ?? undefined,
-  );
+  const encounterId = patient?.encounter_id ?? undefined;
 
 
   const [allergyDetailsOpen, setAllergyDetailsOpen] =
@@ -61,8 +59,6 @@ export default function ClinicalRecordPage() {
   const {  i18n , t} = useTranslation("emergency");
 
     const {
-      fetchAgeGroups,
-      fetchIdentifierTypes,
       fetchCodeSystemValues,
       dataCatalogCodeSystemValue: genders,
 
@@ -195,66 +191,8 @@ export default function ClinicalRecordPage() {
 
  
  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const results = await Promise.all([
-         
-          fetchIdentifierTypes("patient"),
-          fetchCodeSystemValues(CSI_GENDER),
-          fetchAgeGroups(),
-        ]);
-        const [
-          
-          identifierTypes,
-        
-          genders,
-          ageGroups,
-        ] = results;
-
-        if (genders && Array.isArray(genders)) {
-          
-            genders
-              .filter((g) => g.is_active)
-              .sort((a, b) => a.sort_order - b.sort_order)
-              .map((g) => ({
-                value: g.code,
-                label: getLocalizedCatalogDisplay(g, i18n.resolvedLanguage),
-              }))
-        }
-
-        if (ageGroups && Array.isArray(ageGroups)) {
-        
-            ageGroups
-              .filter((g) => g.is_active)
-              .sort((a, b) => a.sort_order - b.sort_order)
-              .map((g) => ({
-                value: g.code,
-                label: getLocalizedCatalogDisplay(g, i18n.resolvedLanguage),
-              }))
-          
-        }
-
-       
-        if (identifierTypes && Array.isArray(identifierTypes)) {
-       
-            identifierTypes
-              .filter((t) => t.is_active)
-              .sort((a, b) => a.sort_order - b.sort_order)
-              .map((t) => ({
-                value: t.code,
-                label: getLocalizedCatalogDisplay(t, i18n.resolvedLanguage),
-              }))
-        }
-
-      
-      } catch (err) {
-        console.error("Error al cargar información", err);
-       // setLoadError(t("errors.catalog.loadCatalogs"));
-      }
-    };
-
-    loadData();
-  }, []);
+    void fetchCodeSystemValues(CSI_GENDER);
+  }, [fetchCodeSystemValues]);
 
 
   function handleCloseMedicalHistory() {

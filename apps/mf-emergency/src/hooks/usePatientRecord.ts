@@ -79,8 +79,10 @@ export interface UsePatientRecordResult {
 export function usePatientRecord(
   patientId?: number,
 ): UsePatientRecordResult {
-  const [data, setData] =
-    useState<PatientRecord | null>(null);
+  const [record, setRecord] = useState<{
+    patientId: number;
+    data: PatientRecord;
+  } | null>(null);
 
   const [loading, setLoading] =
     useState(false);
@@ -97,13 +99,10 @@ export function usePatientRecord(
 
   useEffect(() => {
     if (!patientId) {
-      setData(null);
-      setLoading(false);
-
       return;
     }
 
-    let cancelled = false;
+    const controller = new AbortController();
 
     const fetchPatientRecord = async () => {
       try {
@@ -119,6 +118,7 @@ export function usePatientRecord(
           method: "GET",
           credentials: "include",
           cache: "no-store",
+          signal: controller.signal,
         });
 
         if (!response.ok) {
@@ -130,11 +130,15 @@ export function usePatientRecord(
         const payload: PatientRecordResponse =
           await response.json();
 
-        if (!cancelled) {
-          setData(payload.data);
+        if (!controller.signal.aborted) {
+          setRecord({ patientId, data: payload.data });
         }
       } catch (err: unknown) {
-        if (!cancelled) {
+        if (err instanceof DOMException && err.name === "AbortError") {
+          return;
+        }
+
+        if (!controller.signal.aborted) {
           setError(
             err instanceof Error
               ? err.message
@@ -142,7 +146,7 @@ export function usePatientRecord(
           );
         }
       } finally {
-        if (!cancelled) {
+        if (!controller.signal.aborted) {
           setLoading(false);
         }
       }
@@ -151,14 +155,14 @@ export function usePatientRecord(
     fetchPatientRecord();
 
     return () => {
-      cancelled = true;
+      controller.abort();
     };
   }, [patientId, tick]);
 
   return {
-    data,
-    loading,
-    error,
+    data: record && record.patientId === patientId ? record.data : null,
+    loading: Boolean(patientId) && loading,
+    error: patientId ? error : null,
     refetch,
   };
 }

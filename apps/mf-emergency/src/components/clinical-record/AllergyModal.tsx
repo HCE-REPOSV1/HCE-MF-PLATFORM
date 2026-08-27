@@ -27,6 +27,7 @@ import {
 import {  updateAllergyDeclaration, useAllergyDeclaration } from "../../hooks/useAllergyDeclaration";
 import { useTranslation } from "@hce/i18n-core";
 import { useUser } from "shell/UserContext";
+import { resolveApiError } from "../../i18n/errorCodes";
 
 export interface AllergyModalProps {
   open: boolean;
@@ -238,11 +239,9 @@ const handleSave = useCallback(async () => {
 
      
 
-    } catch (err) {
+    } catch (err: unknown) {
       setError(
-        err instanceof Error
-          ? err.message
-          : t("ClinicalRecord.allergy.editError"),
+        t(resolveApiError(err, "ClinicalRecord.allergy.editError")),
       );
     } finally {
       setSaving(false);
@@ -286,9 +285,6 @@ const handleSave = useCallback(async () => {
   }, []);
 
   const handleEdit = useCallback((row: AllergyTableItem) => {
-    setConfirm(true);
-
-
     setAllergySelected({
     allergy_id: row.allergy_id,
     encounter_id: row.encounter_id,

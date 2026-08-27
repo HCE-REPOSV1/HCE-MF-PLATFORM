@@ -1,4 +1,15 @@
 {
+  "errors": {
+    "generic": "Ocurrió un error inesperado. Inténtelo nuevamente.",
+    "invalidRequest": "Los datos enviados no son válidos. Revise la información ingresada.",
+    "unauthorized": "Su sesión venció. Inicie sesión nuevamente.",
+    "forbidden": "No tiene permisos para realizar esta acción.",
+    "notFound": "No se encontró la información solicitada.",
+    "conflict": "La información fue modificada por otro usuario. Actualícela e inténtelo nuevamente.",
+    "serverError": "No se pudo completar la operación por un error del servidor. Inténtelo nuevamente.",
+    "serviceUnavailable": "El servicio no está disponible temporalmente. Inténtelo nuevamente.",
+    "timeout": "El servicio tardó demasiado en responder. Inténtelo nuevamente."
+  },
   "MonitorPage": {
     "actions": {
       "triage": "Triage",
@@ -136,7 +147,7 @@
       "loading": "Cargando información del paciente",
       "loadError": "No se pudo cargar la declaratoria de alergias.",
       "empty": "El paciente no tiene una declaratoria de alergias registrada.",
-      "editError": "No se pudo editar la alergia",
+      "editError": "No se pudo editar la alergia. Inténtelo nuevamente.",
       "refreshError": "No se pudo refrescar la información",
       "catalogError": "No se pudo cargar la información de catálogos. Recargue el formulario."
     }

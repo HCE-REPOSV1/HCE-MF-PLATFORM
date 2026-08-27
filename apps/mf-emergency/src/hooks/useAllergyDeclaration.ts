@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { ENDPOINTS } from "../config/endpoints";
+import { ApiError, type ApiErrorCode } from "../i18n/errorCodes";
 
 export interface AllergySubstances {
   allergy_substance_id: number;
@@ -62,11 +63,19 @@ export async function updateAllergyDeclaration(
   );
 
   const payload = await response.json().catch(() => null) as
-    | { message?: string; data?: AllergyDeclaration | Declaration }
+    | {
+        codigo?: ApiErrorCode;
+        code?: ApiErrorCode;
+        statusCode?: number;
+        data?: AllergyDeclaration | Declaration;
+      }
     | null;
 
   if (!response.ok) {
-    throw new Error(payload?.message ?? `HTTP ${response.status}`);
+    throw new ApiError(
+      payload?.codigo ?? payload?.code ?? payload?.statusCode,
+      response.status,
+    );
   }
 
   return payload?.data ?? null;

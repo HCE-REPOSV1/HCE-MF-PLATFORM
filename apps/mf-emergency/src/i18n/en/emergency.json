@@ -1,4 +1,15 @@
 {
+  "errors": {
+    "generic": "An unexpected error occurred. Please try again.",
+    "invalidRequest": "The submitted information is invalid. Review it and try again.",
+    "unauthorized": "Your session has expired. Sign in again.",
+    "forbidden": "You do not have permission to perform this action.",
+    "notFound": "The requested information was not found.",
+    "conflict": "The information was changed by another user. Refresh it and try again.",
+    "serverError": "The operation could not be completed due to a server error. Please try again.",
+    "serviceUnavailable": "The service is temporarily unavailable. Please try again.",
+    "timeout": "The service took too long to respond. Please try again."
+  },
   "MonitorPage": {
     "actions": {
       "triage": "Triage",
@@ -136,7 +147,7 @@
       "loading": "Loading patient information",
       "loadError": "The allergy declaration could not be loaded.",
       "empty": "The patient does not have a registered allergy declaration.",
-      "editError": "The allergy could not be edited",
+      "editError": "The allergy could not be edited. Please try again.",
       "refreshError": "The information could not be refreshed",
       "catalogError": "Catalog information could not be loaded. Reload the form."
     }
