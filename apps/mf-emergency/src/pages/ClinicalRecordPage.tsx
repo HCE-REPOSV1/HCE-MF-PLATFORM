@@ -18,41 +18,80 @@ import {
   Box,
   Avatar,
   type ExtraAction,
+  // Chip,
 } from "@hce/design-system";
 
-import type {
-  ClinicalRecordPatient,
-} from "../types/clinical.record.types";
-import { useState } from "react";
+import type { ClinicalRecordPatient } from "../types/clinical.record.types";
+import { useEffect, useMemo, useState } from "react";
 import { MedicalRecordPanel } from "../components/MedicalRecordPanel";
 import { AllergyModal } from "../components/clinical-record/AllergyModal";
 import { PatientField } from "../components/clinical-record/PatientField";
 import { PatientDetailsModal } from "../components/clinical-record/PatientDetailsModal";
 import { ClinicalRecordTable } from "../components/clinical-record/ClinicalRecordTable";
+import { useLocation } from "react-router-dom";
+import type { MonitorTableRow } from "../types/monitor.table.types";
+import { usePatientRecord } from "../hooks/usePatientRecord";
+import { useTranslation } from "@hce/i18n-core";
+import { useCatalog } from "../hooks/useCatalog";
+import { CSI_GENDER } from "../config/endpoints";
+import { getLocalizedCatalogDisplay } from "../utils/catalogLocalization";
 
-const patient: ClinicalRecordPatient = {
-  patientId: "1",
-  fullName: "Sofía González Pérez",
-  gender: "Femenino",
-  ageDisplay: "19 Años",
-  documentType: "DNI",
-  documentNumber: "80001234",
-  bloodType: "A+",
-  specialty: "Oncología",
-
-  doctorName: "Neymar Sanchez",
-  attentionCode: "087999",
-  clinicalHistoryNumber: "087999",
-  insuranceName: "Rimac",
-  insuranceProduct: "EPS",
-  email: "santivea@gmail.com",
-  phone: "966420859",
-  address: "Av. Gregorio Escobedo 650, Jesús María",
-
-  hasAllergies: true,
-};
 
 export default function ClinicalRecordPage() {
+  const { state } = useLocation();
+ const patient =
+    (state as { patient?: MonitorTableRow } | null)?.patient;
+
+  const [encounterId] = useState<number | undefined>(
+    () => patient?.encounter_id ?? undefined,
+  );
+
+
+  const [allergyDetailsOpen, setAllergyDetailsOpen] =
+    useState(false);
+
+  const [patientDetailsOpen, setPatientDetailsOpen] =
+    useState(false);
+
+  const [openMedicalHistory, setOpenMedicalHistory] =
+    useState(false);
+
+
+  const {  i18n , t} = useTranslation("emergency");
+
+    const {
+      fetchAgeGroups,
+      fetchIdentifierTypes,
+      fetchCodeSystemValues,
+      dataCatalogCodeSystemValue: genders,
+
+    } = useCatalog();
+
+ 
+
+ const {
+    data: patientRecord,
+    loading: patientRecordLoading,
+    error: patientRecordError,
+    refetch: refetchPatientRecord,
+  
+  } = usePatientRecord(encounterId);
+
+
+
+  useEffect(() => {
+    console.log("Paciente del monitor:", patient);
+    console.log("Patient record:", patientRecord);
+    console.log("Loading:", patientRecordLoading);
+    console.log("Error:", patientRecordError);
+  }, [
+    patient,
+    patientRecord,
+    patientRecordLoading,
+    patientRecordError,
+  ]);
+
+
   const LIST_ACTION_BAR: ExtraAction[] = [
     {
       id: "monitor",
@@ -121,10 +160,112 @@ export default function ClinicalRecordPage() {
     },
   ];
 
-  const [allergyDetailsOpen, setAllergyDetailsOpen] = useState(false);
+  const localizedPatientRecord = useMemo<ClinicalRecordPatient | null>(() => {
+    if (!patientRecord) return null;
 
-  const [patientDetailsOpen, setPatientDetailsOpen] = useState(false);
-  const [openMedicalHistory, setOpenMedicalHistory] = useState(false);
+    const catalogGender = genders?.find(
+      ({ code, is_active }) =>
+        is_active &&
+        code.toLowerCase() === patientRecord.gender?.toLowerCase(),
+    );
+    const practitioner = patientRecord.attending_practitioner;
+
+    return {
+      patientId: String(patientRecord.patient_id),
+      fullName: patientRecord.full_name,
+      gender: getLocalizedCatalogDisplay(
+        catalogGender,
+        i18n.resolvedLanguage,
+        patientRecord.gender || "-",
+      ),
+      ageDisplay: patientRecord.age_display || "-",
+      documentType: patientRecord.document_type || "-",
+      documentNumber: patientRecord.document_number || "-",
+      bloodType: patientRecord.blood_type || "-",
+      specialty: getLocalizedCatalogDisplay(
+        practitioner
+          ? {
+              display_es: practitioner.speciality_es,
+              display_en: practitioner.speciality_en,
+            }
+          : null,
+        i18n.resolvedLanguage,
+      ),
+      doctorName: practitioner?.doctor_name ?? "-",
+      attentionCode: patientRecord.attention_code ?? "-",
+      clinicalHistoryNumber: patientRecord.clinical_history_number ?? "-",
+      insuranceName: patientRecord.insurance ?? "-",
+      insuranceProduct: "-",
+      email: patientRecord.email ?? "-",
+      phone: patientRecord.phone ?? "-",
+      address: patientRecord.address ?? "-",
+      hasAllergies:
+        patientRecord.allergy?.declaration?.has_allergies === "S",
+    };
+  }, [patientRecord, genders, i18n.resolvedLanguage]);
+
+ 
+ useEffect(() => {
+    const loadData = async () => {
+      try {
+        const results = await Promise.all([
+         
+          fetchIdentifierTypes("patient"),
+          fetchCodeSystemValues(CSI_GENDER),
+          fetchAgeGroups(),
+        ]);
+        const [
+          
+          identifierTypes,
+        
+          genders,
+          ageGroups,
+        ] = results;
+
+        if (genders && Array.isArray(genders)) {
+          
+            genders
+              .filter((g) => g.is_active)
+              .sort((a, b) => a.sort_order - b.sort_order)
+              .map((g) => ({
+                value: g.code,
+                label: getLocalizedCatalogDisplay(g, i18n.resolvedLanguage),
+              }))
+        }
+
+        if (ageGroups && Array.isArray(ageGroups)) {
+        
+            ageGroups
+              .filter((g) => g.is_active)
+              .sort((a, b) => a.sort_order - b.sort_order)
+              .map((g) => ({
+                value: g.code,
+                label: getLocalizedCatalogDisplay(g, i18n.resolvedLanguage),
+              }))
+          
+        }
+
+       
+        if (identifierTypes && Array.isArray(identifierTypes)) {
+       
+            identifierTypes
+              .filter((t) => t.is_active)
+              .sort((a, b) => a.sort_order - b.sort_order)
+              .map((t) => ({
+                value: t.code,
+                label: getLocalizedCatalogDisplay(t, i18n.resolvedLanguage),
+              }))
+        }
+
+      
+      } catch (err) {
+        console.error("Error al cargar información", err);
+       // setLoadError(t("errors.catalog.loadCatalogs"));
+      }
+    };
+
+    loadData();
+  }, []);
 
   function handleCloseMedicalHistory() {
     setOpenMedicalHistory(false);
@@ -146,6 +287,76 @@ export default function ClinicalRecordPage() {
   //     render: (value: string) => <Chip label={value} />,
   //   },
   //   { field: "ver", header: "Ver" },
+  // ];
+  const handleAllergySaved = async (
+    
+  ) => {
+  
+      await refetchPatientRecord();
+    
+  };
+
+  // const columnsMedicalHistory = [
+  //   {
+  //     field: "th",
+  //     header: "Tipo de historia",
+  //     render: (value: string) => <Chip label={value} />,
+  //   },
+  //   { field: "medico", header: "Medico" },
+  //   { field: "especialidad", header: "Especialidad" },
+  //   { field: "fecha", header: "Fecha" },
+  //   { field: "cod_atencion", header: "C. de atención" },
+  //   {
+  //     field: "lugar",
+  //     header: "Lugar",
+  //     render: (value: string) => <Chip label={value} />,
+  //   },
+  //   { field: "ver", header: "Ver" },
+  // ];
+
+  // const rowsMedicalHistory = [
+  //   {
+  //     th: "Física",
+  //     medico: "Tipo de historia",
+  //     especialidad: "Ginecología",
+  //     fecha: "01/12/2024 - 15:00",
+  //     cod_atencion: "E00001",
+  //     lugar: "Emergencia",
+  //     ver: (
+  //       <InfoButton
+  //         tooltip="Ver detalle"
+  //         onClick={() => console.log("open...")}
+  //       />
+  //     ),
+  //   },
+  //   {
+  //     th: "Electrónica",
+  //     medico: "Tipo de historia",
+  //     especialidad: "Ginecología",
+  //     fecha: "01/12/2024 - 15:00",
+  //     cod_atencion: "E00001",
+  //     lugar: "Emergencia",
+  //     ver: (
+  //       <InfoButton
+  //         tooltip="Ver detalle"
+  //         onClick={() => console.log("open...")}
+  //       />
+  //     ),
+  //   },
+  //   {
+  //     th: "Electrónica",
+  //     medico: "Tipo de historia",
+  //     especialidad: "Ginecología",
+  //     fecha: "01/12/2024 - 15:00",
+  //     cod_atencion: "E00001",
+  //     lugar: "Emergencia",
+  //     ver: (
+  //       <InfoButton
+  //         tooltip="Ver detalle"
+  //         onClick={() => console.log("open...")}
+  //       />
+  //     ),
+  //   },
   // ];
 
   // const rowsMedicalHistory = [
@@ -256,10 +467,35 @@ export default function ClinicalRecordPage() {
           </Box>
         </HceFormModal>
       </Box>
-      <Box sx={{ width: "100%", p: 2 }}>
+     <Box sx={{ width: "100%", p: 2 }}>
+      {patientRecordLoading ? (
+        <Box
+          sx={{
+            width: "100%",
+            minHeight: "82px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          Cargando información del paciente...
+        </Box>
+      ) : patientRecordError ? (
+        <Box
+          sx={{
+            width: "100%",
+            minHeight: "82px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          Error al cargar la información del paciente
+        </Box>
+      ) : patientRecord ? (
         <DataCard
-          backgroundColor={"var(--ds-color-secondary-light, #0043a5)"}
-          borderColor={"var(--ds-color-primary, #0043a5)"}
+          backgroundColor="var(--ds-color-secondary-light, #0043a5)"
+          borderColor="var(--ds-color-primary, #0043a5)"
           borderWidth={2}
           borderRadius="12px"
           contentPadding="12px 14px"
@@ -280,33 +516,54 @@ export default function ClinicalRecordPage() {
               sx={{
                 width: 42,
                 height: 42,
-                backgroundColor: "var(--ds-color-interactive-button, #0043a5)",
+                backgroundColor:
+                  "var(--ds-color-interactive-button, #0043a5)",
                 color: hceColors.neutro.white[50],
               }}
             >
               <User size={24} />
             </Avatar>
 
-            <PatientField label="Paciente:" value="Sofía González Pérez" />
-
-            <PatientField label="Género:" value="Femenino" />
-
-            <PatientField label="Edad:" value="19 Años" />
-
-            <PatientField label="Tipo y N.Documento:" value="DNI - 80001234" />
-
-            <PatientField label="G. Sanguíneo:" value="A+" />
-
-            <PatientField label="Especialidad:" value="Oncología" />
+            <PatientField
+              label={t('ClinicalRecord.patient.patient')}
+              value={localizedPatientRecord?.fullName ?? "-"}
+            />
 
             <PatientField
-              label="Alergias:"
+              label={t('ClinicalRecord.patient.gender')}
+              value={localizedPatientRecord?.gender ?? "-"}
+            />
+
+            <PatientField
+              label={t('ClinicalRecord.patient.age')}
+              value={localizedPatientRecord?.ageDisplay ?? "-"}
+            />
+
+            <PatientField
+              label={t('ClinicalRecord.patient.document')}
+              value={`${localizedPatientRecord?.documentType ?? "-"} ${localizedPatientRecord?.documentNumber ?? "-"}`}
+            />
+
+            <PatientField
+              label={t('ClinicalRecord.patient.bloodType')}
+              value={localizedPatientRecord?.bloodType ?? "-"}
+            />
+
+            <PatientField
+              label={t('ClinicalRecord.patient.specialty')}
+              value={localizedPatientRecord?.specialty ?? "-"}
+            />
+
+            <PatientField
+              label={t('ClinicalRecord.patient.allergies')}
               value={
                 <StatusBadge
-                  label="Presenta alergias"
-                  variant="error"
+                  label={localizedPatientRecord?.hasAllergies ? t('ClinicalRecord.patient.hasAllergies') : t('ClinicalRecord.patient.noAllergies')}
+                  variant={localizedPatientRecord?.hasAllergies ? "error" : "info"}
                   clickable
-                  onClick={() => setAllergyDetailsOpen(true)}
+                  onClick={() =>
+                    setAllergyDetailsOpen(true)
+                  }
                 />
               }
             />
@@ -317,11 +574,17 @@ export default function ClinicalRecordPage() {
                 justifyContent: "flex-end",
               }}
             >
-              <InfoButton onClick={() => setPatientDetailsOpen(true)} />
+              <InfoButton
+                onClick={() =>
+                  setPatientDetailsOpen(true)
+                }
+                tooltip={t('ClinicalRecord.actions.info')}
+              />
             </Box>
           </Box>
         </DataCard>
-      </Box>
+      ) : null}
+    </Box>
 
       <Box>
         <ActionBar
@@ -333,13 +596,15 @@ export default function ClinicalRecordPage() {
 
       <PatientDetailsModal
         open={patientDetailsOpen}
-        patient={patient}
+        patient={localizedPatientRecord}
         onClose={() => setPatientDetailsOpen(false)}
       />
 
       <AllergyModal
         open={allergyDetailsOpen}
+        encounterId={encounterId}
         onClose={() => setAllergyDetailsOpen(false)}
+        onSaveChanges={handleAllergySaved}
       />
     </Box>
   );

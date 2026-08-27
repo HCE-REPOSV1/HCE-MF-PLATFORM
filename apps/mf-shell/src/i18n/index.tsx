@@ -1,22 +1,43 @@
 import { i18n } from "@hce/i18n-core";
-import es from "./es/shell.json";
-import en from "./en/shell.json";
+import { apiFetch } from "../services/api.service";
+import { ENDPOINTS } from "../config/endpoints";
 
-let registered = false;
+let registered: Promise<void> | null = null;
 
-export function registerShellNamespace() {
-  console.log('[shell namespace] llamando registerShellNamespace, registered =', registered);
-  if (registered) return;
+/**
+ * Trae el namespace "shell" para CADA idioma del manifest (`i18n/locales`,
+ * público) y lo registra vía addResourceBundle. El bundle en sí
+ * (`i18n/{locale}/shell`) requiere sesión -- por eso usa `apiFetch` propio
+ * de mf-shell (cookie + auto-refresh en 401, ver services/api.service.ts;
+ * es el mismo módulo que se expone a los demás mf's como `shell/ApiClient`).
+ */
+export function registerShellNamespace(): Promise<void> {
+  if (registered) return registered;
 
-  console.log('[shell namespace] antes de addResourceBundle, i18n:', i18n);
+  registered = (async () => {
+    let locales: Array<{ code: string }>;
+    try {
+      const res = await fetch(ENDPOINTS.i18n.locales);
+      if (!res.ok) throw new Error(`i18n/locales respondió ${res.status}`);
+      locales = await res.json();
+    } catch (err) {
+      console.error("[mf-shell i18n] no se pudo obtener el manifest de idiomas:", err);
+      return;
+    }
 
-  try {
-    i18n.addResourceBundle("es", "shell", es);
-    i18n.addResourceBundle("en", "shell", en);
-    console.log('[shell namespace] addResourceBundle OK');
-  } catch (err) {
-    console.error('[shell namespace] ERROR en addResourceBundle:', err);
-  }
+    await Promise.all(
+      locales.map(async ({ code }) => {
+        try {
+          const res = await apiFetch(ENDPOINTS.i18n.namespace(code, "shell"));
+          if (!res.ok) return;
+          const data = await res.json();
+          i18n.addResourceBundle(code, "shell", data);
+        } catch (err) {
+          console.error(`[mf-shell i18n] no se pudo cargar shell/${code}:`, err);
+        }
+      }),
+    );
+  })();
 
-  registered = true;
+  return registered;
 }

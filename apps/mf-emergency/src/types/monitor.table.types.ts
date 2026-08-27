@@ -15,7 +15,7 @@ export interface MonitorTableRow {
   monitor_id: string
   encounter_id: number | null
   triage_id: number | null
-
+  patient_id: number | null
   priority: PriorityLevel | "none"
   priority_sort: number | null
 
@@ -28,6 +28,7 @@ export interface MonitorTableRow {
   document_number: string
   document_number_masked: string
 
+ 
   patient_name: string
   patient_name_masked: string
 

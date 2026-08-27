@@ -24,7 +24,7 @@ import { useState } from "react";
 import AllergyModal from "./components/AllergyModal";
 import { PatientDetailsModal } from "./components/PatientDetailsModal";
 import type { ClinicalRecordPatient } from "./types/Patient.type";
-
+import MedicalHistoryModal from "./components/MedicalHistoryModal";
 
 const patient: ClinicalRecordPatient = {
   patientId: "1",
@@ -104,7 +104,7 @@ export default function ClinicalRecordPage() {
       labelTooltip: "Historial de atenciones",
       icon: HceHistoryIcon,
       onClick: () => {
-        // setOpenMedicalHistory(true);
+        setOpenMedicalHistory(true);
       },
       disabled: false,
     },
@@ -120,14 +120,15 @@ export default function ClinicalRecordPage() {
   const [allergyDetailsOpen, setAllergyDetailsOpen] = useState(false);
 
   const [patientDetailsOpen, setPatientDetailsOpen] = useState(false);
-
+  const [openMedicalHistory, setOpenMedicalHistory] = useState(false);
 
   return (
     <Box sx={{ width: "100%" }}>
       {/* Modal Historial de atenciones */}
-      <Box>
-       
-      </Box>
+      <MedicalHistoryModal
+        open={openMedicalHistory}
+        onClose={() => setOpenMedicalHistory(false)}
+      />
       <Box sx={{ width: "100%", p: 2 }}>
         <DataCard
           backgroundColor={"var(--ds-color-secondary-light, #0043a5)"}

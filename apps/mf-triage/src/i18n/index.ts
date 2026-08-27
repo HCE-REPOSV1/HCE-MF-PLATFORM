@@ -1,22 +1,42 @@
 import { i18n } from "@hce/i18n-core";
-import es from "./es/triage.json";
-import en from "./en/triage.json";
+import { apiFetch } from "shell/ApiClient";
+import { ENDPOINTS } from "../config/endpoints";
 
-let registered = false;
+let registered: Promise<void> | null = null;
 
-export function registerTriageNamespace() {
-  console.log('[triage namespace] llamando registerTriageNamespace, registered =', registered);
-  if (registered) return;
+/**
+ * Trae el namespace "triage" para CADA idioma del manifest (`i18n/locales`,
+ * público) y lo registra vía addResourceBundle. El bundle en sí
+ * (`i18n/{locale}/triage`) requiere sesión -- por eso usa `apiFetch` de
+ * `shell/ApiClient` (cookie + auto-refresh en 401).
+ */
+export function registerTriageNamespace(): Promise<void> {
+  if (registered) return registered;
 
-  console.log('[triage namespace] antes de addResourceBundle, i18n:', i18n);
+  registered = (async () => {
+    let locales: Array<{ code: string }>;
+    try {
+      const res = await fetch(ENDPOINTS.i18n.locales);
+      if (!res.ok) throw new Error(`i18n/locales respondió ${res.status}`);
+      locales = await res.json();
+    } catch (err) {
+      console.error("[mf-triage i18n] no se pudo obtener el manifest de idiomas:", err);
+      return;
+    }
 
-  try {
-    i18n.addResourceBundle("es", "triage", es);
-    i18n.addResourceBundle("en", "triage", en);
-    console.log('[triage namespace] addResourceBundle OK');
-  } catch (err) {
-    console.error('[triage namespace] ERROR en addResourceBundle:', err);
-  }
+    await Promise.all(
+      locales.map(async ({ code }) => {
+        try {
+          const res = await apiFetch(ENDPOINTS.i18n.namespace(code, "triage"));
+          if (!res.ok) return;
+          const data = await res.json();
+          i18n.addResourceBundle(code, "triage", data);
+        } catch (err) {
+          console.error(`[mf-triage i18n] no se pudo cargar triage/${code}:`, err);
+        }
+      }),
+    );
+  })();
 
-  registered = true;
+  return registered;
 }

@@ -7,8 +7,11 @@ import {
   User
 } from "@hce/design-system"
 
-import type { ClinicalRecordPatient } from "../../types/clinical.record.types"
 import { PatientField } from "./PatientField"
+import type { ClinicalRecordPatient } from "../../types/clinical.record.types"
+import { useTranslation } from "react-i18next"
+import { useEffect } from "react"
+import { registerEmergencyNamespace } from "../../i18n"
 
 interface PatientInformationModalProps {
   open: boolean
@@ -24,13 +27,19 @@ export function PatientDetailsModal({
 }: PatientInformationModalProps) {
    if (!patient) return null
 
+
+   const { t } = useTranslation("emergency");
+     useEffect(() => {
+       registerEmergencyNamespace();
+     }, []);
+
   const allergyLabel = patient.hasAllergies
-    ? "Presenta alergias"
-    : "Sin alergias"
+    ? t('ClinicalRecord.patient.hasAllergies')
+    : t('ClinicalRecord.patient.noAllergies')
 
   const allergyVariant = patient.hasAllergies
     ? "error"
-    : "success"
+    : "info"
 
 
 
@@ -68,7 +77,7 @@ export function PatientDetailsModal({
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: 1,
+            gap: 1.5,
             textAlign: "center",
             mb: 2.5,
           }}
@@ -82,11 +91,11 @@ export function PatientDetailsModal({
               color: hceColors.neutro.white[50],
             }}
           >
-            <User size={24} />
+            <User size={30} />
           </Avatar>
 
           <PatientField
-            label="Paciente:"
+            label={t('ClinicalRecord.patient.patient')}
             value={patient.fullName}
             align="center"
           />
@@ -108,17 +117,17 @@ export function PatientDetailsModal({
           }}
         >
           <PatientField
-            label="Género:"
+           label={t('ClinicalRecord.patient.gender')}
             value={patient.gender}
           />
 
           <PatientField
-            label="Edad:"
+            label={t('ClinicalRecord.patient.age')}
             value={patient.ageDisplay}
           />
 
           <PatientField
-            label="Tipo y N.Documento:"
+            label={t('ClinicalRecord.patient.document')}
             value={[
               patient.documentType,
               patient.documentNumber,
@@ -128,53 +137,53 @@ export function PatientDetailsModal({
           />
 
           <PatientField
-            label="G. Sanguíneo:"
+            label={t('ClinicalRecord.patient.bloodType')}
             value={patient.bloodType}
           />
 
           <PatientField
-            label="Médico:"
+            label={t('ClinicalRecord.patient.doctor')}
             value={patient.doctorName}
           />
 
           <PatientField
-            label="Especialidad:"
+            label={t('ClinicalRecord.patient.specialty')}
             value={patient.specialty}
           />
 
           <PatientField
-            label="C. de atención:"
+            label={t('ClinicalRecord.patient.attentionCode')}
             value={patient.attentionCode}
           />
 
           <PatientField
-            label="N° de Historia:"
+            label={t('ClinicalRecord.patient.clinicalHistoryNumber')}
             value={patient.clinicalHistoryNumber}
           />
 
           <PatientField
-            label="Aseguradora:"
+            label={t('ClinicalRecord.patient.insurance')}
             value={patient.insuranceName}
           />
 
           <PatientField
-            label="Producto:"
+            label={t('ClinicalRecord.patient.product')}
             value={patient.insuranceProduct}
           />
 
           <PatientField
-            label="Correo:"
+           label={t('ClinicalRecord.patient.email')}
             value={patient.email}
           />
 
           <PatientField
-            label="Celular:"
+            label={t('ClinicalRecord.patient.phone')}
             value={patient.phone}
           />
 
           <Box sx={{ gridColumn: "1 / -1" }}>
             <PatientField
-              label="Dirección:"
+              label={t('ClinicalRecord.patient.address')}
               value={patient.address}
             />
           </Box>

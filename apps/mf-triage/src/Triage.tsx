@@ -545,6 +545,8 @@ export function Triage({
 
     let cancelled = false;
     fetchTriageFull(triageId).then(async (full) => {
+
+      console.log("[Triage] Precarga triaje completo:", full);
       if (cancelled) return;
       if (!full) {
         setLoadError(t("errors.loadData.title"));
@@ -565,6 +567,8 @@ export function Triage({
         );
       }
 
+    
+      
       setForm((f) => ({ ...f, ...mapTriageFullToForm(full) }));
     });
 

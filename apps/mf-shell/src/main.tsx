@@ -47,11 +47,13 @@ import {
 import { UserProvider } from "./context/UserContext"
 import App from "./App"
 import { initI18n } from "@hce/i18n-core"
+import { registerCommonNamespace } from "./i18n/registerCommonNamespace"
 
 // Inyecta los CSS custom properties del Design System base en :root
 injectHceTokens()
 injectHceFonts()
 initI18n({ defaultLocale: import.meta.env.VITE_DEFAULT_LOCALE })
+registerCommonNamespace()
 
 // El tenant se configura por despliegue desde apps/mf-shell/.env.
 // Una clave ausente conserva el tema default; una clave desconocida utiliza

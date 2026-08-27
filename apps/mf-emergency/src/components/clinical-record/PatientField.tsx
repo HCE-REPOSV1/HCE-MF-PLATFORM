@@ -18,12 +18,12 @@ const labelSx = {
   mb: 0.5,
 }
 
-const valueSx: any = {
+const valueSx = {
   fontFamily: hceTypography.fontFamily,
   fontSize: "0.875rem",
   fontWeight: 400,
   color:"var(--ds-color-primary, #0043a5)",
-  //overflowWrap: "anywhere",
+  overflowWrap: "anywhere",
 } as const
 
 export function PatientField({

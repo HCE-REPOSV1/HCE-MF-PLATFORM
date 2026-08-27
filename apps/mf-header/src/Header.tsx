@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
-import { HceBreadcrumb, HceHeader } from "@hce/design-system";
+import { HceBreadcrumb, HceHeader, HceLanguageSwitch } from "@hce/design-system";
+import type { HceLocaleOption } from "@hce/design-system";
 import { useUser } from "shell/UserContext";
 import { usePractitioner } from "./hooks/usePractitioner";
 
 import { useLocation, useNavigate } from "react-router-dom";
-import { i18n, useTranslation } from "@hce/i18n-core";
+import { i18n, useTranslation, useLocaleSwitch, isValidLocale } from "@hce/i18n-core";
 import { registerHeaderNamespace } from "./i18n";
+import { ENDPOINTS } from "./config/endpoints";
 
 interface Sucursal {
   id: string | number;
@@ -94,6 +96,21 @@ export default function Header({
     registerHeaderNamespace();
   }, []);
 
+  // Idiomas disponibles para el selector — vienen del manifest del backend
+  // (i18n/locales, público), no de una lista hardcodeada.
+  const [locales, setLocales] = useState<HceLocaleOption[]>([]);
+  useEffect(() => {
+    fetch(ENDPOINTS.i18n.locales)
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+      .then(setLocales)
+      .catch((err) => console.error("[mf-header] no se pudo obtener i18n/locales:", err));
+  }, []);
+
+  const switchLocale = useLocaleSwitch();
+  const handleLocaleChange = (code: string) => {
+    if (isValidLocale(code)) switchLocale(code);
+  };
+
   const BREADCRUMB_LABELS: Record<string, string> = {
     home: t("breadcrumb.home"),
     emergencia: t("breadcrumb.emergency"),
@@ -150,6 +167,16 @@ export default function Header({
         onMenuClick={onMenuClick}
         title={t("title")}
         labelCloseSesion={t('labelCloseSesion')}
+        extraActions={
+          locales.length > 0 && (
+            <HceLanguageSwitch
+              locales={locales}
+              activeLocale={i18n.language}
+              onLocaleChange={handleLocaleChange}
+              ariaLabel={t('languageSwitch.ariaLabel')}
+            />
+          )
+        }
       />
 
       {showBreadcrumb && (
