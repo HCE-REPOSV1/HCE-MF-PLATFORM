@@ -9,9 +9,7 @@ import {
 
 import { PatientField } from "./PatientField"
 import type { ClinicalRecordPatient } from "../../types/clinical.record.types"
-import { useTranslation } from "react-i18next"
-import { useEffect } from "react"
-import { registerEmergencyNamespace } from "../../i18n"
+import { useTranslation } from "@hce/i18n-core"
 
 interface PatientInformationModalProps {
   open: boolean
@@ -25,13 +23,9 @@ export function PatientDetailsModal({
   onClose,
   patient,
 }: PatientInformationModalProps) {
-   if (!patient) return null
-
-
    const { t } = useTranslation("emergency");
-     useEffect(() => {
-       registerEmergencyNamespace();
-     }, []);
+
+   if (!patient) return null
 
   const allergyLabel = patient.hasAllergies
     ? t('ClinicalRecord.patient.hasAllergies')

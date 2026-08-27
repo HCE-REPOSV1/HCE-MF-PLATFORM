@@ -9,7 +9,13 @@ const BUILD_TIME = new Date().toISOString();
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, "");
 
-  const required = ["VITE_REMOTE_SHELL", "VITE_REMOTE_TRIAGE"];
+  const required = [
+    "VITE_REMOTE_SHELL",
+    "VITE_REMOTE_TRIAGE",
+    "VITE_APIGW_CNL_WEB_EMERGENCY",
+    "VITE_APIGW_CLN_CROSS",
+    "VITE_CSI_GENDER",
+  ];
   for (const key of required) {
     if (!env[key])
       throw new Error(`[mf-emergency] Falta variable de entorno: ${key}`);
@@ -60,6 +66,11 @@ export default defineConfig(({ mode }) => {
     },
     server: { port: 10503 },
     preview: { port: 10503 },
-    build: { target: "esnext", minify: false, cssCodeSplit: false },
+    esbuild: mode === "production" ? { drop: ["console", "debugger"] } : undefined,
+    build: {
+      target: "esnext",
+      minify: mode === "production" ? "esbuild" : false,
+      cssCodeSplit: false,
+    },
   };
 });
