@@ -53,4 +53,10 @@ export const ENDPOINTS = {
     TimeUnits: () => `${AG_CLN_CROSS}/api/v1/catalogs/time-units`,
     AgeGroups: () => `${AG_CLN_CROSS}/api/v1/catalogs/age-groups`,
   },
+
+  /** i18n — manifest público; namespace "triage" protegido (requiere sesión) */
+  i18n: {
+    locales:   `${AG_CLN_CROSS}/api/v1/i18n/locales`,
+    namespace: (locale: string, namespace: string) => `${AG_CLN_CROSS}/api/v1/i18n/${locale}/${namespace}`,
+  },
 } as const;

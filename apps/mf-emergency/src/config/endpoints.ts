@@ -61,7 +61,7 @@ export const ENDPOINTS = {
     /** Obtener los datos de un paciente por su ID. */
     patientInfo: (encounterId: number) =>
       `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounterId}/patient-summary`,
-  
+
 
     allergyInfo:(encounterId:number)=>
        `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounterId}/allergy-declaration`,
@@ -69,7 +69,13 @@ export const ENDPOINTS = {
     updateAllergy:(encounterId:number)=>
       `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounterId}/allergy-declaration`,
 
-   
-  }
+
+  },
+
+  /** i18n — manifest público; namespace "emergency" protegido (requiere sesión) */
+  i18n: {
+    locales:   `${AG_CLN_CROSS}/api/v1/i18n/locales`,
+    namespace: (locale: string, namespace: string) => `${AG_CLN_CROSS}/api/v1/i18n/${locale}/${namespace}`,
+  },
 
 } as const
