@@ -12,7 +12,7 @@ export const HTTP_ERROR_CODES: Record<number, string> = {
   409: "errors.conflict",
   422: "errors.invalidRequest",
   500: "errors.serverError",
-  502: "errors.serviceUnavailable",
+  502: "errors.network",
   503: "errors.serviceUnavailable",
   504: "errors.timeout",
 };

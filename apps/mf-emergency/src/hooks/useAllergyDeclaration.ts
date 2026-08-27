@@ -95,78 +95,55 @@ export function useAllergyDeclaration(
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchAllergyDeclaration = useCallback(
-    async (signal?: AbortSignal): Promise<void> => {
-      if (!encounterId) {
-        setData(null);
-        setLoading(false);
-        return;
+  const fetchAllergyDeclaration = useCallback(async (): Promise<void> => {
+    if (!encounterId) {
+      setData(null);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch(
+        ENDPOINTS.encounter.allergyInfo(encounterId),
+        {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
       }
 
-      try {
-        setLoading(true);
-        setError(null);
+      const payload: AllergyDeclarationResponse =
+        await response.json();
 
-        const response = await fetch(
-          ENDPOINTS.encounter.allergyInfo(encounterId),
-          {
-            method: "GET",
-            credentials: "include",
-            cache: "no-store",
-            signal,
-          },
-        );
+      setData(payload.data);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Error al obtener la declaración de alergias";
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
+      setError(message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [encounterId]);
 
-        const payload: AllergyDeclarationResponse =
-          await response.json();
-
-        if (!signal?.aborted) {
-          setData(payload.data);
-        }
-      } catch (err: unknown) {
-        // Si se desmontó el componente, no lo consideramos error
-        if (err instanceof DOMException && err.name === "AbortError") {
-          return;
-        }
-
-        const message =
-          err instanceof Error
-            ? err.message
-            : "Error al obtener la información del paciente";
-
-        if (!signal?.aborted) {
-          setError(message);
-        }
-
-        // Importante para que await refetch() pueda entrar al catch
-        throw err;
-      } finally {
-        if (!signal?.aborted) {
-          setLoading(false);
-        }
-      }
-    },
-    [encounterId],
-  );
-
-  // Carga inicial / cambio de encounter
   useEffect(() => {
-    const controller = new AbortController();
+    if (!encounterId) return;
 
-    void fetchAllergyDeclaration(controller.signal).catch(() => {
-      // El error ya se guarda en `error`
+    void fetchAllergyDeclaration().catch(() => {
+      // El error ya se guarda dentro del hook
     });
+  }, [encounterId, fetchAllergyDeclaration]);
 
-    return () => {
-      controller.abort();
-    };
-  }, [fetchAllergyDeclaration]);
-
-  // Refetch manual que SÍ se puede esperar
   const refetch = useCallback(async (): Promise<void> => {
     await fetchAllergyDeclaration();
   }, [fetchAllergyDeclaration]);

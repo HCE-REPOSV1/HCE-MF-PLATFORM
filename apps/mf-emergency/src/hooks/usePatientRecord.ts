@@ -79,10 +79,8 @@ export interface UsePatientRecordResult {
 export function usePatientRecord(
   patientId?: number,
 ): UsePatientRecordResult {
-  const [record, setRecord] = useState<{
-    patientId: number;
-    data: PatientRecord;
-  } | null>(null);
+  const [data, setData] =
+    useState<PatientRecord | null>(null);
 
   const [loading, setLoading] =
     useState(false);
@@ -98,11 +96,20 @@ export function usePatientRecord(
   }, []);
 
   useEffect(() => {
+   
+      patientId
+    ;
+
     if (!patientId) {
+     
+
+      setData(null);
+      setLoading(false);
+
       return;
     }
 
-    const controller = new AbortController();
+    let cancelled = false;
 
     const fetchPatientRecord = async () => {
       try {
@@ -114,13 +121,15 @@ export function usePatientRecord(
             patientId,
           );
 
+       
+
         const response = await fetch(url, {
           method: "GET",
           credentials: "include",
           cache: "no-store",
-          signal: controller.signal,
         });
 
+      
         if (!response.ok) {
           throw new Error(
             `HTTP ${response.status}`,
@@ -130,15 +139,17 @@ export function usePatientRecord(
         const payload: PatientRecordResponse =
           await response.json();
 
-        if (!controller.signal.aborted) {
-          setRecord({ patientId, data: payload.data });
+       
+
+       
+
+        if (!cancelled) {
+          setData(payload.data);
         }
       } catch (err: unknown) {
-        if (err instanceof DOMException && err.name === "AbortError") {
-          return;
-        }
+       
 
-        if (!controller.signal.aborted) {
+        if (!cancelled) {
           setError(
             err instanceof Error
               ? err.message
@@ -146,7 +157,7 @@ export function usePatientRecord(
           );
         }
       } finally {
-        if (!controller.signal.aborted) {
+        if (!cancelled) {
           setLoading(false);
         }
       }
@@ -155,14 +166,14 @@ export function usePatientRecord(
     fetchPatientRecord();
 
     return () => {
-      controller.abort();
+      cancelled = true;
     };
   }, [patientId, tick]);
 
   return {
-    data: record && record.patientId === patientId ? record.data : null,
-    loading: Boolean(patientId) && loading,
-    error: patientId ? error : null,
+    data,
+    loading,
+    error,
     refetch,
   };
 }

@@ -241,7 +241,7 @@ const handleSave = useCallback(async () => {
 
     } catch (err: unknown) {
       setError(
-        t(resolveApiError(err, "ClinicalRecord.allergy.editError")),
+        t('common:'+ resolveApiError(err, "ClinicalRecord.allergy.editError")),
       );
     } finally {
       setSaving(false);
