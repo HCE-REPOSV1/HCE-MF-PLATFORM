@@ -3,7 +3,7 @@ import {
   AltaMedicaIcon,
   DataCard,
   hceColors,
-  HceFormModal,
+  // HceFormModal,
   HceHistoryIcon,
   InfoButton,
   StatusBadge,
@@ -18,17 +18,13 @@ import {
   Box,
   Avatar,
   type ExtraAction,
+  PatientField,
 } from "@hce/design-system";
-
-import type {
-  ClinicalRecordPatient,
-} from "../types/clinical.record.types";
 import { useState } from "react";
-import { MedicalRecordPanel } from "../components/MedicalRecordPanel";
-import { AllergyModal } from "../components/clinical-record/AllergyModal";
-import { PatientField } from "../components/clinical-record/PatientField";
-import { PatientDetailsModal } from "../components/clinical-record/PatientDetailsModal";
-import { ClinicalRecordTable } from "../components/clinical-record/ClinicalRecordTable";
+import AllergyModal from "./components/AllergyModal";
+import { PatientDetailsModal } from "./components/PatientDetailsModal";
+import type { ClinicalRecordPatient } from "./types/Patient.type";
+
 
 const patient: ClinicalRecordPatient = {
   patientId: "1",
@@ -108,7 +104,7 @@ export default function ClinicalRecordPage() {
       labelTooltip: "Historial de atenciones",
       icon: HceHistoryIcon,
       onClick: () => {
-        setOpenMedicalHistory(true);
+        // setOpenMedicalHistory(true);
       },
       disabled: false,
     },
@@ -124,137 +120,13 @@ export default function ClinicalRecordPage() {
   const [allergyDetailsOpen, setAllergyDetailsOpen] = useState(false);
 
   const [patientDetailsOpen, setPatientDetailsOpen] = useState(false);
-  const [openMedicalHistory, setOpenMedicalHistory] = useState(false);
-
-  function handleCloseMedicalHistory() {
-    setOpenMedicalHistory(false);
-  }
-
-  // const columnsMedicalHistory = [
-  //   {
-  //     field: "th",
-  //     header: "Tipo de historia",
-  //     render: (value: string) => <Chip label={value} />,
-  //   },
-  //   { field: "medico", header: "Medico" },
-  //   { field: "especialidad", header: "Especialidad" },
-  //   { field: "fecha", header: "Fecha" },
-  //   { field: "cod_atencion", header: "C. de atención" },
-  //   {
-  //     field: "lugar",
-  //     header: "Lugar",
-  //     render: (value: string) => <Chip label={value} />,
-  //   },
-  //   { field: "ver", header: "Ver" },
-  // ];
-
-  // const rowsMedicalHistory = [
-  //   {
-  //     th: "Física",
-  //     medico: "Tipo de historia",
-  //     especialidad: "Ginecología",
-  //     fecha: "01/12/2024 - 15:00",
-  //     cod_atencion: "E00001",
-  //     lugar: "Emergencia",
-  //     ver: (
-  //       <InfoButton
-  //         tooltip="Ver detalle"
-  //         onClick={() => console.log("open...")}
-  //       />
-  //     ),
-  //   },
-  //   {
-  //     th: "Electrónica",
-  //     medico: "Tipo de historia",
-  //     especialidad: "Ginecología",
-  //     fecha: "01/12/2024 - 15:00",
-  //     cod_atencion: "E00001",
-  //     lugar: "Emergencia",
-  //     ver: (
-  //       <InfoButton
-  //         tooltip="Ver detalle"
-  //         onClick={() => console.log("open...")}
-  //       />
-  //     ),
-  //   },
-  //   {
-  //     th: "Electrónica",
-  //     medico: "Tipo de historia",
-  //     especialidad: "Ginecología",
-  //     fecha: "01/12/2024 - 15:00",
-  //     cod_atencion: "E00001",
-  //     lugar: "Emergencia",
-  //     ver: (
-  //       <InfoButton
-  //         tooltip="Ver detalle"
-  //         onClick={() => console.log("open...")}
-  //       />
-  //     ),
-  //   },
-  // ];
-
 
 
   return (
     <Box sx={{ width: "100%" }}>
       {/* Modal Historial de atenciones */}
       <Box>
-        <HceFormModal
-          open={openMedicalHistory}
-          onClose={handleCloseMedicalHistory}
-          title="Historial de Atenciones"
-          maxWidth="lg"
-        >
-          <Box>
-            {/* <GenericTable
-              columns={columnsMedicalHistory}
-              rows={rowsMedicalHistory}
-            /> */}
-          </Box>
-          <Box>
-            <DataCard
-              backgroundColor={"var(--ds-color-secondary-light, #0043a5)"}
-              borderColor={"var(--ds-color-primary, #0043a5)"}
-              borderWidth={2}
-              borderRadius="12px"
-              contentPadding="12px 14px"
-              contentAlign="left"
-              maxWidth="100%"
-            >
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "58px 1fr 1fr 1fr 1fr",
-                  alignItems: "center",
-                  columnGap: 2,
-                  width: "100%",
-                }}
-              >
-                <Avatar
-                  sx={{
-                    width: 42,
-                    height: 42,
-                    backgroundColor:
-                      "var(--ds-color-interactive-button, #0043a5)",
-                    color: hceColors.neutro.white[50],
-                  }}
-                >
-                  <User size={24} />
-                </Avatar>
-
-                <PatientField label="Especialidad:" value="Ginecología" />
-                <PatientField
-                  label="Fecha y hora de la atención:"
-                  value="01/12/2024 - 15:00"
-                />
-                <PatientField label="Lugar:" value="Emergencia" />
-                <PatientField label="Tipo de historia:" value="Electrónica" />
-              </Box>
-            </DataCard>
-            <ClinicalRecordTable />
-            <MedicalRecordPanel />
-          </Box>
-        </HceFormModal>
+       
       </Box>
       <Box sx={{ width: "100%", p: 2 }}>
         <DataCard

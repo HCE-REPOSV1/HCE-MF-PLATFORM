@@ -1363,7 +1363,7 @@ export function Triage({
           {/* ── Sección 3: Signos vitales (colapsable) ────────────────────── */}
           <Box>
             <SectionHeader
-              title="Signos vitales"
+              title={t("triage.vitalSigns.title")}
               expanded={expSignosVitales}
               onToggle={() => setExpSignosVitales((e) => !e)}
             />

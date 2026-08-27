@@ -62,3 +62,14 @@ declare module "triage/Triage" {
   const Triage: ComponentType<TriageProps>;
   export default Triage;
 }
+
+declare module "clinicalRecord/ClinicalRecord" {
+  import type { ComponentType } from "react";
+
+  export interface ClinicalRecordProps {
+    // las props que tu componente realmente reciba
+  }
+
+  const ClinicalRecord: ComponentType<ClinicalRecordProps>;
+  export default ClinicalRecord;
+}

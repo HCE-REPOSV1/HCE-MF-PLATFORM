@@ -9,11 +9,8 @@ const BUILD_TIME = new Date().toISOString();
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, "");
 
-  const required = ["VITE_REMOTE_SHELL", "VITE_REMOTE_TRIAGE",  "VITE_REMOTE_CLINICAL_RECORD"];
-  for (const key of required) {
-    if (!env[key])
-      throw new Error(`[mf-emergency] Falta variable de entorno: ${key}`);
-  }
+  if (!env.VITE_REMOTE_SHELL)
+    throw new Error("[mf-clinical-record] Falta variable de entorno: VITE_REMOTE_SHELL");
 
   return {
     plugins: [
@@ -30,17 +27,13 @@ export default defineConfig(({ mode }) => {
         },
       },
       federation({
-        name: "mf-emergency",
+        name: "mf-clinical-record",
         filename: "remoteEntry.js",
         remotes: {
           shell: env.VITE_REMOTE_SHELL,
-          triage: env.VITE_REMOTE_TRIAGE,
-          clinicalRecord: env.VITE_REMOTE_CLINICAL_RECORD
         },
         exposes: {
-          "./Emergency": "./src/Emergency.tsx",
-          "./menuConfig": "./src/menuConfig.ts",
-          "./EmergencyTV": "./src/pages/EmergencyTvPage.tsx",
+          "./ClinicalRecord": "./src/ClinicalRecord.tsx",
         },
         shared: [
           "react",
@@ -59,8 +52,16 @@ export default defineConfig(({ mode }) => {
     resolve: {
       dedupe: ["react", "react-dom"],
     },
-    server: { port: 10503 },
-    preview: { port: 10503 },
-    build: { target: "esnext", minify: false, cssCodeSplit: false },
+    server: {
+      port: 10511,
+    },
+    preview: {
+      port: 10511,
+    },
+    build: {
+      target: "esnext",
+      minify: false,
+      cssCodeSplit: false,
+    },
   };
 });

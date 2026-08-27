@@ -91,5 +91,16 @@
     "noPermissionDescription": "Tu usuario no está registrado como médico — solo un médico puede asignarse como tratante.",
     "actionAssigned": "asignado",
     "actionReassigned": "reasignado"
+  },
+  "ClinicalRecordTable": {
+    "dataDatableClinicalRecord" : {
+      "colRecordType": "Tipo de historia",
+      "colPractitionerName": "Medico",
+      "colSpeciality_name": "Especialidad",
+      "colAdmission_datetime": "Fecha y Hora",
+      "colSicAttentionId": "C. Atención", 
+      "colEncounterClassDisplay": "Lugar",
+      "colViewDetail": "Ver"
+    }
   }
 }
