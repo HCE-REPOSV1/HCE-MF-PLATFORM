@@ -312,6 +312,7 @@ export default function ClinicalRecordPage() {
         <InfoButton
           tooltip="Ver detalle"
           onClick={() => console.log("open...")}
+          testId="mf-emergency-clinical-record-history-view"
         />
       ),
     },
@@ -326,6 +327,7 @@ export default function ClinicalRecordPage() {
         <InfoButton
           tooltip="Ver detalle"
           onClick={() => console.log("open...")}
+          testId="mf-emergency-clinical-record-history-view"
         />
       ),
     },
@@ -340,6 +342,7 @@ export default function ClinicalRecordPage() {
         <InfoButton
           tooltip="Ver detalle"
           onClick={() => console.log("open...")}
+          testId="mf-emergency-clinical-record-history-view"
         />
       ),
     },
@@ -357,11 +360,13 @@ export default function ClinicalRecordPage() {
           onClose={handleCloseMedicalHistory}
           title="Historial de Atenciones"
           maxWidth="md"
+          testId="mf-emergency-clinical-record-history-modal"
         >
           <Box>
             <DataTable
               columns={columnsMedicalHistory}
               rows={rowsMedicalHistory}
+              testId="mf-emergency-clinical-record-history-table"
             />
           </Box>
           <Box>
@@ -503,6 +508,7 @@ export default function ClinicalRecordPage() {
                   onClick={() =>
                     setAllergyDetailsOpen(true)
                   }
+                  testId="mf-emergency-clinical-record-allergy-badge"
                 />
               }
             />
@@ -518,6 +524,7 @@ export default function ClinicalRecordPage() {
                   setPatientDetailsOpen(true)
                 }
                 tooltip={t('ClinicalRecord.actions.info')}
+                testId="mf-emergency-clinical-record-info-button"
               />
             </Box>
           </Box>
@@ -530,6 +537,7 @@ export default function ClinicalRecordPage() {
           orientation="horizontal"
           actions={LIST_ACTION_BAR}
           closeAction={true}
+          testId="mf-emergency-clinical-record-action-bar"
         />
       </Box>
 

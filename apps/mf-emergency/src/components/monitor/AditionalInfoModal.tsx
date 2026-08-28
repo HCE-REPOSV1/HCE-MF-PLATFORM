@@ -95,6 +95,7 @@ const createInfoColumns = ({
     align: "center",
     disabledGetter: () => !canReadVIP,
     onClick: (row, checked) => onChangeVIP(row, Boolean(checked)),
+    getCellTestId: (row) => `mf-emergency-additional-info-modal-vip-${row.id}`,
   },
   {
     key: "has_discharge",
@@ -111,6 +112,7 @@ const createInfoColumns = ({
     onClick: (row) => {
       onChangeDischarge(row)
     },
+    getCellTestId: (row) => `mf-emergency-additional-info-modal-discharge-${row.id}`,
   },
 ]
 
@@ -206,6 +208,7 @@ export function AditionalInfoModal({
       title={t("AditionalInfoModal.title")}
       maxWidth="xl"
       buttonAlign="right"
+      testId="mf-emergency-additional-info-modal"
     >
       {/* El HceModal acepta children opcionales — aquí metemos el select */}
 
@@ -228,6 +231,7 @@ export function AditionalInfoModal({
               rows={[localPaciente]}
               columns={columns}
               getRowId={(row) => row.id}
+              getRowTestId={(row) => `mf-emergency-additional-info-modal-row-${row.id}`}
               maxHeight="100%"
             />
           </Box>

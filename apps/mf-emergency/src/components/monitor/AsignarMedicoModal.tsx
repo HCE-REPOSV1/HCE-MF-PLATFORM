@@ -206,6 +206,7 @@ export function AsignarMedicoModal({
             color: "var(--ds-color-interactive, #0043a5)",
           }}
           buttonAlign="center"
+          testId="mf-emergency-assign-doctor-modal"
         >
           {/* El HceModal acepta children opcionales — aquí metemos el select */}
           <Box sx={{ textAlign: "left", mt: 1 }}>
@@ -223,6 +224,7 @@ export function AsignarMedicoModal({
                 value={modo}
                 onChange={handleModoChange}
                 disabled={cargando || enviando}
+                testId="mf-emergency-assign-doctor-mode"
               />
 
               <SelectField
@@ -239,6 +241,7 @@ export function AsignarMedicoModal({
                 }
                 disabled={cargando || selectOptions.length === 0}
                 menuMaxHeight={280}
+                testId="mf-emergency-assign-doctor-patient"
               />
 
               {candidatoSeleccionado && (
@@ -281,6 +284,7 @@ export function AsignarMedicoModal({
           label: t('AsignarMedicoModal.accept'),
           onClick: handleAceptarExito,
         }}
+        testId="mf-emergency-assign-doctor-success-modal"
       />
 
       {/* Sin permisos — el usuario logueado no está registrado como médico (is_physician). */}
@@ -294,6 +298,7 @@ export function AsignarMedicoModal({
           label: "Aceptar",
           onClick: () => setSinPermiso(false),
         }}
+        testId="mf-emergency-assign-doctor-no-permission-modal"
       />
     </>
   );

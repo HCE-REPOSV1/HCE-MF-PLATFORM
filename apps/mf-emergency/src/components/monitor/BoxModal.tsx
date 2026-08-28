@@ -190,6 +190,7 @@ export function BoxModal({
           label: "Aceptar",
           onClick: handleConfirm,
         }}
+        testId="mf-emergency-box-modal-success-modal"
       />
 
       {!confirm && (
@@ -211,6 +212,7 @@ export function BoxModal({
             disabled: saving,
           }}
           buttonsFullWidth
+          testId="mf-emergency-box-modal"
         >
           <Box sx={{ textAlign: "left", mt: 1 }}>
             {!localPaciente ? (
@@ -299,6 +301,7 @@ export function BoxModal({
                       !locationId ||
                       bedOptions.length === 0
                     }
+                    testId="mf-emergency-box-modal-beds"
                   />
                 </Box>
 

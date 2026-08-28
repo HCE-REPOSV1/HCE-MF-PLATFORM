@@ -265,7 +265,7 @@ export default function EmergencyTvPage() {
             gap: hceSpacing[3],
           }}
         >
-          <HceHeader title="Monitor TV " variant="tv" sede={sedeName} />
+          <HceHeader title="Monitor TV " variant="tv" sede={sedeName} testId="mf-emergency-tv-header" />
 
           <Box sx={{ flex: 1, overflow: "hidden", minHeight: 0 , padding: "0 8px 0 8px"}}>
             {/* 1. Cambiado monitorLoading por isFirstLoading */}
@@ -278,6 +278,7 @@ export default function EmergencyTvPage() {
                 rows={rows}
                 columns={MONITOR_TV_COLUMNS}
                 getRowId={(row) => row.id}
+                getRowTestId={(row) => `mf-emergency-tv-row-${row.id}`}
                 maxHeight="100%"
                 rowAlertGetter={(row) => row.row_alert_color === "red"}
                 // Opcional: si GenericTable soporta una opacidad o un loading interno, 
@@ -303,6 +304,7 @@ export default function EmergencyTvPage() {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={() => undefined}
+          testId="mf-emergency-tv-pagination"
         />
       </Box>
     </Box>
