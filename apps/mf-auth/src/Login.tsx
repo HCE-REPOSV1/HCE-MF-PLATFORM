@@ -173,6 +173,7 @@ export default function Login({ onSuccess }: LoginProps) {
             locales={locales}
             activeLocale={i18nInstance.language}
             onLocaleChange={handleLocaleChange}
+            testId="mf-auth-language-switch"
           />
         </Box>
       )}
@@ -194,6 +195,7 @@ export default function Login({ onSuccess }: LoginProps) {
           label: t('common:actions.accept'),
           onClick: () => setBlockedModal(false),
         }}
+        testId="mf-auth-login-blocked-modal"
       />
 
       {/* ── Tarjeta de login ── */}
@@ -289,6 +291,7 @@ export default function Login({ onSuccess }: LoginProps) {
               onChange={() => {}}
               options={companyOptions}
               disabled
+              testId="mf-auth-login-company"
             />
 
             {/* Usuario */}
@@ -299,6 +302,7 @@ export default function Login({ onSuccess }: LoginProps) {
               placeholder={t("login.usernamePlaceholder")}
               startIcon={<DoctorIcon size={18} />}
               error={hasError}
+              testId="mf-auth-login-username"
             />
 
             {/* Contraseña */}
@@ -309,6 +313,7 @@ export default function Login({ onSuccess }: LoginProps) {
               placeholder={t("login.passwordPlaceholder")}
               startIcon={<ForgotPasswordIcon size={18} />}
               error={hasError}
+              testId="mf-auth-login-password"
             />
 
             {/* Mensaje de error */}
@@ -331,6 +336,7 @@ export default function Login({ onSuccess }: LoginProps) {
                 fullWidth
                 color={"var(--ds-color-interactive-button)"}
                 sx={{px: "30px", py: "12px", fontFamily: "var(--ds-font-family)"}}
+                testId="mf-auth-login-submit"
               />
             </Box>
           </Box>
