@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   DataCard,
+  EmergencyPagination,
   GenericTable,
   hceColors,
   HceFormModal,
@@ -12,7 +13,10 @@ import {
 } from "@hce/design-system";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { medicalHistoryApiData } from "../types/MedicalHistory";
+import type {
+  medicalHistoryApiData,
+  medicalHistoryApiMeta,
+} from "../types/MedicalHistory";
 import { useMedicalHistory } from "../hooks/useMedicalHistory";
 import { mapMedicalHistoryApiItemToTableRow } from "../mapper/medicalHistory.mapper";
 import { registerClinicalRecordNamespace } from "../i18n";
@@ -31,17 +35,19 @@ export default function MedicalHistoryModal({
     registerClinicalRecordNamespace();
     registered = true;
   }
+  const [currentPage, setCurrentPage] = useState(1);
   const { fetchMedicalHistory } = useMedicalHistory();
   const [rows, setRows] = useState<medicalHistoryApiData[]>([]);
+  const [totalData, setTotalData] = useState<medicalHistoryApiMeta | null>(
+    null,
+  );
   const [viewDetailMedicalHistory, setViewDetailMedicalHistory] =
     useState(false);
   const columnsTable = useMemo<GenericTableColumn<medicalHistoryApiData>[]>(
     () => [
       {
         key: "record_type",
-        header: t(
-          "ClinicalRecordTable.dataDatableClinicalRecord.colRecordType",
-        ),
+        header: t("dataDatableMedicalHistory.colRecordType"),
         type: "tag",
         field: "record_type",
         width: 100,
@@ -58,9 +64,7 @@ export default function MedicalHistoryModal({
       },
       {
         key: "practitioner_name",
-        header: t(
-          "ClinicalRecordTable.dataDatableClinicalRecord.colPractitionerName",
-        ),
+        header: t("dataDatableMedicalHistory.colPractitionerName"),
         type: "text",
         field: "practitioner_name",
         width: 100,
@@ -69,9 +73,7 @@ export default function MedicalHistoryModal({
       },
       {
         key: "speciality_name",
-        header: t(
-          "ClinicalRecordTable.dataDatableClinicalRecord.colSpeciality_name",
-        ),
+        header: t("dataDatableMedicalHistory.colSpeciality_name"),
         type: "text",
         field: "speciality_name",
         width: 100,
@@ -80,9 +82,7 @@ export default function MedicalHistoryModal({
       },
       {
         key: "admission_datetime",
-        header: t(
-          "ClinicalRecordTable.dataDatableClinicalRecord.colAdmission_datetime",
-        ),
+        header: t("dataDatableMedicalHistory.colAdmission_datetime"),
         type: "datetime",
         field: "admission_datetime",
         width: 100,
@@ -104,9 +104,7 @@ export default function MedicalHistoryModal({
       },
       {
         key: "sic_attention_id",
-        header: t(
-          "ClinicalRecordTable.dataDatableClinicalRecord.colSicAttentionId",
-        ),
+        header: t("dataDatableMedicalHistory.colSicAttentionId"),
         type: "text",
         field: "sic_attention_id",
         width: 100,
@@ -115,9 +113,7 @@ export default function MedicalHistoryModal({
       },
       {
         key: "encounter_class_display",
-        header: t(
-          "ClinicalRecordTable.dataDatableClinicalRecord.colEncounterClassDisplay",
-        ),
+        header: t("dataDatableMedicalHistory.colEncounterClassDisplay"),
         type: "tag",
         field: "encounter_class_display",
         width: 100,
@@ -134,32 +130,37 @@ export default function MedicalHistoryModal({
       },
       {
         key: "viewDetail",
-        header: t(
-          "ClinicalRecordTable.dataDatableClinicalRecord.colViewDetail",
-        ),
+        header: t("dataDatableMedicalHistory.colViewDetail"),
         type: "info-button",
         field: "viewDetail",
         width: 100,
         align: "center",
-        clickable: false,
+        clickable: true,
+        onClick: () => setViewDetailMedicalHistory((prev) => !prev),
       },
     ],
     [t],
   );
 
   const loadData = useCallback(async () => {
-    const response = await fetchMedicalHistory(57);
+    const response = await fetchMedicalHistory(57, currentPage);
     if (!response) return;
-    console.log(response);
-    const mappedRows = response.map(mapMedicalHistoryApiItemToTableRow);
-    // .sort(monitorSortComparator);
+    const mappedRows = response.data.map(mapMedicalHistoryApiItemToTableRow);
 
     setRows(mappedRows);
-  }, [fetchMedicalHistory]);
+    console.log(response);
+    setTotalData(response.meta);
+  }, [fetchMedicalHistory, currentPage]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
+  const totalPages = totalData?.totalPages ?? 1;
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, totalPages]);
   return (
     <HceFormModal
       open={open}
@@ -170,53 +171,92 @@ export default function MedicalHistoryModal({
       <Box>
         {/* Barra de información de paciente para Detalle de Historia Médica */}
         {viewDetailMedicalHistory && (
-          <DataCard
-            backgroundColor={"var(--ds-color-secondary-light, #0043a5)"}
-            borderColor={"var(--ds-color-primary, #0043a5)"}
-            borderWidth={2}
-            borderRadius="12px"
-            contentPadding="12px 14px"
-            contentAlign="left"
-            maxWidth="100%"
-          >
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "58px 1fr 1fr 1fr 1fr",
-                alignItems: "center",
-                columnGap: 2,
-                width: "100%",
-              }}
+          <>
+            <DataCard
+              backgroundColor={"var(--ds-color-secondary-light, #0043a5)"}
+              borderColor={"var(--ds-color-primary, #0043a5)"}
+              borderWidth={2}
+              borderRadius="12px"
+              contentPadding="12px 14px"
+              contentAlign="left"
+              maxWidth="100%"
             >
-              <Avatar
+              <Box
                 sx={{
-                  width: 42,
-                  height: 42,
-                  backgroundColor:
-                    "var(--ds-color-interactive-button, #0043a5)",
-                  color: hceColors.neutro.white[50],
+                  display: "grid",
+                  gridTemplateColumns: "58px 1fr 1fr 1fr 1fr",
+                  alignItems: "center",
+                  columnGap: 2,
+                  width: "100%",
                 }}
               >
-                <User size={24} />
-              </Avatar>
+                <Avatar
+                  sx={{
+                    width: 42,
+                    height: 42,
+                    backgroundColor:
+                      "var(--ds-color-interactive-button, #0043a5)",
+                    color: hceColors.neutro.white[50],
+                  }}
+                >
+                  <User size={24} />
+                </Avatar>
 
-              <PatientField label="Especialidad:" value="Ginecología" />
-              <PatientField
-                label="Fecha y hora de la atención:"
-                value="01/12/2024 - 15:00"
-              />
-              <PatientField label="Lugar:" value="Emergencia" />
-              <PatientField label="Tipo de historia:" value="Electrónica" />
+                <PatientField label="Especialidad:" value="Ginecología" />
+                <PatientField
+                  label="Fecha y hora de la atención:"
+                  value="01/12/2024 - 15:00"
+                />
+                <PatientField label="Lugar:" value="Emergencia" />
+                <PatientField label="Tipo de historia:" value="Electrónica" />
+              </Box>
+            </DataCard>
+            <Box
+              sx={{
+                paddingTop: "20px",
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "flex-end",
+              }}
+            >
+              <Button
+                style={{
+                  height: "34px",
+                  backgroundColor: hceColors.neutro.white[50],
+                  color: hceColors.primary.blue[600],
+                  border: `1.5px solid ${hceColors.primary.blue[600]}`,
+                  padding: "15px 30px"
+                }}
+                type="button"
+                onClick={() => setViewDetailMedicalHistory((prev) => !prev)}
+              >
+                Volver
+              </Button>
             </Box>
-          </DataCard>
+          </>
         )}
-        <GenericTable
-          columns={columnsTable}
-          rows={rows}
-          getRowId={(row) => row.encounter_id.toString()}
-        />
+        {!viewDetailMedicalHistory && (
+          <>
+            {" "}
+            <GenericTable
+              columns={columnsTable}
+              rows={rows}
+              getRowId={(row) => row.encounter_id.toString()}
+            />
+            <Box>
+              <EmergencyPagination
+                summary={[{ label: "Total", value: totalData?.total ?? 0 }]}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(page) => {
+                  setCurrentPage(page);
+                }}
+                viewChip={false}
+              />
+            </Box>{" "}
+          </>
+        )}
       </Box>
-      <Button onClick={() => setViewDetailMedicalHistory(false)} />
     </HceFormModal>
   );
 }

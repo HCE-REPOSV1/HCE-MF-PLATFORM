@@ -1,8 +1,9 @@
 export interface medicalHistoryApiResponse {
-  success:  boolean;
-  statusCode: number;
-  message:  string;
+  success?:  boolean;
+  statusCode?: number;
+  message?:  string;
   data:     medicalHistoryApiData[];
+  meta:     medicalHistoryApiMeta
 }
 
 export interface medicalHistoryApiData {
@@ -14,4 +15,11 @@ export interface medicalHistoryApiData {
   encounter_class_display: string;
   practitioner_name: string;
   speciality_name: string;
+}
+
+export interface medicalHistoryApiMeta {
+  limit: number;
+  page: number;
+  total: number;
+  totalPages: number;
 }

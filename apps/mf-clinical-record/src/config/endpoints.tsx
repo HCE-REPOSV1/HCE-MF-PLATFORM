@@ -45,7 +45,11 @@ export const ENDPOINTS = {
       `${AG_CLN_CROSS}/api/v1/catalogs/active-principles/search?text=${encodeURIComponent(text)}`,
   },
   medicalRecords: {
-    medicalRecordByPatiente: (patientId:number) => `${AG_WEB_EMERGENCY}/api/v1/encounter/patient/${patientId}/history`
-  }
-
+    medicalRecordByPatiente: (patientId:number, page = 1, limit = 10) => `${AG_WEB_EMERGENCY}/api/v1/encounter/patient/${patientId}/history?page=${page}&limit=${limit}`
+  },
+  /** i18n — manifest público; namespace "emergency" protegido (requiere sesión) */
+  i18n: {
+    locales:   `${AG_CLN_CROSS}/api/v1/i18n/locales`,
+    namespace: (locale: string, namespace: string) => `${AG_CLN_CROSS}/api/v1/i18n/${locale}/${namespace}`,
+  },
 } as const

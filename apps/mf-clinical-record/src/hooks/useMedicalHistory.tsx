@@ -1,5 +1,9 @@
 import { useCallback, useState } from "react";
-import type { medicalHistoryApiData } from "../types/MedicalHistory";
+import type {
+  medicalHistoryApiData,
+  medicalHistoryApiMeta,
+  medicalHistoryApiResponse,
+} from "../types/MedicalHistory";
 import { getMedicalHistory } from "../services/medicalHistory.service";
 
 function useResourceState<T>() {
@@ -11,18 +15,28 @@ function useResourceState<T>() {
 
 export function useMedicalHistory() {
   const medicalHistoryTable = useResourceState<medicalHistoryApiData[]>();
+  const [meta, setMeta] = useState<medicalHistoryApiMeta | null>(null);
   const fetchMedicalHistory = useCallback(
-    async (patientId: number): Promise<medicalHistoryApiData[] | null> => {
+    async (
+      patientId: number,
+      page = 1,
+      limit = 20,
+    ): Promise<medicalHistoryApiResponse | null> => {
+      medicalHistoryTable.setLoading(true);
+      medicalHistoryTable.setError(null);
       try {
-        const response = await getMedicalHistory(patientId);
+        const response = await getMedicalHistory(patientId, page, limit);
+        medicalHistoryTable.setData(response?.data ?? null);
+        setMeta(response?.meta ?? null);
         return response;
       } catch (err) {
         medicalHistoryTable.setError(
           err instanceof Error
             ? err.message
-            : "Error al cargar perfil del catalog cie",
+            : "Error al cargar perfil del historia de paciente",
         );
         medicalHistoryTable.setData(null);
+        setMeta(null);
         return null;
       } finally {
         medicalHistoryTable.setLoading(false);
@@ -31,8 +45,11 @@ export function useMedicalHistory() {
     [],
   );
 
-   return {
+  return {
     fetchMedicalHistory,
-    dataMedicalHistory: medicalHistoryTable.data
-  }
+    dataMedicalHistory: medicalHistoryTable.data,
+    metaMedicalHistory: meta,
+    loadingMedicalHistory: medicalHistoryTable.loading,
+    errorMedicalHistory: medicalHistoryTable.error,
+  };
 }

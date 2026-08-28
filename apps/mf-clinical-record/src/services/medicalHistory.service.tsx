@@ -1,15 +1,16 @@
 import { apiFetch } from "shell/ApiClient";
 import { ENDPOINTS } from "../config/endpoints";
 import type {
-  medicalHistoryApiData,
   medicalHistoryApiResponse,
 } from "../types/MedicalHistory";
 
 export async function getMedicalHistory(
   patientId: number,
-): Promise<medicalHistoryApiData[] | null> {
+  page = 1,
+  limit = 20,
+): Promise<medicalHistoryApiResponse | null> {
   const res = await apiFetch(
-    ENDPOINTS.medicalRecords.medicalRecordByPatiente(patientId),
+    ENDPOINTS.medicalRecords.medicalRecordByPatiente(patientId, page, limit),
   );
   if (res.status === 404) return null;
   if (!res.ok)
@@ -17,5 +18,5 @@ export async function getMedicalHistory(
 
   const json = (await res.json()) as medicalHistoryApiResponse;
   if (!json.success) return null;
-  return json.data;
+  return {data: json.data, meta: json.meta};
 }

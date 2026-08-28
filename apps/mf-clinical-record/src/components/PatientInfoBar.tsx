@@ -9,9 +9,9 @@ import {
   User,
 } from "@hce/design-system";
 import { useState } from "react";
-import { PatientDetailsModal } from "./PatientDetailsModal";
 import type { ClinicalRecordPatient } from "../types/Patient.type";
 import AllergyModal from "./AllergyModal";
+import PatientInfoModal from "./PatientInfoModal";
 
 const patient: ClinicalRecordPatient = {
   patientId: "1",
@@ -105,7 +105,7 @@ export default function PatientInfoBar({}) {
         </Box>
       </DataCard>
 
-      <PatientDetailsModal
+      <PatientInfoModal
         open={patientDetailsOpen}
         patient={patient}
         onClose={() => setPatientDetailsOpen(false)}

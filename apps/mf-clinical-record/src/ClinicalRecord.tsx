@@ -1,12 +1,7 @@
 import {
   ActionBar,
   AltaMedicaIcon,
-  DataCard,
-  hceColors,
-  // HceFormModal,
   HceHistoryIcon,
-  InfoButton,
-  StatusBadge,
   UiBloodTestIcon,
   UiDrugsIcon,
   UiMonitorIcon,
@@ -14,17 +9,15 @@ import {
   UiPrintingIcon,
   ReferenceIcon,
   UiXRaysIcon,
-  User,
   Box,
-  Avatar,
   type ExtraAction,
-  PatientField,
 } from "@hce/design-system";
 import { useState } from "react";
 import AllergyModal from "./components/AllergyModal";
-import { PatientDetailsModal } from "./components/PatientDetailsModal";
 import type { ClinicalRecordPatient } from "./types/Patient.type";
 import MedicalHistoryModal from "./components/MedicalHistoryModal";
+import PatientInfoBar from "./components/PatientInfoBar";
+import PatientInfoModal from "./components/PatientInfoModal";
 
 const patient: ClinicalRecordPatient = {
   patientId: "1",
@@ -49,6 +42,9 @@ const patient: ClinicalRecordPatient = {
 };
 
 export default function ClinicalRecordPage() {
+  // registerClinicalRecordNamespace();
+  // const { t } = useTranslation("clinical-record");
+
   const LIST_ACTION_BAR: ExtraAction[] = [
     {
       id: "monitor",
@@ -123,97 +119,34 @@ export default function ClinicalRecordPage() {
   const [openMedicalHistory, setOpenMedicalHistory] = useState(false);
 
   return (
-    <Box sx={{ width: "100%" }}>
+    <>
       {/* Modal Historial de atenciones */}
       <MedicalHistoryModal
         open={openMedicalHistory}
         onClose={() => setOpenMedicalHistory(false)}
       />
-      <Box sx={{ width: "100%", p: 2 }}>
-        <DataCard
-          backgroundColor={"var(--ds-color-secondary-light, #0043a5)"}
-          borderColor={"var(--ds-color-primary, #0043a5)"}
-          borderWidth={2}
-          borderRadius="12px"
-          contentPadding="12px 14px"
-          contentAlign="left"
-          maxWidth="100%"
-        >
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns:
-                "48px 1.25fr 0.7fr 0.55fr 1fr 0.65fr 0.8fr 1fr 38px",
-              alignItems: "center",
-              columnGap: 2,
-              width: "100%",
-            }}
-          >
-            <Avatar
-              sx={{
-                width: 42,
-                height: 42,
-                backgroundColor: "var(--ds-color-interactive-button, #0043a5)",
-                color: hceColors.neutro.white[50],
-              }}
-            >
-              <User size={24} />
-            </Avatar>
 
-            <PatientField label="Paciente:" value="Sofía González Pérez" />
-
-            <PatientField label="Género:" value="Femenino" />
-
-            <PatientField label="Edad:" value="19 Años" />
-
-            <PatientField label="Tipo y N.Documento:" value="DNI - 80001234" />
-
-            <PatientField label="G. Sanguíneo:" value="A+" />
-
-            <PatientField label="Especialidad:" value="Oncología" />
-
-            <PatientField
-              label="Alergias:"
-              value={
-                <StatusBadge
-                  label="Presenta alergias"
-                  variant="error"
-                  clickable
-                  onClick={() => setAllergyDetailsOpen(true)}
-                />
-              }
-            />
-
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "flex-end",
-              }}
-            >
-              <InfoButton onClick={() => setPatientDetailsOpen(true)} />
-            </Box>
-          </Box>
-        </DataCard>
-      </Box>
-
-      <Box>
-        <ActionBar
-          orientation="horizontal"
-          actions={LIST_ACTION_BAR}
-          closeAction={true}
+      <Box sx={{ width: "100%" }}>
+        <Box sx={{ width: "100%", p: 2 }}>
+          <PatientInfoBar />
+        </Box>
+        <Box>
+          <ActionBar
+            orientation="horizontal"
+            actions={LIST_ACTION_BAR}
+            closeAction={true}
+          />
+        </Box>
+        <PatientInfoModal
+          open={patientDetailsOpen}
+          patient={patient}
+          onClose={() => setPatientDetailsOpen(false)}
+        />
+        <AllergyModal
+          open={allergyDetailsOpen}
+          onClose={() => setAllergyDetailsOpen(false)}
         />
       </Box>
-
-      <PatientDetailsModal
-        open={patientDetailsOpen}
-        patient={patient}
-        onClose={() => setPatientDetailsOpen(false)}
-      />
-
-      <AllergyModal
-        open={allergyDetailsOpen}
-        onClose={() => setAllergyDetailsOpen(false)}
-      />
-    </Box>
+    </>
   );
 }
