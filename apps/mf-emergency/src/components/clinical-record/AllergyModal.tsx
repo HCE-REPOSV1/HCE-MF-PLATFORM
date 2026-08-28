@@ -103,6 +103,7 @@ const createInfoColumns = ({
     onClick: (row) => {
       onEdit(row);
     },
+    getCellTestId: (row) => `mf-emergency-allergy-modal-row-${row.allergy_id}-edit`,
   },
 ];
 
@@ -387,6 +388,7 @@ const handleSave = useCallback(async () => {
           label: t("ClinicalRecord.allergy.cancel"),
           onClick: handleCancel,
         }}
+        testId="mf-emergency-allergy-confirm-modal"
       />
 
       {!confirm && (
@@ -396,6 +398,7 @@ const handleSave = useCallback(async () => {
           title={t("ClinicalRecord.allergy.title")}
           maxWidth={allergyEditionOpen ? "md" : 1200}
           buttonAlign="right"
+          testId="mf-emergency-allergy-modal"
         >
           {/* El HceModal acepta children opcionales — aquí metemos el select */}
           <Box sx={{ textAlign: "center", mt: 1 }}>
@@ -440,6 +443,7 @@ const handleSave = useCallback(async () => {
                 rows={allergyBoard}
                 columns={columns}
                 getRowId={(row) => String(row.allergy_id)}
+                getRowTestId={(row) => `mf-emergency-allergy-modal-row-${row.allergy_id}`}
                 maxHeight="100%"
               />
             ) : (
@@ -478,6 +482,7 @@ const handleSave = useCallback(async () => {
                               set("other", "");
                             }
                           }}
+                          testId="mf-emergency-allergy-modal-radio"
                         />
                       </Grid>
 
@@ -495,6 +500,7 @@ const handleSave = useCallback(async () => {
                             setValuePrincipioActivo(values);
                             set("api", values);
                           }}
+                          testId="mf-emergency-allergy-modal-active-principle"
                         />
                       </Grid>
                     </Grid>
@@ -511,6 +517,7 @@ const handleSave = useCallback(async () => {
                       !enabledAlergiasTriage ||
                       form.has_allergy == false
                     }
+                    testId="mf-emergency-allergy-modal-food"
                   />
                 </Box>
                 <Box sx={{ mt: "20px" }}>
@@ -525,6 +532,7 @@ const handleSave = useCallback(async () => {
                       !enabledAlergiasTriage ||
                       form.has_allergy == false
                     }
+                    testId="mf-emergency-allergy-modal-other"
                   />
                 </Box>
               </Box>
@@ -556,6 +564,7 @@ const handleSave = useCallback(async () => {
                       onClick={handleSave}
                       disabled={isSaveDisabled}
                       aria-label={t("ClinicalRecord.allergy.accept")}
+                      testId="mf-emergency-allergy-modal-save"
                       sx={{
                         fontFamily: hceTypography.fontFamily,
                         fontWeight: 600,
