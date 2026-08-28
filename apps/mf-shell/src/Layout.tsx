@@ -132,6 +132,7 @@ export default function AppLayout() {
           label: "Aceptar",
           onClick: handleSinSedesAceptar,
         }}
+        testId="mf-shell-no-sedes-modal"
       />
 
       {/* ── Modal: usuario sin permisos de acceso ────────────────────── */}
@@ -145,6 +146,7 @@ export default function AppLayout() {
           label: "Aceptar",
           onClick: handleSinPermisosAceptar,
         }}
+        testId="mf-shell-no-permisos-modal"
       />
 
       {/* ── SIDEBAR MÓVIL: backdrop + overlay ───────────────────────── */}
@@ -153,6 +155,7 @@ export default function AppLayout() {
           {/* Backdrop — click cierra el sidebar */}
           <div
             onClick={closeMobileSidebar}
+            data-testid="mf-shell-mobile-sidebar-backdrop"
             style={{
               position: "fixed",
               inset: 0,
