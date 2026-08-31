@@ -13,6 +13,7 @@ services:
       args:
         VERDACCIO_URL: ${VERDACCIO_URL}
         # Build-args leídos desde Vault (secret/hce/mf/mf-shell) — ver deploy-mf.sh
+        VITE_COMPANY_THEME: ${VITE_COMPANY_THEME}
         VITE_APIGW_CNL_CROSS: ${VITE_APIGW_CNL_CROSS}
         VITE_REMOTE_AUTH: ${VITE_REMOTE_AUTH}
         VITE_REMOTE_HOME: ${VITE_REMOTE_HOME}
@@ -69,6 +70,7 @@ services:
         # Build-args leídos desde Vault (secret/hce/mf/mf-home)
         MF_HOME_BASE_URL: ${MF_HOME_BASE_URL}
         VITE_REMOTE_SHELL: ${VITE_REMOTE_SHELL}
+        VITE_APIGW_CNL_CROSS: ${VITE_APIGW_CNL_CROSS}
     restart: unless-stopped
     ports:
       - "10502:80"
@@ -226,6 +228,7 @@ services:
         VERDACCIO_URL: ${VERDACCIO_URL}
         # Build-args leídos desde Vault (secret/hce/mf/mf-footer)
         VITE_REMOTE_SHELL: ${VITE_REMOTE_SHELL}
+        VITE_APIGW_CNL_CROSS: ${VITE_APIGW_CNL_CROSS}
     restart: unless-stopped
     ports:
       - "10509:80"

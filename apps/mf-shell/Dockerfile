@@ -2,6 +2,7 @@
 # ── Stage 1: Build ──────────────────────────────────────────
 FROM node:20-alpine AS builder
 ARG VERDACCIO_URL=http://host.docker.internal:10100
+ARG VITE_COMPANY_THEME=csf
 # URLs de producción — se hornean en el bundle en build time
 ARG VITE_APIGW_CNL_CROSS=http://localhost:10601
 ARG VITE_REMOTE_AUTH=http://localhost:10501/remoteEntry.js
@@ -33,7 +34,8 @@ RUN --mount=type=cache,target=/root/.npm \
 
 # Solo el código fuente de este microfrontend
 COPY apps/mf-shell ./apps/mf-shell
-RUN VITE_APIGW_CNL_CROSS=${VITE_APIGW_CNL_CROSS} \
+RUN VITE_COMPANY_THEME=${VITE_COMPANY_THEME} \
+    VITE_APIGW_CNL_CROSS=${VITE_APIGW_CNL_CROSS} \
     VITE_REMOTE_AUTH=${VITE_REMOTE_AUTH} \
     VITE_REMOTE_HOME=${VITE_REMOTE_HOME} \
     VITE_REMOTE_EMERGENCY=${VITE_REMOTE_EMERGENCY} \

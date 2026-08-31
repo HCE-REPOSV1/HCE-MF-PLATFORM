@@ -69,6 +69,7 @@ services:
         VERDACCIO_URL: http://192.168.42.44:10100
         VITE_BASE_URL: https://servicios.dev.sanfelipe.com:20502
         VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_APIGW_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
     restart: unless-stopped
     ports:
       - "10502:80"
@@ -219,6 +220,7 @@ services:
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
         VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_APIGW_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
     restart: unless-stopped
     ports:
       - "10509:80"
