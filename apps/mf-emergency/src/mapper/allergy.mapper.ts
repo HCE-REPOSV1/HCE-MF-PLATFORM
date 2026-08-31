@@ -12,7 +12,7 @@ export interface AllergyAPIForm {
   // backend aparentemente devuelve "S" / "N"
   has_allergies: "S" | "N";
 
-  substances: AllergySubstanceAPI[];
+  substances?: AllergySubstanceAPI[] | null;
 
   food_allergies: string | null;
   other_allergies: string | null;
@@ -42,7 +42,7 @@ export function mapAllergyApiToForm(
     encounter_id: allergy.encounter_id,
     has_allergy: allergy.has_allergies === "S",
 
-    api: allergy.substances.map((substance) =>
+    api: (allergy.substances ?? []).map((substance) =>
       String(substance.active_principle_id),
     ),
 

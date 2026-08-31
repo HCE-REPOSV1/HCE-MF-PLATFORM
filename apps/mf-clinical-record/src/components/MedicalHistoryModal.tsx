@@ -1,7 +1,6 @@
 import {
   Avatar,
   Box,
-  Button,
   DataCard,
   EmergencyPagination,
   GenericTable,
@@ -20,6 +19,8 @@ import type {
 import { useMedicalHistory } from "../hooks/useMedicalHistory";
 import { mapMedicalHistoryApiItemToTableRow } from "../mapper/medicalHistory.mapper";
 import { registerClinicalRecordNamespace } from "../i18n";
+import { ClinicalRecordTabs } from "./ClinicalRecordTabs";
+import { ClinicalRecordFormProvider } from "../context/ClinicalRecordFormContext";
 
 interface MedicalHistoryModalProps {
   open: boolean;
@@ -166,7 +167,17 @@ export default function MedicalHistoryModal({
       open={open}
       onClose={onClose}
       title="Historial de Atenciones"
-      maxWidth="lg"
+      maxWidth="xl"
+      secondaryButton={
+        viewDetailMedicalHistory
+          ? {
+              label: "Volver",
+              onClick: () => setViewDetailMedicalHistory((prev) => !prev),
+            }
+          : undefined
+      }
+      maxHeight="90vh"
+      minHeight={viewDetailMedicalHistory ? "80vh" : undefined}
     >
       <Box>
         {/* Barra de información de paciente para Detalle de Historia Médica */}
@@ -211,27 +222,11 @@ export default function MedicalHistoryModal({
                 <PatientField label="Tipo de historia:" value="Electrónica" />
               </Box>
             </DataCard>
-            <Box
-              sx={{
-                paddingTop: "20px",
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "flex-end",
-              }}
-            >
-              <Button
-                style={{
-                  height: "34px",
-                  backgroundColor: hceColors.neutro.white[50],
-                  color: hceColors.primary.blue[600],
-                  border: `1.5px solid ${hceColors.primary.blue[600]}`,
-                  padding: "15px 30px"
-                }}
-                type="button"
-                onClick={() => setViewDetailMedicalHistory((prev) => !prev)}
-              >
-                Volver
-              </Button>
+            {/* Tabs */}
+            <Box sx={{ pt: "15px" }}>
+              <ClinicalRecordFormProvider>
+                <ClinicalRecordTabs readOnly/>
+              </ClinicalRecordFormProvider>
             </Box>
           </>
         )}

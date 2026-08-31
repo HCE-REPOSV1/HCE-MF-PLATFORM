@@ -27,6 +27,7 @@ import {
 import {  updateAllergyDeclaration, useAllergyDeclaration } from "../../hooks/useAllergyDeclaration";
 import { useTranslation } from "@hce/i18n-core";
 import { useUser } from "shell/UserContext";
+import { resolveApiError } from "../../i18n/errorCodes";
 
 export interface AllergyModalProps {
   open: boolean;
@@ -238,17 +239,16 @@ const handleSave = useCallback(async () => {
 
      
 
-    } catch (err) {
+    } catch (err: unknown) {
       setError(
-        err instanceof Error
-          ? err.message
-          : t("ClinicalRecord.allergy.editError"),
+        t('common:'+ resolveApiError(err, "ClinicalRecord.allergy.editError")),
       );
     } finally {
       setSaving(false);
     }
   }, [
     form,
+    hasChanges,
     allergyDeclaration,
     onSaveChanges,
     readOnly,
@@ -262,12 +262,12 @@ const handleSave = useCallback(async () => {
   const handleConfirm = useCallback(async () => {
     try {
       setConfirm(false);
+      setError(null);
       if (allergySelected) {
         setForm({ ...allergySelected });
         setValuePrincipioActivo([...allergySelected.api]);
       }
       setallergyEditionOpen(true);
-      console.log(allergyDeclaration)
     } catch (err) {
       setError(
         err instanceof Error
@@ -285,9 +285,6 @@ const handleSave = useCallback(async () => {
   }, []);
 
   const handleEdit = useCallback((row: AllergyTableItem) => {
-    setConfirm(true);
-
-
     setAllergySelected({
     allergy_id: row.allergy_id,
     encounter_id: row.encounter_id,
@@ -298,7 +295,7 @@ const handleSave = useCallback(async () => {
   });
 
   setConfirm(true);
-}, [allergyDeclaration]);
+}, []);
   
 
   const handleClose = useCallback(async () => {
@@ -307,6 +304,7 @@ const handleSave = useCallback(async () => {
     setAllergySelected(undefined);
     setallergyEditionOpen(false);
     setConfirm(false);
+    setError(null);
     onClose();
   }, [onClose]);
 
@@ -338,7 +336,6 @@ const handleSave = useCallback(async () => {
 
   const isSaveDisabled =
   saving ||
-  Boolean(error) ||
   !hasChanges;
   //||
   // (!form.tieneAlergia?  ),
@@ -532,6 +529,20 @@ const handleSave = useCallback(async () => {
                 </Box>
               </Box>
                   </Box>
+
+                  {error && (
+                    <Box
+                      role="alert"
+                      sx={{
+                        mt: "10px",
+                        color: "#b42318",
+                        fontFamily: hceTypography.fontFamily,
+                        fontSize: "0.875rem",
+                      }}
+                    >
+                      {error}
+                    </Box>
+                  )}
 
                   <Box sx={{ display: "flex", justifyContent: "end", mt:"10px" }}>
                     <Button

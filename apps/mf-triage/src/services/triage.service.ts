@@ -48,8 +48,6 @@ export async function getTriageFull(
 ): Promise<TriageFullData | null> {
   const res = await apiFetch(ENDPOINTS.triage.Full(triageId));
 
-  console.log("[triage.service] getTriageFull: endpoint:", ENDPOINTS.triage.Full(triageId));
-
   if (res.status === 404) return null;
 
   const json = (await res.json().catch(() => null)) as TriageFullResponse | null;
@@ -58,6 +56,5 @@ export async function getTriageFull(
     throw new Error(json?.message || `Error ${res.status} al obtener el triaje`);
   }
 
-console.log("[triage.service] getTriageFull: response:", json.data);
   return json.data;
 }

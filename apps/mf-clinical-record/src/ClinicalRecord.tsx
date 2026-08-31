@@ -11,6 +11,9 @@ import {
   UiXRaysIcon,
   Box,
   type ExtraAction,
+  Button,
+  DisketteIcon,
+  hceColors,
 } from "@hce/design-system";
 import { useState } from "react";
 import AllergyModal from "./components/AllergyModal";
@@ -18,6 +21,12 @@ import type { ClinicalRecordPatient } from "./types/Patient.type";
 import MedicalHistoryModal from "./components/MedicalHistoryModal";
 import PatientInfoBar from "./components/PatientInfoBar";
 import PatientInfoModal from "./components/PatientInfoModal";
+import {
+  ClinicalRecordFormProvider,
+  useClinicalRecordForm,
+} from "./context/ClinicalRecordFormContext";
+import { ClinicalRecordTabs } from "./components/ClinicalRecordTabs";
+import { mapToSavePayload } from "./mapper/medicalHistory.mapper";
 
 const patient: ClinicalRecordPatient = {
   patientId: "1",
@@ -118,9 +127,28 @@ export default function ClinicalRecordPage() {
   const [patientDetailsOpen, setPatientDetailsOpen] = useState(false);
   const [openMedicalHistory, setOpenMedicalHistory] = useState(false);
 
+  function SaveButton() {
+    const { getAllData } = useClinicalRecordForm();
+
+    const handleSave = () => {
+      const rawData = getAllData();
+      const payload = mapToSavePayload(rawData);
+      console.log("MedicalHistorySavePayload:", payload);
+    };
+
+    return (
+      <Button
+        startIcon={<DisketteIcon />}
+        color={hceColors.primary.green[600]}
+        onClick={handleSave}
+      >
+        Guardar
+      </Button>
+    );
+  }
+
   return (
-    <>
-      {/* Modal Historial de atenciones */}
+ <>
       <MedicalHistoryModal
         open={openMedicalHistory}
         onClose={() => setOpenMedicalHistory(false)}
@@ -130,13 +158,33 @@ export default function ClinicalRecordPage() {
         <Box sx={{ width: "100%", p: 2 }}>
           <PatientInfoBar />
         </Box>
-        <Box>
-          <ActionBar
-            orientation="horizontal"
-            actions={LIST_ACTION_BAR}
-            closeAction={true}
-          />
-        </Box>
+
+        <ClinicalRecordFormProvider>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Box>
+              <ActionBar
+                orientation="horizontal"
+                actions={LIST_ACTION_BAR}
+                closeAction={true}
+              />
+            </Box>
+            <Box>
+              <SaveButton />
+            </Box>
+          </Box>
+
+          <Box sx={{ pt: "15px" }}>
+            <ClinicalRecordTabs />
+          </Box>
+        </ClinicalRecordFormProvider>
+
         <PatientInfoModal
           open={patientDetailsOpen}
           patient={patient}

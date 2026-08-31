@@ -1,10 +1,15 @@
+// hooks/useMedicalHistory.tsx
 import { useCallback, useState } from "react";
 import type {
   medicalHistoryApiData,
   medicalHistoryApiMeta,
   medicalHistoryApiResponse,
+  HistoryPhysicalExamApiData,
 } from "../types/MedicalHistory";
-import { getMedicalHistory } from "../services/medicalHistory.service";
+import {
+  getMedicalHistory,
+  getHistoryPhysicalExam,
+} from "../services/medicalHistory.service";
 
 function useResourceState<T>() {
   const [data, setData] = useState<T | null>(null);
@@ -16,6 +21,8 @@ function useResourceState<T>() {
 export function useMedicalHistory() {
   const medicalHistoryTable = useResourceState<medicalHistoryApiData[]>();
   const [meta, setMeta] = useState<medicalHistoryApiMeta | null>(null);
+  const historyPhysicalExam = useResourceState<HistoryPhysicalExamApiData>();
+
   const fetchMedicalHistory = useCallback(
     async (
       patientId: number,
@@ -45,11 +52,39 @@ export function useMedicalHistory() {
     [],
   );
 
+  const fetchHistoryPhysicalExam = useCallback(
+    async (encounterId: number): Promise<HistoryPhysicalExamApiData | null> => {
+      historyPhysicalExam.setLoading(true);
+      historyPhysicalExam.setError(null);
+      try {
+        const response = await getHistoryPhysicalExam(encounterId);
+        historyPhysicalExam.setData(response);
+        return response;
+      } catch (err) {
+        historyPhysicalExam.setError(
+          err instanceof Error
+            ? err.message
+            : "Error al cargar anamnesis y examen físico",
+        );
+        historyPhysicalExam.setData(null);
+        return null;
+      } finally {
+        historyPhysicalExam.setLoading(false);
+      }
+    },
+    [],
+  );
+
   return {
     fetchMedicalHistory,
     dataMedicalHistory: medicalHistoryTable.data,
     metaMedicalHistory: meta,
     loadingMedicalHistory: medicalHistoryTable.loading,
     errorMedicalHistory: medicalHistoryTable.error,
+
+    fetchHistoryPhysicalExam,
+    dataHistoryPhysicalExam: historyPhysicalExam.data,
+    loadingHistoryPhysicalExam: historyPhysicalExam.loading,
+    errorHistoryPhysicalExam: historyPhysicalExam.error,
   };
 }

@@ -15,6 +15,14 @@ import { apiFetch } from "shell/ApiClient";
 import type {
   CatalogActivePrinciples,
   CatalogActivePrinciplesResponse,
+  CatalogAdministrationRoute,
+  CatalogAdministrationRoutesResponse,
+  CatalogBackgroundItem,
+  CatalogBackgroundResponse,
+  CatalogCompanionTypes,
+  CatalogCompanionTypesResponse,
+  CatalogMedicationProduct,
+  CatalogMedicationProductSearchResponse,
 } from "../types/Catalog.type";
 import { ENDPOINTS } from "../config/endpoints";
 
@@ -42,6 +50,65 @@ export async function getActivePrinciplesSearch(
     );
 
   const json = (await res.json()) as CatalogActivePrinciplesResponse;
+  if (!json.success) return null;
+  return json.data;
+}
+
+export async function getCompanionTypes(): Promise<
+  CatalogCompanionTypes[] | null
+> {
+  const res = await apiFetch(ENDPOINTS.catalogs.CompanionTypes());
+  if (res.status === 404) return null;
+  if (!res.ok)
+    throw new Error(
+      `Error ${res.status} al buscar datos del Catalog Companion Types`,
+    );
+
+  const json = (await res.json()) as CatalogCompanionTypesResponse;
+  if (!json.success) return null;
+  return json.data;
+}
+
+
+export async function getBackgroundCatalog(): Promise<
+  CatalogBackgroundItem[] | null
+> {
+  const res = await apiFetch(ENDPOINTS.catalogs.BackgroundCatalog());
+  if (res.status === 404) return null;
+  if (!res.ok)
+    throw new Error(
+      `Error ${res.status} al obtener datos del Catalog Background`,
+    );
+
+  const json = (await res.json()) as CatalogBackgroundResponse;
+  if (!json.success) return null;
+  return json.data;
+}
+
+export async function getAdministrationRoutes(): Promise<
+  CatalogAdministrationRoute[] | null
+> {
+  const res = await apiFetch(ENDPOINTS.catalogs.AdministrationRoutes());
+  if (res.status === 404) return null;
+  if (!res.ok)
+    throw new Error(
+      `Error ${res.status} al obtener datos del Catalog Administration Routes`,
+    );
+
+  const json = (await res.json()) as CatalogAdministrationRoutesResponse;
+  if (!json.success) return null;
+  return json.data;
+}
+
+export async function searchMedicationProducts(
+  text: string,
+): Promise<CatalogMedicationProduct[] | null> {
+  const res = await apiFetch(ENDPOINTS.catalogs.MedicationProductsSearch(text));
+  if (res.status === 404) return null;
+  if (!res.ok)
+    throw new Error(`Error ${res.status} al buscar productos medicamentosos`);
+
+  const json = (await res.json()) as CatalogMedicationProductSearchResponse;
   if (!json.success) return null;
   return json.data;
 }

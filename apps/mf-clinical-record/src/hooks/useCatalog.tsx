@@ -1,6 +1,20 @@
-import { useState } from "react";
-import { getActivePrinciples, getActivePrinciplesSearch } from "../services/catalog.service";
-import type { CatalogActivePrinciples } from "../types/Catalog.type";
+import { useCallback, useState } from "react";
+import {
+  getActivePrinciples,
+  getActivePrinciplesSearch,
+  getAdministrationRoutes,
+  getBackgroundCatalog,
+  getCompanionTypes,
+  searchMedicationProducts,
+} from "../services/catalog.service";
+import type {
+  CatalogActivePrinciples,
+  CatalogAdministrationRoute,
+  CatalogBackgroundItem,
+  CatalogCompanionTypes,
+  CatalogMedicationProduct,
+} from "../types/Catalog.type";
+import { createCachedFetcher } from "../utils/createCachedFetcher";
 
 // Estado de loading/error/data de un recurso de catálogo. Nota: fetchCatalogActivePrinciples
 // y fetchCatalogActivePrinciplesSearch comparten la misma instancia (catalogActivePrinciples)
@@ -12,13 +26,22 @@ function useResourceState<T>() {
   const [error, setError] = useState<string | null>(null);
   return { data, setData, loading, setLoading, error, setError };
 }
+const companionTypesFetcher = createCachedFetcher(getCompanionTypes);
+const backgroundCatalogFetcher = createCachedFetcher(getBackgroundCatalog);
+const administrationRoutesFetcher = createCachedFetcher(
+  getAdministrationRoutes,
+);
 
 export function useCatalog() {
-  
   const catalogActivePrinciples = useResourceState<CatalogActivePrinciples[]>();
- 
+  const catalogCompanionTypes = useResourceState<CatalogCompanionTypes[]>();
+  const catalogBackground = useResourceState<CatalogBackgroundItem[]>();
+  const catalogMedicationProducts = useResourceState<CatalogMedicationProduct[]>();
 
-  const fetchCatalogActivePrinciples = async (): Promise<
+  const catalogAdministrationRoutes =
+    useResourceState<CatalogAdministrationRoute[]>();
+
+  const fetchCatalogActivePrinciples = useCallback(async (): Promise<
     CatalogActivePrinciples[] | null
   > => {
     catalogActivePrinciples.setLoading(true);
@@ -38,37 +61,136 @@ export function useCatalog() {
     } finally {
       catalogActivePrinciples.setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchCatalogActivePrinciplesSearch = async (
-    text: string,
-  ): Promise<CatalogActivePrinciples[] | null> => {
-    catalogActivePrinciples.setLoading(true);
-    catalogActivePrinciples.setError(null);
+  const fetchCatalogActivePrinciplesSearch = useCallback(
+    async (text: string): Promise<CatalogActivePrinciples[] | null> => {
+      catalogActivePrinciples.setLoading(true);
+      catalogActivePrinciples.setError(null);
+      try {
+        const response = await getActivePrinciplesSearch(text);
+        catalogActivePrinciples.setData(response);
+        return response;
+      } catch (err) {
+        catalogActivePrinciples.setError(
+          err instanceof Error
+            ? err.message
+            : "Error al buscar principios activos",
+        );
+        catalogActivePrinciples.setData(null);
+        return null;
+      } finally {
+        catalogActivePrinciples.setLoading(false);
+      }
+    },
+    [],
+  );
+
+  const fetchCompanionTypes = useCallback(async (): Promise<
+    CatalogCompanionTypes[] | null
+  > => {
+    catalogCompanionTypes.setLoading(true);
+    catalogCompanionTypes.setError(null);
     try {
-      const response = await getActivePrinciplesSearch(text);
-      catalogActivePrinciples.setData(response);
+      const response = await companionTypesFetcher.fetch();
+      catalogCompanionTypes.setData(response);
       return response;
     } catch (err) {
-      catalogActivePrinciples.setError(
+      catalogCompanionTypes.setError(
         err instanceof Error
           ? err.message
-          : "Error al buscar principios activos",
+          : "Error al buscar tipos de compañias",
       );
-      catalogActivePrinciples.setData(null);
+      catalogCompanionTypes.setData(null);
       return null;
     } finally {
-      catalogActivePrinciples.setLoading(false);
+      catalogCompanionTypes.setLoading(false);
     }
-  };
+  }, []);
 
+  const fetchBackgroundCatalog = useCallback(async (): Promise<
+    CatalogBackgroundItem[] | null
+  > => {
+    catalogBackground.setLoading(true);
+    catalogBackground.setError(null);
+    try {
+      const response = await backgroundCatalogFetcher.fetch();
+      catalogBackground.setData(response);
+      return response;
+    } catch (err) {
+      catalogBackground.setError(
+        err instanceof Error
+          ? err.message
+          : "Error al buscar catálogo de antecedentes",
+      );
+      catalogBackground.setData(null);
+      return null;
+    } finally {
+      catalogBackground.setLoading(false);
+    }
+  }, []);
+
+  const fetchAdministrationRoutes = useCallback(async (): Promise<
+    CatalogAdministrationRoute[] | null
+  > => {
+    catalogAdministrationRoutes.setLoading(true);
+    catalogAdministrationRoutes.setError(null);
+    try {
+      const response = await administrationRoutesFetcher.fetch();
+      catalogAdministrationRoutes.setData(response);
+      return response;
+    } catch (err) {
+      catalogAdministrationRoutes.setError(
+        err instanceof Error
+          ? err.message
+          : "Error al buscar vías de administración",
+      );
+      catalogAdministrationRoutes.setData(null);
+      return null;
+    } finally {
+      catalogAdministrationRoutes.setLoading(false);
+    }
+  }, []);
+
+  const fetchMedicationProductsSearch = useCallback(
+  async (text: string): Promise<CatalogMedicationProduct[] | null> => {
+    catalogMedicationProducts.setLoading(true);
+    catalogMedicationProducts.setError(null);
+    try {
+      const response = await searchMedicationProducts(text);
+      catalogMedicationProducts.setData(response);
+      return response;
+    } catch (err) {
+      catalogMedicationProducts.setError(
+        err instanceof Error ? err.message : "Error al buscar medicamentos",
+      );
+      catalogMedicationProducts.setData(null);
+      return null;
+    } finally {
+      catalogMedicationProducts.setLoading(false);
+    }
+  },
+  [],
+);
 
   return {
-   
     fetchCatalogActivePrinciples,
     fetchCatalogActivePrinciplesSearch,
-    dataCatalogActivePrinciples: catalogActivePrinciples.data,  
+    fetchCompanionTypes,
+    fetchBackgroundCatalog,
+    fetchAdministrationRoutes,
+    fetchMedicationProductsSearch,
+    dataCatalogActivePrinciples: catalogActivePrinciples.data,
     loadingCatalogActivePrinciples: catalogActivePrinciples.loading,
     errorCatalogActivePrinciples: catalogActivePrinciples.error,
+    dataCatalogCompanionTypes: catalogCompanionTypes.data,
+    loadingCatalogCompanionTypes: catalogCompanionTypes.loading,
+    errorCatalogCompanionTypes: catalogCompanionTypes.error,
+    dataCatalogBackground: catalogBackground.data,
+    loadingCatalogBackground: catalogBackground.loading,
+    errorCatalogBackground: catalogBackground.error,
+    dataCatalogAdministrationRoutes: catalogAdministrationRoutes.data,
+    loadingCatalogAdministrationRoutes: catalogAdministrationRoutes.loading,
+    errorCatalogAdministrationRoutes: catalogAdministrationRoutes.error,
   };
 }
