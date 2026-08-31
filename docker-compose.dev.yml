@@ -27,6 +27,7 @@ services:
         VITE_REMOTE_FOOTER:      https://servicios.dev.sanfelipe.com:20509/assets/remoteEntry.js
         VITE_REMOTE_TRIAGE:      https://servicios.dev.sanfelipe.com:20510/assets/remoteEntry.js
         VITE_REMOTE_CLINICAL_RECORD: https://servicios.dev.sanfelipe.com:20511/assets/remoteEntry.js
+        VITE_DEFAULT_LOCALE: es
     restart: unless-stopped
     ports:
       - "10500:80"
@@ -48,6 +49,7 @@ services:
         VERDACCIO_URL: http://192.168.42.44:10100
         VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
         VITE_APIGW_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
+        VITE_DEFAULT_LOCALE: es
     restart: unless-stopped
     ports:
       - "10501:80"

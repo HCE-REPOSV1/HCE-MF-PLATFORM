@@ -26,6 +26,7 @@ services:
         VITE_REMOTE_FOOTER: ${VITE_REMOTE_FOOTER}
         VITE_REMOTE_TRIAGE: ${VITE_REMOTE_TRIAGE}
         VITE_REMOTE_CLINICAL_RECORD: ${VITE_REMOTE_CLINICAL_RECORD}
+        VITE_DEFAULT_LOCALE: ${VITE_DEFAULT_LOCALE}
     restart: unless-stopped
     ports:
       - "10500:80"
@@ -48,6 +49,7 @@ services:
         # Build-args leídos desde Vault (secret/hce/mf/mf-auth)
         VITE_REMOTE_SHELL: ${VITE_REMOTE_SHELL}
         VITE_APIGW_CNL_CROSS: ${VITE_APIGW_CNL_CROSS}
+        VITE_DEFAULT_LOCALE: ${VITE_DEFAULT_LOCALE}
     restart: unless-stopped
     ports:
       - "10501:80"
