@@ -14,6 +14,7 @@ ARG VITE_REMOTE_HEADER=http://localhost:10507/remoteEntry.js
 ARG VITE_REMOTE_SIDEBAR=http://localhost:10508/remoteEntry.js
 ARG VITE_REMOTE_FOOTER=http://localhost:10509/remoteEntry.js
 ARG VITE_REMOTE_TRIAGE=http://localhost:10510/remoteEntry.js
+ARG VITE_REMOTE_CLINICAL_RECORD=http://localhost:10511/assets/remoteEntry.js
 WORKDIR /app
 
 # Manifests raíz + workspace propio (Module Federation resuelve los remotes
@@ -43,6 +44,7 @@ RUN VITE_APIGW_CNL_CROSS=${VITE_APIGW_CNL_CROSS} \
     VITE_REMOTE_SIDEBAR=${VITE_REMOTE_SIDEBAR} \
     VITE_REMOTE_FOOTER=${VITE_REMOTE_FOOTER} \
     VITE_REMOTE_TRIAGE=${VITE_REMOTE_TRIAGE} \
+    VITE_REMOTE_CLINICAL_RECORD=${VITE_REMOTE_CLINICAL_RECORD} \
     npm run build -w apps/mf-shell
 
 # ── Stage 2: Serve ───────────────────────────────────────────

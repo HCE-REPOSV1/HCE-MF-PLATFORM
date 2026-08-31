@@ -26,6 +26,7 @@ services:
         VITE_REMOTE_SIDEBAR:     https://servicios.dev.sanfelipe.com:20508/assets/remoteEntry.js
         VITE_REMOTE_FOOTER:      https://servicios.dev.sanfelipe.com:20509/assets/remoteEntry.js
         VITE_REMOTE_TRIAGE:      https://servicios.dev.sanfelipe.com:20510/assets/remoteEntry.js
+        VITE_REMOTE_CLINICAL_RECORD: https://servicios.dev.sanfelipe.com:20511/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10500:80"
@@ -91,10 +92,34 @@ services:
         VITE_APIGW_CNL_WEB_EMERGENCY: https://servicios.dev.sanfelipe.com:20602
         VITE_APIGW_CLN_CROSS: https://servicios.dev.sanfelipe.com:20601
         VITE_EMERGENCY_DECRYPT_KEY: 98fd5dd5c3584001b1b3e225aa10e04c9032a0dbc81936599b2f52a2a166c356
+        VITE_CSI_GENDER: 3
+        VITE_REMOTE_CLINICAL_RECORD: https://servicios.dev.sanfelipe.com:20511/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10503:80"
       - "20503:443"
+    environment:
+      PORT: "80"
+      SSL_PORT: "443"
+      USE_SSL: "true"
+      CERT_PATH: /proyectos/certs
+      NGINX_TYPE: remote
+    volumes:
+      - /proyectos/certs:/proyectos/certs:ro
+
+  mf-clinical-record:
+    build:
+      context: .
+      dockerfile: apps/mf-clinical-record/Dockerfile
+      args:
+        VERDACCIO_URL: http://192.168.42.44:10100
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_APIGW_CNL_WEB_EMERGENCY: https://servicios.dev.sanfelipe.com:20602
+        VITE_APIGW_CLN_CROSS: https://servicios.dev.sanfelipe.com:20601
+    restart: unless-stopped
+    ports:
+      - "10511:80"
+      - "20511:443"
     environment:
       PORT: "80"
       SSL_PORT: "443"
