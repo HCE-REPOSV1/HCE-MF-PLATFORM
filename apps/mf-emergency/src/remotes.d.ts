@@ -62,3 +62,20 @@ declare module "triage/Triage" {
   const Triage: ComponentType<TriageProps>;
   export default Triage;
 }
+
+declare module "clinicalRecord/ClinicalRecord" {
+  import type { ComponentType } from "react";
+
+  /**
+   * ClinicalRecord no recibe props: lee el paciente/encounter activo del
+   * router state (useLocation().state.patient), igual que la antigua
+   * ClinicalRecordPage — funciona porque react-router-dom es dependencia
+   * compartida (singleton) entre mf-emergency y mf-clinical-record en
+   * Module Federation. El navigate("historiacli", { state: { patient: row } })
+   * ya existente en MonitorPage sigue siendo quien setea ese state.
+   */
+  export type ClinicalRecordProps = Record<string, never>;
+
+  const ClinicalRecord: ComponentType<ClinicalRecordProps>;
+  export default ClinicalRecord;
+}

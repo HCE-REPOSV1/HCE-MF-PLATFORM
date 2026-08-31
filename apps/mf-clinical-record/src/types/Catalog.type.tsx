@@ -1,0 +1,107 @@
+export interface CatalogActivePrinciples {
+  active_principle_id: number;
+  active_principle_uuid: string;
+  atc_code: string;
+  substance_name: string;
+  substance_name_search: string;
+  user_create: string;
+  user_modify: string | null;
+  date_create: string;
+  date_modify: string | null;
+  is_active: boolean;
+}
+
+export interface CatalogActivePrinciplesResponse {
+  success: boolean;
+  message: string;
+  data: CatalogActivePrinciples[];
+}
+
+export interface CatalogCompanionTypes {
+  companion_type_id: number;
+  companion_type_uuid: string;
+  companion_type_name: string;
+  description: string;
+  display_order: number;
+  user_create: string;
+  user_modify: string | null;
+  date_create: string;
+  date_modify: string | null;
+  is_active: boolean;
+  description_es: string;
+  description_en: string;
+}
+
+export interface CatalogCompanionTypesResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: CatalogCompanionTypes[];
+}
+
+export interface CatalogBackgroundItem {
+  background_catalog_id: number;
+  background_catalog_uuid: string;
+  background_category: "general" | "gyn_obstetric" | "pathological";
+  background_name: string;
+  background_name_search: string;
+  display_order: number;
+  user_create: string;
+  user_modify: string | null;
+  date_create: string;
+  date_modify: string | null;
+  is_active: boolean;
+  background_name_es: string;
+  background_name_en: string;
+}
+
+export interface CatalogBackgroundResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: CatalogBackgroundItem[];
+}
+
+export interface CatalogAdministrationRoutesResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: CatalogAdministrationRoute[];
+}
+export interface CatalogAdministrationRoute {
+  administration_route_id: number;
+  administration_route_uuid: string;
+  route_name: string;
+  description: string;
+  snomed_code: string | null;
+  display_order: number;
+  user_create: string;
+  user_modify: string | null;
+  date_create: string;
+  date_modify: string | null;
+  is_active: boolean;
+  description_es: string;
+  description_en: string;
+}
+
+export interface CatalogMedicationProduct {
+  medication_product_id: number;
+  medication_product_uuid: string;
+  active_principle_id: number;
+  pharmaceutical_form_id: number;
+  strength_value: number;
+  strength_unit: string;
+  commercial_name: string | null;
+  product_display: string;
+  product_display_search: string;
+  is_active: boolean;
+  product_display_es: string;
+  product_display_en: string;
+}
+
+export interface CatalogMedicationProductSearchResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: CatalogMedicationProduct[];
+}

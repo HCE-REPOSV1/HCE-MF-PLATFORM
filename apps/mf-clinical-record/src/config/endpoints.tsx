@@ -1,17 +1,25 @@
-const AG_WEB_EMERGENCY = import.meta.env.VITE_APIGW_CNL_WEB_EMERGENCY
-const AG_CLN_CROSS = import.meta.env.VITE_APIGW_CLN_CROSS
-const CSI_GENDER = import.meta.env.VITE_CSI_GENDER
+const AG_WEB_EMERGENCY = import.meta.env.VITE_APIGW_CNL_WEB_EMERGENCY;
+const AG_CLN_CROSS = import.meta.env.VITE_APIGW_CLN_CROSS;
 
+if (!AG_WEB_EMERGENCY)
+  throw new Error(
+    "[mf-clinical-record] VITE_APIGW_CNL_WEB_EMERGENCY no está configurado",
+  );
+if (!AG_CLN_CROSS)
+  throw new Error("[mf-clinical-record] VITE_APIGW_CLN_CROSS no está configurado");
 
-
-
-if (!AG_WEB_EMERGENCY) throw new Error('[mf-emergency] VITE_APIGW_CNL_WEB_EMERGENCY no está configurado')
-if (!AG_CLN_CROSS) throw new Error('[mf-emergency] VITE_APIGW_CLN_CROSS no está configurado')
-if (!CSI_GENDER) throw new Error('[mf-emergency] VITE_CSI_GENDER no está configurado')
-
-export { CSI_GENDER };
 export const ENDPOINTS = {
-
+  encounter: {
+    /** Datos consolidados del paciente/encounter para la barra de información (mismo contrato que mf-emergency). */
+    patientInfo: (encounterId: number) =>
+      `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounterId}/patient-summary`,
+    /** Declaración de alergias vigente del encounter (mismo contrato que mf-emergency). */
+    allergyInfo: (encounterId: number) =>
+      `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounterId}/allergy-declaration`,
+    /** Actualiza la declaración de alergias del encounter (PATCH, mismo contrato que mf-emergency). */
+    updateAllergy: (encounterId: number) =>
+      `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounterId}/allergy-declaration`,
+  },
   emergencyMonitor: {
     /** Pantalla pública (TV sala de espera) — sin sesión, respuesta cifrada AES-GCM. */
     public: (locationUuid: string, page: number, limit: number) =>
@@ -49,36 +57,24 @@ export const ENDPOINTS = {
     ActivePrinciples: () => `${AG_CLN_CROSS}/api/v1/catalogs/active-principles`,
     ActivePrinciplesSearch: (text: string) =>
       `${AG_CLN_CROSS}/api/v1/catalogs/active-principles/search?text=${encodeURIComponent(text)}`,
-    IdentifierTypes: (entityType: string) =>
-      `${AG_CLN_CROSS}/api/v1/catalogs/identifier-types?entity_type=${encodeURIComponent(entityType)}`,
-    TimeUnits: () => `${AG_CLN_CROSS}/api/v1/catalogs/time-units`,
-    AgeGroups: () => `${AG_CLN_CROSS}/api/v1/catalogs/age-groups`,
-    CodeSystemValues: (codeSystemId: string | number) =>
-      `${AG_CLN_CROSS}/api/v1/catalogs/code-system-values?code_system_id=${codeSystemId}`,
-  },
-
-  encounter: {
-    /** Obtener los datos de un paciente por su ID. */
-    patientInfo: (encounterId: number) =>
-      `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounterId}/patient-summary`,
-
-
-    allergyInfo:(encounterId:number)=>
-       `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounterId}/allergy-declaration`,
-
-    updateAllergy:(encounterId:number)=>
-      `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounterId}/allergy-declaration`,
-
-
-  },
-
-  /** i18n — manifest público; namespace "emergency" protegido (requiere sesión) */
-  i18n: {
-    locales:   `${AG_CLN_CROSS}/api/v1/i18n/locales`,
-    namespace: (locale: string, namespace: string) => `${AG_CLN_CROSS}/api/v1/i18n/${locale}/${namespace}`,
+    CompanionTypes: () => `${AG_CLN_CROSS}/api/v1/catalogs/companion-types`,
+    BackgroundCatalog: () =>
+      `${AG_CLN_CROSS}/api/v1/catalogs/background-catalog`,
+    AdministrationRoutes: () =>
+      `${AG_CLN_CROSS}/api/v1/catalogs/administration-routes`,
+    MedicationProductsSearch: (text: string) =>
+      `${AG_CLN_CROSS}/api/v1/catalogs/medication-products/search?text=${encodeURIComponent(text)}`,
   },
   medicalRecords: {
-    medicalRecordByPatiente: (patientId:number) => `${AG_WEB_EMERGENCY}/api/v1/encounter/patient/${patientId}/history`
-  }
-
-} as const
+    medicalRecordByPatiente: (patientId: number, page = 1, limit = 10) =>
+      `${AG_WEB_EMERGENCY}/api/v1/encounter/patient/${patientId}/history?page=${page}&limit=${limit}`,
+    getHistoryPhysicalExam: (encounter_id: number) =>
+      `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounter_id}/clinical`,
+  },
+  /** i18n — manifest público; namespace "emergency" protegido (requiere sesión) */
+  i18n: {
+    locales: `${AG_CLN_CROSS}/api/v1/i18n/locales`,
+    namespace: (locale: string, namespace: string) =>
+      `${AG_CLN_CROSS}/api/v1/i18n/${locale}/${namespace}`,
+  },
+} as const;

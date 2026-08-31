@@ -1,0 +1,26 @@
+/* components/ClinicalRecordTabs/HistoryPhysicalExam.css */
+
+.hce-history-physical-exam {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.hce-section {
+  border: 1px solid var(--ds-color-divider);
+  border-radius: var(--ds-radius);
+  overflow: hidden;
+}
+
+.hce-section__body {
+  padding: 16px;
+  background-color: var(--ds-color-surface);
+}
+
+/* HistoryPhysicalExam.css */
+.hce-section__body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
