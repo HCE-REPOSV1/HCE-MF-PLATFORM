@@ -314,50 +314,8 @@ export default function ClinicalRecordPage() {
   //   { field: "ver", header: "Ver" },
   // ];
 
-  // const rowsMedicalHistory = [
-  //   {
-  //     th: "Física",
-  //     medico: "Tipo de historia",
-  //     especialidad: "Ginecología",
-  //     fecha: "01/12/2024 - 15:00",
-  //     cod_atencion: "E00001",
-  //     lugar: "Emergencia",
-  //     ver: (
-  //       <InfoButton
-  //         tooltip="Ver detalle"
-  //         onClick={() => console.log("open...")}
-  //       />
-  //     ),
-  //   },
-  //   {
-  //     th: "Electrónica",
-  //     medico: "Tipo de historia",
-  //     especialidad: "Ginecología",
-  //     fecha: "01/12/2024 - 15:00",
-  //     cod_atencion: "E00001",
-  //     lugar: "Emergencia",
-  //     ver: (
-  //       <InfoButton
-  //         tooltip="Ver detalle"
-  //         onClick={() => console.log("open...")}
-  //       />
-  //     ),
-  //   },
-  //   {
-  //     th: "Electrónica",
-  //     medico: "Tipo de historia",
-  //     especialidad: "Ginecología",
-  //     fecha: "01/12/2024 - 15:00",
-  //     cod_atencion: "E00001",
-  //     lugar: "Emergencia",
-  //     ver: (
-  //       <InfoButton
-  //         tooltip="Ver detalle"
-  //         onClick={() => console.log("open...")}
-  //       />
-  //     ),
-  //   },
-  // ];
+
+
 
   // const rowsMedicalHistory = [
   //   {
@@ -414,13 +372,16 @@ export default function ClinicalRecordPage() {
           open={openMedicalHistory}
           onClose={handleCloseMedicalHistory}
           title="Historial de Atenciones"
-          maxWidth="lg"
+          maxWidth="md"
+          testId="mf-emergency-clinical-record-history-modal"
         >
           <Box>
             {/* <GenericTable
               columns={columnsMedicalHistory}
               rows={rowsMedicalHistory}
-            /> */}
+
+              testId="mf-emergency-clinical-record-history-table"/> */}
+
           </Box>
           <Box>
             <DataCard
@@ -564,6 +525,7 @@ export default function ClinicalRecordPage() {
                   onClick={() =>
                     setAllergyDetailsOpen(true)
                   }
+                  testId="mf-emergency-clinical-record-allergy-badge"
                 />
               }
             />
@@ -579,6 +541,7 @@ export default function ClinicalRecordPage() {
                   setPatientDetailsOpen(true)
                 }
                 tooltip={t('ClinicalRecord.actions.info')}
+                testId="mf-emergency-clinical-record-info-button"
               />
             </Box>
           </Box>
@@ -591,6 +554,7 @@ export default function ClinicalRecordPage() {
           orientation="horizontal"
           actions={LIST_ACTION_BAR}
           closeAction={true}
+          testId="mf-emergency-clinical-record-action-bar"
         />
       </Box>
 

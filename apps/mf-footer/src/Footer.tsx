@@ -9,5 +9,5 @@ export default function Footer() {
     registerFooterNamespace();
   }, []);
   const label = `© ${year} ${t("footer.label")}`
-  return <HceFooter copyright={label} />;
+  return <HceFooter copyright={label} testId="mf-footer" />;
 }

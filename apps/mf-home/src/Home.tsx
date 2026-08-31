@@ -116,6 +116,7 @@ export default function Home() {
         height={300}
         autoPlaySeconds={6}
         objectFit="contain"
+        testId="mf-home-carousel"
       />
 
       {/* ── Cabecera Accesos Rápidos ───────────────────────── */}
@@ -157,6 +158,7 @@ export default function Home() {
             label={t('reorderButton')}
             startIcon={<HceConfigIcon size={14}color={hceColors.neutro.white[50]}/>}
             color={"var(--ds-color-interactive, #0043a5)"}
+            testId="mf-home-reorder-button"
           />
           <Button
             variant="outlined"
@@ -164,6 +166,7 @@ export default function Home() {
             label={t('customizeButton')}
             startIcon={<HceStarIcon size={14}color={"var(--ds-color-interactive, #0043a5)"}/>}
             color={"var(--ds-color-interactive, #0043a5)"}
+            testId="mf-home-customize-button"
           />
           {/* <Button
             variant="outlined"
@@ -212,7 +215,8 @@ export default function Home() {
               description={description}
               disabled={!enabled}
               onAcceder={() => navigate(path)}
-              labelBtn={t('quickLinks.AccessButton')} 
+              labelBtn={t('quickLinks.AccessButton')}
+              testId={`mf-home-quickaccess-${path.split("/").pop()}`}
             />
           );
         })}

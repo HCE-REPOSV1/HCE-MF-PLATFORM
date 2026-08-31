@@ -42,6 +42,7 @@ export function UpdateNotification() {
           window.location.origin + window.location.pathname + "?_v=" + Date.now()
         )
       }
+      testId="mf-shell-update-banner"
     />
   )
 }

@@ -21,7 +21,7 @@ export function MedicalRecordPanel({}) {
   };
   return (
     <Box>
-      <NavTab tabs={tabs} value={tab} onChange={handleChange} />
+      <NavTab tabs={tabs} value={tab} onChange={handleChange} testId="mf-emergency-medical-record-panel-tabs" />
     </Box>
   );
 }

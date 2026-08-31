@@ -51,6 +51,7 @@ export function PatientDetailsModal({
       borderRadius="12px"
       contentPadding="24px"
       contentAlign="center"
+      testId="mf-emergency-patient-details-modal"
       // headerContent={
       //   <Avatar
       //     src={patient.photoUrl ?? undefined}
@@ -99,6 +100,7 @@ export function PatientDetailsModal({
             variant={allergyVariant}
             clickable={false}
             sx={{ marginTop: 1 }}
+            testId="mf-emergency-patient-details-modal-allergy-badge"
           />
         </Box>
 

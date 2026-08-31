@@ -35,6 +35,7 @@ titleOptions
             onHome={onHome}
             labelHome={labelHome}
             titleOptions={titleOptions}
+            testId="mf-sidebar"
         />
     )
 }
