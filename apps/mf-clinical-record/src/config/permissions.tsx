@@ -1,5 +1,5 @@
 /**
- * Códigos semánticos de permisos para el módulo Emergencia.
+ * Códigos semánticos de permisos para el módulo Historia Clínica (mf-clinical-record).
  *
  * Estado de cada código:
  *   [MAC]  = ya mapeado en macMapping.ts, respetará lo que retorne MAC

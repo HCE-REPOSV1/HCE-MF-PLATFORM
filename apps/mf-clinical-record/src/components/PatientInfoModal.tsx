@@ -32,6 +32,7 @@ export default function PatientInfoModal({
       borderRadius="12px"
       contentPadding="24px"
       contentAlign="center"
+      testId="mf-clinical-record-patient-details-modal"
     >
       <Box>
         <Box
@@ -66,6 +67,7 @@ export default function PatientInfoModal({
             variant={allergyVariant}
             clickable={false}
             sx={{ marginTop: 1 }}
+            testId="mf-clinical-record-patient-details-modal-allergy-badge"
           />
         </Box>
 

@@ -6,7 +6,6 @@ import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 import { usePermiso } from "./hooks/usePermiso";
 import { PERMISOS_EMERGENCY } from "./config/permisos";
-// import ClinicalRecordPage from "./pages/ClinicalRecordPage";
 
 function PermisoRoute({
   codigo,
@@ -36,7 +35,6 @@ export default function Emergency() {
         path="historiacli"
         element={
           <PermisoRoute codigo={PERMISOS_EMERGENCY.clinicalRecord}>
-            {/* <ClinicalRecordPage></ClinicalRecordPage> */}
             <ClinicalRecord/>
           </PermisoRoute>
         }

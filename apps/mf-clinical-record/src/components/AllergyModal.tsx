@@ -18,21 +18,27 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useCatalog } from "../hooks/useCatalog";
 import { usePermission } from "../hooks/usePermission";
 import { PERMISSIONS_CLINICAL_RECORD } from "../config/permissions";
-import { mapAllergyApiItemToAvailabilityItem, type AllergyForm } from "../mapper/allergy.mapper";
+import {
+  mapAllergyApiToForm,
+  type AllergyForm,
+  type AllergyTableItem,
+} from "../mapper/allergy.mapper";
+import { useAllergyDeclaration } from "../hooks/useAllergyDeclaration";
+import { updateAllergyDeclaration } from "../services/allergy.service";
+import { useUser } from "shell/UserContext";
 
 export interface AllergyModalProps {
   open: boolean;
   onClose: () => void;
-  /** id para identificar la alergia) */
-  encounterId?: string;
-
+  /** encounter_id real — sin él no se dispara la carga ni se puede guardar. */
+  encounterId?: number;
   mode?: "read" | "write";
   onSaveChanges?: () => void | Promise<void>;
 }
 
 const EMPTY_FORM: AllergyForm = {
-  allergy_id: "1",
-  encounter_id: "1",
+  allergy_id: 0,
+  encounter_id: 0,
   has_allergy: false,
   api: [],
   food: "",
@@ -44,13 +50,13 @@ const createInfoColumns = ({
   onEdit,
 }: {
   canEdit: boolean;
-  onEdit: (row: AllergyForm) => void;
-}): GenericTableColumn<AllergyForm>[] => [
+  onEdit: (row: AllergyTableItem) => void;
+}): GenericTableColumn<AllergyTableItem>[] => [
   {
     key: "API",
     header: "Principio activo",
     type: "list",
-    field: "api",
+    field: "apiLabels",
     width: 100,
     align: "left",
   },
@@ -70,7 +76,6 @@ const createInfoColumns = ({
     width: 100,
     align: "center",
   },
-
   {
     key: "on_edit",
     header: "Editar",
@@ -82,21 +87,12 @@ const createInfoColumns = ({
     align: "center",
     clickable: true,
     disabledGetter: () => !canEdit,
-    colorGetter: () => (canEdit ? "var(--ds-color-interactive-button, #0043a5)" : "#A0A0A0"),
+    colorGetter: () =>
+      canEdit ? "var(--ds-color-interactive-button, #0043a5)" : "#A0A0A0",
     onClick: (row) => {
       onEdit(row);
     },
-  },
-];
-
-const allergyExample: AllergyForm[] = [
-  {
-    allergy_id: "1",
-    encounter_id: "1",
-    has_allergy: false,
-    api: [],
-    food: null,
-    other: null,
+    getCellTestId: (row) => `mf-clinical-record-allergy-modal-row-${row.allergy_id}-edit`,
   },
 ];
 
@@ -109,60 +105,116 @@ export default function AllergyModal({
 }: AllergyModalProps) {
   const readOnly = mode === "read";
   const canEdit = usePermission(PERMISSIONS_CLINICAL_RECORD.allergy.write);
+  const canAlergiasTriage = usePermission(PERMISSIONS_CLINICAL_RECORD.allergy.base);
+  const enabledAlergiasTriage = !readOnly;
 
   const [form, setForm] = useState<AllergyForm>(EMPTY_FORM);
-
-  const [allergyEditionOpen, setallergyEditionOpen] = useState(false);
+  const [allergyEditionOpen, setAllergyEditionOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [optionsActivePrinciples, setOptionsActivePrinciples] = useState<
     { value: string; label: string }[]
   >([]);
-  const canAlergiasTriage = usePermission(PERMISSIONS_CLINICAL_RECORD.allergy.base);
-
   const [allergySelected, setAllergySelected] = useState<AllergyForm>();
+  const [valuePrincipioActivo, setValuePrincipioActivo] = useState<string[]>([]);
 
-  const [enabledAlergiasTriage, setEnabledAlergiasTriage] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const username = useUser().user?.username ?? "";
 
-  const [valuePrincipioActivo, setValuePrincipioActivo] = useState<string[]>(
+  const opcionesRadioAlergia = useMemo(
+    () => [
+      { value: true, label: "Sí" },
+      { value: false, label: "Niega alergias" },
+    ],
     [],
   );
 
-  //const { fetchAllergyFull, loading: loadingAllergyFull } = useAllergyFull();
-
-  const allergyBoard = useMemo(
-    () => allergyExample.map(mapAllergyApiItemToAvailabilityItem),
-    [allergyExample],
-  );
-
-  const opcionesRadioAlergia = [
-    { value: true, label: "Si" },
-    { value: false, label: "Niega alergias" },
-  ];
-
   const { fetchCatalogActivePrinciples } = useCatalog();
 
+  const {
+    data: allergyDeclaration,
+    loading: allergyDeclarationLoading,
+    error: allergyDeclarationError,
+    refetch: refetchAllergyDeclaration,
+  } = useAllergyDeclaration(encounterId);
+
+  const allergyBoard = useMemo<AllergyTableItem[]>(() => {
+    const declaration = allergyDeclaration?.declaration;
+    if (!declaration) return [];
+
+    const activePrincipleNames = new Map(
+      optionsActivePrinciples.map(({ value, label }) => [value, label]),
+    );
+
+    const allergyForm = mapAllergyApiToForm(
+      declaration,
+      allergyDeclaration.encounter_id,
+    );
+
+    return [
+      {
+        ...allergyForm,
+        apiLabels: allergyForm.api.map(
+          (id) =>
+            activePrincipleNames.get(id) ?? `Principio activo #${id}`,
+        ),
+      },
+    ];
+  }, [allergyDeclaration, optionsActivePrinciples]);
+
+  const hasChanges = useMemo(() => {
+    const original = allergyBoard[0];
+    if (!original) return false;
+
+    const sameActivePrinciples =
+      original.api.length === form.api.length &&
+      original.api.every((id) => form.api.includes(id));
+
+    return (
+      original.has_allergy !== form.has_allergy ||
+      !sameActivePrinciples ||
+      original.food !== form.food ||
+      original.other !== form.other
+    );
+  }, [allergyBoard, form]);
+
   const handleSave = useCallback(async () => {
-    if (readOnly) return;
+    if (readOnly || !hasChanges || !allergyDeclaration) return;
+
     try {
       setSaving(true);
       setError(null);
 
+      await updateAllergyDeclaration(allergyDeclaration.encounter_id, {
+        has_allergies: form.has_allergy ? "S" : "N",
+        food_allergies: form.food || null,
+        other_allergies: form.other || null,
+        active_principle_ids: form.api.map(Number),
+        user_modify: username,
+      });
+
+      await refetchAllergyDeclaration();
       await onSaveChanges?.();
-    } catch (err) {
-      setSaving(false);
+      setAllergyEditionOpen(false);
+    } catch (err: unknown) {
       setError(
-        err instanceof Error ? err.message : "No se pudo editar la alergia",
+        err instanceof Error
+          ? err.message
+          : "No se pudo guardar la declaración de alergias",
       );
     } finally {
-      setallergyEditionOpen(false);
       setSaving(false);
     }
-  }, [onSaveChanges, readOnly]);
-
-  //const [hasChanges, setHasChanges] = useState(false)
+  }, [
+    form,
+    hasChanges,
+    allergyDeclaration,
+    onSaveChanges,
+    readOnly,
+    refetchAllergyDeclaration,
+    username,
+  ]);
 
   const handleConfirm = useCallback(async () => {
     try {
@@ -171,7 +223,7 @@ export default function AllergyModal({
         setForm({ ...allergySelected });
         setValuePrincipioActivo([...allergySelected.api]);
       }
-      setallergyEditionOpen(true);
+      setAllergyEditionOpen(true);
     } catch (err) {
       setError(
         err instanceof Error
@@ -188,33 +240,35 @@ export default function AllergyModal({
     setConfirm(false);
   }, []);
 
-  const handleEdit = useCallback(async (row: AllergyForm) => {
+  const handleEdit = useCallback((row: AllergyTableItem) => {
+    setAllergySelected({
+      allergy_id: row.allergy_id,
+      encounter_id: row.encounter_id,
+      has_allergy: row.has_allergy,
+      api: [...row.api],
+      food: row.food,
+      other: row.other,
+    });
     setConfirm(true);
-    setAllergySelected(row);
   }, []);
 
-  const handleClose = useCallback(async () => {
+  const handleClose = useCallback(() => {
     setForm(EMPTY_FORM);
     setValuePrincipioActivo([]);
     setAllergySelected(undefined);
-    setallergyEditionOpen(false);
+    setAllergyEditionOpen(false);
     setConfirm(false);
+    setError(null);
     onClose();
   }, [onClose]);
 
   const columns = useMemo(
-    () =>
-      createInfoColumns({
-        canEdit,
-        onEdit: handleEdit,
-      }),
+    () => createInfoColumns({ canEdit, onEdit: handleEdit }),
     [canEdit, handleEdit],
   );
 
   const activePrincipleOptions = useMemo(() => {
-    const catalogValues = new Set(
-      optionsActivePrinciples.map(({ value }) => value),
-    );
+    const catalogValues = new Set(optionsActivePrinciples.map(({ value }) => value));
     const rawOptions = valuePrincipioActivo
       .filter((value) => !catalogValues.has(value))
       .map((value) => ({ value, label: value }));
@@ -222,13 +276,11 @@ export default function AllergyModal({
     return [...optionsActivePrinciples, ...rawOptions];
   }, [optionsActivePrinciples, valuePrincipioActivo]);
 
-  const isSaveDisabled = saving || Boolean(error);
-  //||
-  // (!form.tieneAlergia?  ),
+  const isSaveDisabled = saving || !hasChanges;
 
   const set = useCallback(
     <K extends keyof AllergyForm>(key: K, val: AllergyForm[K]) => {
-      setForm((f:any) => ({ ...f, [key]: val }));
+      setForm((f) => ({ ...f, [key]: val }));
     },
     [],
   );
@@ -257,11 +309,7 @@ export default function AllergyModal({
     };
 
     loadData();
-  }, []);
-
-  useEffect(() => {
-    setEnabledAlergiasTriage(!(readOnly || encounterId === "read"));
-  }, [readOnly, encounterId]);
+  }, [fetchCatalogActivePrinciples]);
 
   return (
     <>
@@ -278,19 +326,20 @@ export default function AllergyModal({
           label: "Cancelar",
           onClick: handleCancel,
         }}
+        testId="mf-clinical-record-allergy-confirm-modal"
       />
 
       {!confirm && (
         <HceFormModal
           open={open && !loadError}
           onClose={handleClose}
-          title="Declaratoria de alergias "
+          title="Declaratoria de alergias"
           maxWidth={allergyEditionOpen ? "md" : 1200}
           buttonAlign="right"
+          testId="mf-clinical-record-allergy-modal"
         >
-          {/* El HceModal acepta children opcionales — aquí metemos el select */}
           <Box sx={{ textAlign: "center", mt: 1 }}>
-            {!allergyBoard ? (
+            {allergyDeclarationLoading ? (
               <Box
                 sx={{
                   py: 1.5,
@@ -300,13 +349,38 @@ export default function AllergyModal({
                   color: hceColors.neutro.black[300],
                 }}
               >
-                Cargando informacion del paciente
+                Cargando declaración de alergias...
+              </Box>
+            ) : allergyDeclarationError ? (
+              <Box
+                sx={{
+                  py: 1.5,
+                  textAlign: "center",
+                  fontFamily: hceTypography.fontFamily,
+                  fontSize: "0.875rem",
+                  color: hceColors.neutro.black[300],
+                }}
+              >
+                Error al cargar la declaración de alergias
+              </Box>
+            ) : allergyBoard.length === 0 ? (
+              <Box
+                sx={{
+                  py: 1.5,
+                  textAlign: "center",
+                  fontFamily: hceTypography.fontFamily,
+                  fontSize: "0.875rem",
+                  color: hceColors.neutro.black[300],
+                }}
+              >
+                No hay una declaración de alergias registrada para este paciente.
               </Box>
             ) : !allergyEditionOpen ? (
               <GenericTable
                 rows={allergyBoard}
                 columns={columns}
-                getRowId={(row:any) => row.allergy_id}
+                getRowId={(row) => String(row.allergy_id)}
+                getRowTestId={(row) => `mf-clinical-record-allergy-modal-row-${row.allergy_id}`}
                 maxHeight="100%"
               />
             ) : (
@@ -327,22 +401,22 @@ export default function AllergyModal({
                       textAlign: "start",
                     }}
                   >
-                  <Grid container spacing={2} alignItems="flex-end" wrap="nowrap">
-                  <Grid item xs={12} sm={4} md={4} zeroMinWidth>
+                    <Grid container spacing={2} alignItems="flex-end" wrap="nowrap">
+                      <Grid item xs={12} sm={4} md={4} zeroMinWidth>
                         <RadioGroup
-                          disabled={
-                            !canAlergiasTriage || !enabledAlergiasTriage
-                          }
+                          disabled={!canAlergiasTriage || !enabledAlergiasTriage}
                           value={form.has_allergy}
                           options={opcionesRadioAlergia}
                           onChange={(v) => {
                             set("has_allergy", v);
-                            if (v == false) {
+                            if (v === false) {
                               setValuePrincipioActivo([]);
+                              set("api", []);
                               set("food", "");
                               set("other", "");
                             }
                           }}
+                          testId="mf-clinical-record-allergy-modal-radio"
                         />
                       </Grid>
 
@@ -360,42 +434,58 @@ export default function AllergyModal({
                             setValuePrincipioActivo(values);
                             set("api", values);
                           }}
+                          testId="mf-clinical-record-allergy-modal-active-principle"
                         />
                       </Grid>
                     </Grid>
 
                     <Box sx={{ mt: "20px" }}>
-                  <TextareaField
-                    label="Alimentos"
-                    value={form.food || ''}
-                    onChange={(v) => set("food", v)}
-                    maxLength={100}
-                    placeholder="Describa alergias alimentarias"
-                    disabled={
-                      !canAlergiasTriage ||
-                      !enabledAlergiasTriage ||
-                      form.has_allergy == false
-                    }
-                  />
-                </Box>
-                <Box sx={{ mt: "20px" }}>
-                  <TextareaField
-                    label="Otros"
-                    value={form.other ||'' }
-                    onChange={(v) => set("other", v)}
-                    maxLength={100}
-                    placeholder="Otros tipos de alergia"
-                    disabled={
-                      !canAlergiasTriage ||
-                      !enabledAlergiasTriage ||
-                      form.has_allergy == false
-                    }
-                  />
-                </Box>
-              </Box>
+                      <TextareaField
+                        label="Alimentos"
+                        value={form.food || ""}
+                        onChange={(v) => set("food", v)}
+                        maxLength={100}
+                        placeholder="Describa alergias alimentarias"
+                        disabled={
+                          !canAlergiasTriage ||
+                          !enabledAlergiasTriage ||
+                          form.has_allergy === false
+                        }
+                        testId="mf-clinical-record-allergy-modal-food"
+                      />
+                    </Box>
+                    <Box sx={{ mt: "20px" }}>
+                      <TextareaField
+                        label="Otros"
+                        value={form.other || ""}
+                        onChange={(v) => set("other", v)}
+                        maxLength={100}
+                        placeholder="Otros tipos de alergia"
+                        disabled={
+                          !canAlergiasTriage ||
+                          !enabledAlergiasTriage ||
+                          form.has_allergy === false
+                        }
+                        testId="mf-clinical-record-allergy-modal-other"
+                      />
+                    </Box>
                   </Box>
 
-                  <Box sx={{ display: "flex", justifyContent: "end" }}>
+                  {error && (
+                    <Box
+                      role="alert"
+                      sx={{
+                        mt: "10px",
+                        color: "#b42318",
+                        fontFamily: hceTypography.fontFamily,
+                        fontSize: "0.875rem",
+                      }}
+                    >
+                      {error}
+                    </Box>
+                  )}
+
+                  <Box sx={{ display: "flex", justifyContent: "end", mt: "10px" }}>
                     <Button
                       variant="contained"
                       color={"var(--ds-color-interactive-button)"}
@@ -407,6 +497,7 @@ export default function AllergyModal({
                       onClick={handleSave}
                       disabled={isSaveDisabled}
                       aria-label="Aceptar"
+                      testId="mf-clinical-record-allergy-modal-save"
                       sx={{
                         fontFamily: hceTypography.fontFamily,
                         fontWeight: 600,
@@ -421,7 +512,7 @@ export default function AllergyModal({
                     </Button>
                   </Box>
                 </Box>
-         
+              </Box>
             )}
           </Box>
         </HceFormModal>

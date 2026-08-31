@@ -25,11 +25,17 @@ import { ClinicalRecordFormProvider } from "../context/ClinicalRecordFormContext
 interface MedicalHistoryModalProps {
   open: boolean;
   onClose: () => void;
+  /** patient_id real del encounter activo — sin él no se dispara la carga. */
+  patientId?: number;
+  /** true si no se pudo identificar al paciente — distingue de "sin historial". */
+  notIdentified?: boolean;
 }
 let registered = false;
 export default function MedicalHistoryModal({
   open,
   onClose,
+  patientId,
+  notIdentified = false,
 }: MedicalHistoryModalProps) {
   const { t } = useTranslation("clinical-record");
   if (!registered) {
@@ -144,18 +150,19 @@ export default function MedicalHistoryModal({
   );
 
   const loadData = useCallback(async () => {
-    const response = await fetchMedicalHistory(57, currentPage);
+    if (!patientId) return;
+    const response = await fetchMedicalHistory(patientId, currentPage);
     if (!response) return;
     const mappedRows = response.data.map(mapMedicalHistoryApiItemToTableRow);
 
     setRows(mappedRows);
-    console.log(response);
     setTotalData(response.meta);
-  }, [fetchMedicalHistory, currentPage]);
+  }, [fetchMedicalHistory, currentPage, patientId]);
 
   useEffect(() => {
+    if (!open || !patientId) return;
     loadData();
-  }, [loadData]);
+  }, [open, patientId, loadData]);
   const totalPages = totalData?.totalPages ?? 1;
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -230,7 +237,13 @@ export default function MedicalHistoryModal({
             </Box>
           </>
         )}
-        {!viewDetailMedicalHistory && (
+        {!viewDetailMedicalHistory && notIdentified && (
+          <Box sx={{ p: 2 }}>
+            No se pudo identificar al paciente. Vuelva al monitor e intente de
+            nuevo.
+          </Box>
+        )}
+        {!viewDetailMedicalHistory && !notIdentified && (
           <>
             {" "}
             <GenericTable

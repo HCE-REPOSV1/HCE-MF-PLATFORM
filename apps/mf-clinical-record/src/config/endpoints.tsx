@@ -3,12 +3,23 @@ const AG_CLN_CROSS = import.meta.env.VITE_APIGW_CLN_CROSS;
 
 if (!AG_WEB_EMERGENCY)
   throw new Error(
-    "[mf-emergency] VITE_APIGW_CNL_WEB_EMERGENCY no está configurado",
+    "[mf-clinical-record] VITE_APIGW_CNL_WEB_EMERGENCY no está configurado",
   );
 if (!AG_CLN_CROSS)
-  throw new Error("[mf-emergency] VITE_APIGW_CLN_CROSS no está configurado");
+  throw new Error("[mf-clinical-record] VITE_APIGW_CLN_CROSS no está configurado");
 
 export const ENDPOINTS = {
+  encounter: {
+    /** Datos consolidados del paciente/encounter para la barra de información (mismo contrato que mf-emergency). */
+    patientInfo: (encounterId: number) =>
+      `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounterId}/patient-summary`,
+    /** Declaración de alergias vigente del encounter (mismo contrato que mf-emergency). */
+    allergyInfo: (encounterId: number) =>
+      `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounterId}/allergy-declaration`,
+    /** Actualiza la declaración de alergias del encounter (PATCH, mismo contrato que mf-emergency). */
+    updateAllergy: (encounterId: number) =>
+      `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounterId}/allergy-declaration`,
+  },
   emergencyMonitor: {
     /** Pantalla pública (TV sala de espera) — sin sesión, respuesta cifrada AES-GCM. */
     public: (locationUuid: string, page: number, limit: number) =>
