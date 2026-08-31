@@ -42,39 +42,41 @@ type PatientBackgroundCategory = "general" | "gyn_obstetric" | "pathological";
 
 // ⚠️ hardcodeado temporalmente — reemplazar cuando se resuelva la captura
 // del encounter_id real desde la fila clickeada en MedicalHistoryModal
-const ENCOUNTER_ID_FIJO = 104;
+
+// const ENCOUNTER_ID_FIJO = 104;
+const SLEEP_APPETITE_CODE_SYSTEM_ID = 25;
+const URINE_STOOL_WEIGHT_CODE_SYSTEM_ID = 26;
 
 const RECONCILIATION_ACTION_LABELS: Record<string, string> = {
   continue: "Continúa",
-  suspend: "Suspende", // ⚠️ nombre de valor asumido — confirmar con backend
-  modify: "Modifica", // ⚠️ asumido
+  suspend: "Suspende",
+  modify: "Modifica",
 };
-
-const BIOLOGICAL_FUNCTION_OPTIONS = [
-  { value: "unaltered", label: "Sin alteración" },
-  { value: "decreased", label: "Disminuido" },
-  { value: "normal", label: "Normal" },
-  // ⚠️ lista incompleta — faltan confirmar el resto de valores del catálogo
-];
 
 interface HistoryPhysicalExamProps {
   readOnly?: boolean;
+  encounterId?: number;
 }
 
 export const HistoryPhysicalExam = ({
   readOnly = false,
+  encounterId,
 }: HistoryPhysicalExamProps) => {
   return (
     <EditModeProvider
       tabWriteCode={PERMISSIONS_CLINICAL_RECORD.historyPhysicalExam.write}
     >
-      <HistoryPhysicalExamContent readOnly={readOnly} />
+      <HistoryPhysicalExamContent
+        readOnly={readOnly}
+        encounterId={encounterId}
+      />
     </EditModeProvider>
   );
 };
 
 export const HistoryPhysicalExamContent = ({
   readOnly = false,
+  encounterId,
 }: HistoryPhysicalExamProps) => {
   const [view, setView] = useState<ViewMode>("anamnesis");
 
@@ -89,13 +91,23 @@ export const HistoryPhysicalExamContent = ({
         onChange={(v) => setView(v as ViewMode)}
       />
 
-      {view === "anamnesis" && <AnamnesisContent readOnly={readOnly} />}
-      {view === "examen-fisico" && <ExamenFisicoContent readOnly={readOnly} />}
+      {view === "anamnesis" && (
+        <AnamnesisContent readOnly={readOnly} encounterId={encounterId} />
+      )}
+      {view === "examen-fisico" && (
+        <ExamenFisicoContent readOnly={readOnly} encounterId={encounterId} />
+      )}
     </div>
   );
 };
 
-const AnamnesisContent = ({ readOnly }: { readOnly: boolean }) => {
+const AnamnesisContent = ({
+  readOnly,
+  encounterId,
+}: {
+  readOnly: boolean;
+  encounterId?: number;
+}) => {
   const { fetchCompanionTypes } = useCatalog();
   const { fetchHistoryPhysicalExam } = useMedicalHistory();
   const { user } = useUser();
@@ -172,18 +184,25 @@ const AnamnesisContent = ({ readOnly }: { readOnly: boolean }) => {
   // este tab antes — no lo pisamos con el fetch.
   useEffect(() => {
     if (savedAnamnesis) return; // ya se cargó/editó antes en esta sesión
-
+    if (encounterId === undefined) return;
+    const validEncounterId = encounterId;
     const loadHistoryData = async () => {
-      const data = await fetchHistoryPhysicalExam(ENCOUNTER_ID_FIJO);
+      const data = await fetchHistoryPhysicalExam(validEncounterId);
       if (!data) return;
 
-      setAnamnesisType(data.anamnesis.anamnesis_type);
-      setCompanionTypeId(
-        data.anamnesis.companion_type_id !== null
-          ? String(data.anamnesis.companion_type_id)
-          : "",
-      );
-      setChiefComplaintId(data.anamnesis.chief_complaint);
+      // ⚠️ nuevo guard: la anamnesis puede venir null si aún no existe para
+      // esta atención (ej. encounter_id 104 en tu prueba con Postman)
+      if (data.anamnesis) {
+        console.log("anamnesis");
+        setAnamnesisType(data.anamnesis.anamnesis_type);
+        setCompanionTypeId(
+          data.anamnesis.companion_type_id !== null
+            ? String(data.anamnesis.companion_type_id)
+            : "",
+        );
+        setChiefComplaintId(data.anamnesis.chief_complaint);
+      }
+
       setPatientBackgrounds(data.patientBackgrounds);
       registerTabData(
         "historyPhysicalExam.patientBackgrounds",
@@ -198,7 +217,7 @@ const AnamnesisContent = ({ readOnly }: { readOnly: boolean }) => {
     };
     loadHistoryData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // corre una sola vez al montar — el guard de arriba evita pisar ediciones
+  }, [encounterId]); // corre una sola vez al montar — el guard de arriba evita pisar ediciones
 
   // Efecto 3: registra los datos del tab para el guardado (solo si NO es readOnly)
   useEffect(() => {
@@ -624,21 +643,25 @@ const ReconciliationContent = ({
   );
 };
 
-const ExamenFisicoContent = ({ readOnly }: { readOnly: boolean }) => {
+const ExamenFisicoContent = ({
+  readOnly,
+  encounterId,
+}: {
+  readOnly: boolean;
+  encounterId?: number;
+}) => {
   const { user } = useUser();
   const { fetchHistoryPhysicalExam } = useMedicalHistory();
+  const { fetchCodeSystemValues } = useCatalog(); // ⚠️ nuevo
   const { registerTabData, getTabData } = useClinicalRecordForm();
 
-  const savedVitals = getTabData(
-    "historyPhysicalExam.physicalExamVitals",
-  ) as PhysicalExamApiItem | undefined;
+  const savedVitals = getTabData("historyPhysicalExam.physicalExamVitals") as
+    | PhysicalExamApiItem
+    | undefined;
   const savedForm = getTabData("historyPhysicalExam.physicalExam") as
     | PhysicalExamPayload
     | undefined;
 
-  const [vitals, setVitals] = useState<PhysicalExamApiItem | null>(
-    savedVitals ?? null,
-  );
   const [examDescription, setExamDescription] = useState(
     savedForm?.exam_description ?? "",
   );
@@ -658,22 +681,110 @@ const ExamenFisicoContent = ({ readOnly }: { readOnly: boolean }) => {
     savedForm?.weight_function ?? "",
   );
 
+  const [oxygenSaturation, setOxygenSaturation] = useState(
+    savedVitals?.oxygen_saturation != null
+      ? String(savedVitals.oxygen_saturation)
+      : "",
+  );
+  const [weightKg, setWeightKg] = useState(
+    savedVitals?.weight_kg != null ? String(savedVitals.weight_kg) : "",
+  );
+  const [heightCm, setHeightCm] = useState(
+    savedVitals?.height_cm != null ? String(savedVitals.height_cm) : "",
+  );
+  const [heartRate, setHeartRate] = useState(
+    savedVitals?.heart_rate != null ? String(savedVitals.heart_rate) : "",
+  );
+  const [respiratoryRate, setRespiratoryRate] = useState(
+    savedVitals?.respiratory_rate != null
+      ? String(savedVitals.respiratory_rate)
+      : "",
+  );
+  const [systolicPressure, setSystolicPressure] = useState(
+    savedVitals?.systolic_pressure != null
+      ? String(savedVitals.systolic_pressure)
+      : "",
+  );
+  const [diastolicPressure, setDiastolicPressure] = useState(
+    savedVitals?.diastolic_pressure != null
+      ? String(savedVitals.diastolic_pressure)
+      : "",
+  );
+  const [temperatureC, setTemperatureC] = useState(
+    savedVitals?.temperature_c != null ? String(savedVitals.temperature_c) : "",
+  );
+
+  const [sleepAppetiteOptions, setSleepAppetiteOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [urineStoolWeightOptions, setUrineStoolWeightOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
+
   // Trae los signos vitales del backend, solo una vez por sesión
   useEffect(() => {
     if (savedVitals) return;
+    if (encounterId === undefined) return;
+
+    const validEncounterId = encounterId;
 
     const load = async () => {
-      const data = await fetchHistoryPhysicalExam(ENCOUNTER_ID_FIJO);
-      if (!data) return;
-      setVitals(data.physicalExam);
-      registerTabData(
-        "historyPhysicalExam.physicalExamVitals",
-        data.physicalExam,
+      const data = await fetchHistoryPhysicalExam(validEncounterId);
+      if (!data?.physicalExam) return;
+
+      const v = data.physicalExam;
+      setOxygenSaturation(
+        v.oxygen_saturation != null ? String(v.oxygen_saturation) : "",
       );
+      setWeightKg(v.weight_kg != null ? String(v.weight_kg) : "");
+      setHeightCm(v.height_cm != null ? String(v.height_cm) : "");
+      setHeartRate(v.heart_rate != null ? String(v.heart_rate) : "");
+      setRespiratoryRate(
+        v.respiratory_rate != null ? String(v.respiratory_rate) : "",
+      );
+      setSystolicPressure(
+        v.systolic_pressure != null ? String(v.systolic_pressure) : "",
+      );
+      setDiastolicPressure(
+        v.diastolic_pressure != null ? String(v.diastolic_pressure) : "",
+      );
+      setTemperatureC(v.temperature_c != null ? String(v.temperature_c) : "");
+
+      registerTabData("historyPhysicalExam.physicalExamVitals", v);
     };
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [encounterId]);
+
+  // carga el catálogo compartido de Sueño/Apetito, una sola vez
+  useEffect(() => {
+    const load = async () => {
+      const data = await fetchCodeSystemValues(SLEEP_APPETITE_CODE_SYSTEM_ID);
+      setSleepAppetiteOptions(
+        (data ?? [])
+          .filter((item) => item.is_active)
+          .sort((a, b) => a.sort_order - b.sort_order)
+          .map((item) => ({ value: item.code, label: item.display })),
+      );
+    };
+    load();
+  }, [fetchCodeSystemValues]);
+
+  // carga el catálogo de Orina/Deposición/Peso, una sola vez
+  useEffect(() => {
+    const load = async () => {
+      const data = await fetchCodeSystemValues(
+        URINE_STOOL_WEIGHT_CODE_SYSTEM_ID,
+      );
+      setUrineStoolWeightOptions(
+        (data ?? [])
+          .filter((item) => item.is_active)
+          .sort((a, b) => a.sort_order - b.sort_order)
+          .map((item) => ({ value: item.code, label: item.display })),
+      );
+    };
+    load();
+  }, [fetchCodeSystemValues]);
 
   // Registra el formulario editable (descripción + funciones biológicas)
   useEffect(() => {
@@ -718,66 +829,66 @@ const ExamenFisicoContent = ({ readOnly }: { readOnly: boolean }) => {
       <Grid container spacing={2}>
         <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
           <TextInput
-            label="Saturación O2"
-            value={vitals ? `${vitals.oxygen_saturation ?? "-"} % O2` : ""}
-            onChange={() => {}}
-            disabled
+            label="Saturación O2 (%)"
+            value={oxygenSaturation}
+            onChange={setOxygenSaturation}
+            disabled={readOnly}
           />
         </Grid>
         <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
           <TextInput
-            label="Peso"
-            value={vitals ? `${vitals.weight_kg ?? "-"} kg` : ""}
-            onChange={() => {}}
-            disabled
+            label="Peso (kg)"
+            value={weightKg}
+            onChange={setWeightKg}
+            disabled={readOnly}
           />
         </Grid>
         <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
           <TextInput
-            label="Talla"
-            value={vitals ? `${vitals.height_cm ?? "-"} cm` : ""}
-            onChange={() => {}}
-            disabled
+            label="Talla (cm)"
+            value={heightCm}
+            onChange={setHeightCm}
+            disabled={readOnly}
           />
         </Grid>
         <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
           <TextInput
-            label="F. Cardiaca"
-            value={vitals ? `${vitals.heart_rate ?? "-"} lpm` : ""}
-            onChange={() => {}}
-            disabled
+            label="F. Cardiaca (lpm)"
+            value={heartRate}
+            onChange={setHeartRate}
+            disabled={readOnly}
           />
         </Grid>
         <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
           <TextInput
-            label="F.Respiratoria"
-            value={vitals ? `${vitals.respiratory_rate ?? "-"} rpm` : ""}
-            onChange={() => {}}
-            disabled
+            label="F.Respiratoria (rpm)"
+            value={respiratoryRate}
+            onChange={setRespiratoryRate}
+            disabled={readOnly}
           />
         </Grid>
         <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
           <TextInput
-            label="P. Sistólica"
-            value={vitals ? `${vitals.systolic_pressure ?? "-"} mmHg` : ""}
-            onChange={() => {}}
-            disabled
+            label="P. Sistólica (mmHg)"
+            value={systolicPressure}
+            onChange={setSystolicPressure}
+            disabled={readOnly}
           />
         </Grid>
         <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
           <TextInput
-            label="P. Diastólica"
-            value={vitals ? `${vitals.diastolic_pressure ?? "-"} mmHg` : ""}
-            onChange={() => {}}
-            disabled
+            label="P. Diastólica (mmHg)"
+            value={diastolicPressure}
+            onChange={setDiastolicPressure}
+            disabled={readOnly}
           />
         </Grid>
         <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
           <TextInput
-            label="Temperatura"
-            value={vitals ? `${vitals.temperature_c ?? "-"} °C` : ""}
-            onChange={() => {}}
-            disabled
+            label="Temperatura (°C)"
+            value={temperatureC}
+            onChange={setTemperatureC}
+            disabled={readOnly}
           />
         </Grid>
       </Grid>
@@ -790,7 +901,7 @@ const ExamenFisicoContent = ({ readOnly }: { readOnly: boolean }) => {
             placeholder="-Seleccionar opción-"
             value={sleepFunction}
             onChange={setSleepFunction}
-            options={BIOLOGICAL_FUNCTION_OPTIONS}
+            options={sleepAppetiteOptions}
             disabled={readOnly}
           />
         </Grid>
@@ -800,7 +911,7 @@ const ExamenFisicoContent = ({ readOnly }: { readOnly: boolean }) => {
             placeholder="-Seleccionar opción-"
             value={appetiteFunction}
             onChange={setAppetiteFunction}
-            options={BIOLOGICAL_FUNCTION_OPTIONS}
+            options={sleepAppetiteOptions}
             disabled={readOnly}
           />
         </Grid>
@@ -810,7 +921,7 @@ const ExamenFisicoContent = ({ readOnly }: { readOnly: boolean }) => {
             placeholder="-Seleccionar opción-"
             value={urineFunction}
             onChange={setUrineFunction}
-            options={BIOLOGICAL_FUNCTION_OPTIONS}
+            options={urineStoolWeightOptions}
             disabled={readOnly}
           />
         </Grid>
@@ -820,7 +931,7 @@ const ExamenFisicoContent = ({ readOnly }: { readOnly: boolean }) => {
             placeholder="-Seleccionar opción-"
             value={stoolFunction}
             onChange={setStoolFunction}
-            options={BIOLOGICAL_FUNCTION_OPTIONS}
+            options={urineStoolWeightOptions}
             disabled={readOnly}
           />
         </Grid>
@@ -830,7 +941,7 @@ const ExamenFisicoContent = ({ readOnly }: { readOnly: boolean }) => {
             placeholder="-Seleccionar opción-"
             value={weightFunction}
             onChange={setWeightFunction}
-            options={BIOLOGICAL_FUNCTION_OPTIONS}
+            options={urineStoolWeightOptions}
             disabled={readOnly}
           />
         </Grid>

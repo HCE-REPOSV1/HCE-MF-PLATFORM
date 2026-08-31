@@ -118,7 +118,7 @@ export default function AppLayout() {
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        backgroundColor: "#f0f4f8",
+        backgroundColor: "#ffffff",
       }}
     >
       {/* ── Modal: usuario sin sedes asignadas ──────────────────────── */}

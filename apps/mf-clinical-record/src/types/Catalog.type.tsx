@@ -105,3 +105,28 @@ export interface CatalogMedicationProductSearchResponse {
   message: string;
   data: CatalogMedicationProduct[];
 }
+
+export interface CatalogCodeSystemValue {
+  value_id: number;
+  value_uuid: string;
+  code_system_id: number;
+  code: string;
+  display: string;
+  sort_order: number;
+  is_default: boolean;
+  metadata_json: unknown | null;
+  user_create: string;
+  user_modify: string | null;
+  date_create: string;
+  date_modify: string | null;
+  is_active: boolean;
+  display_es: string;
+  display_en: string;
+}
+
+export interface CatalogCodeSystemValuesResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: CatalogCodeSystemValue[];
+}
