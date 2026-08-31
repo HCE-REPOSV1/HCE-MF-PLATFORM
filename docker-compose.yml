@@ -46,6 +46,7 @@ services:
         VERDACCIO_URL: ${VERDACCIO_URL}
         # Build-args leídos desde Vault (secret/hce/mf/mf-auth)
         VITE_REMOTE_SHELL: ${VITE_REMOTE_SHELL}
+        VITE_APIGW_CNL_CROSS: ${VITE_APIGW_CNL_CROSS}
     restart: unless-stopped
     ports:
       - "10501:80"
