@@ -35,7 +35,7 @@ export function LangUrlSync() {
     params.set(LANG_QUERY_PARAM, i18n.language)
     navigate(
       { pathname: location.pathname, search: params.toString(), hash: location.hash },
-      { replace: true },
+      { replace: true, state: location.state },
     )
   }, [location.pathname, location.search, location.hash, i18n.language, navigate])
 

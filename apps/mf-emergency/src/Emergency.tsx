@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { lazy, type ReactNode } from "react";
 
 import MonitorPage from "./pages/MonitorPage";
@@ -6,6 +6,7 @@ import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 import { usePermiso } from "./hooks/usePermiso";
 import { PERMISOS_EMERGENCY } from "./config/permisos";
+import type { MonitorTableRow } from "./types/monitor.table.types";
 
 function PermisoRoute({
   codigo,
@@ -15,27 +16,40 @@ function PermisoRoute({
   children: ReactNode;
 }) {
   const permitido = usePermiso(codigo);
-  if (!permitido) return <Navigate to="/emergencia" replace />;
+  if (!permitido) return <Navigate to="/home/emergencia" replace />;
   return <>{children}</>;
 }
-  const ClinicalRecord = lazy(() => import("clinicalRecord/ClinicalRecord"));
-// ─── Router raíz del módulo Emergencia ───────────────────
-// Para agregar una nueva página:
-//   1. Crear src/pages/NuevaPagina.tsx
-//   2. Importarla aquí y agregar <Route> con PermisoRoute
-//   3. Agregar el ítem en menuConfig.ts y en permisos.ts
-export default function Emergency() {
-  
 
+function RequireNavigatedPatient({ children }: { children: ReactNode }) {
+  const { state } = useLocation();
+  const encounterId = (state as { patient?: MonitorTableRow } | null)
+    ?.patient?.encounter_id;
+
+  // 🔍 TEMPORAL — quitar una vez confirmado el diagnóstico
+  console.log("[RequireNavigatedPatient] state recibido:", state);
+  console.log("[RequireNavigatedPatient] encounterId resuelto:", encounterId);
+
+  if (encounterId == null) {
+    return <Navigate to="/home/emergencia" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+const ClinicalRecord = lazy(() => import("clinicalRecord/ClinicalRecord"));
+
+export default function Emergency() {
   return (
     <Routes>
       <Route index element={<MonitorPage />} />
-      <Route path="patients" element={<div />} /> {/* TODO: PatientsPage */}
+      <Route path="patients" element={<div />} />
       <Route
         path="historiacli"
         element={
           <PermisoRoute codigo={PERMISOS_EMERGENCY.clinicalRecord}>
-            <ClinicalRecord/>
+            <RequireNavigatedPatient>
+              <ClinicalRecord />
+            </RequireNavigatedPatient>
           </PermisoRoute>
         }
       />

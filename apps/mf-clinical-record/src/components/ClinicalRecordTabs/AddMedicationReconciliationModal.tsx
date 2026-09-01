@@ -17,8 +17,8 @@ import { useCatalog } from "../../hooks/useCatalog";
 import type { CatalogAdministrationRoute } from "../../types/Catalog.type";
 
 export interface NewMedicationReconciliationPayload {
-  medication_product_id: number;
-  medication_display: string;
+  medication_legacy_code: string;
+  medication_name: string;
   administration_route_id: number;
   administration_route_description: string;
   dose_value: number;
@@ -31,6 +31,14 @@ export interface AddMedicationReconciliationModalProps {
   open: boolean;
   onClose: () => void;
   onSave: (payload: NewMedicationReconciliationPayload) => void | Promise<void>;
+}
+
+// Item crudo devuelto por la búsqueda de productos — se infiere del propio
+// hook para no depender de que Catalog.type.tsx tenga (o no) un campo
+// medication_legacy_code declarado explícitamente.
+interface MedicationSearchResultItem {
+  medication_legacy_code: string;
+  product_display: string;
 }
 
 export default function AddMedicationReconciliationModal({
@@ -52,22 +60,29 @@ export default function AddMedicationReconciliationModal({
   );
 
   // ── Búsqueda de medicamento ──────────────────────────────────────────────
+  // SearchOption.value es siempre number en el design system, pero acá el
+  // identificador real que necesitamos (medication_legacy_code) es un
+  // string. Se usa el índice del array como "value" numérico solo para
+  // satisfacer el tipo del componente, y se guardan los resultados crudos
+  // aparte para recuperar el legacy_code real al seleccionar.
   const [medicationSearchText, setMedicationSearchText] = useState("");
   const [medicationOptions, setMedicationOptions] = useState<SearchOption[]>(
     [],
   );
+  const [medicationSearchResults, setMedicationSearchResults] = useState<
+    MedicationSearchResultItem[]
+  >([]);
   const [medicationSearchLoading, setMedicationSearchLoading] = useState(false);
-  const [selectedMedicationId, setSelectedMedicationId] = useState<
-    number | null
-  >(null);
+  const [selectedMedicationId, setSelectedMedicationId] = useState<string>("");
 
   const handleMedicationSearch = useCallback(
     async (query: string) => {
       setMedicationSearchLoading(true);
       const results = await fetchMedicationProductsSearch(query);
+      setMedicationSearchResults(results ?? []);
       setMedicationOptions(
-        (results ?? []).map((item) => ({
-          value: item.medication_product_id,
+        (results ?? []).map((item, index) => ({
+          value: index,
           label: item.product_display,
         })),
       );
@@ -76,11 +91,17 @@ export default function AddMedicationReconciliationModal({
     [fetchMedicationProductsSearch],
   );
 
-  const handleMedicationSelect = useCallback((opt: SearchOption) => {
-    setSelectedMedicationId(opt.value);
-    setMedicationSearchText(opt.label);
-    setMedicationOptions([]);
-  }, []);
+  const handleMedicationSelect = useCallback(
+    (opt: SearchOption) => {
+      const selected = medicationSearchResults[opt.value as number];
+      if (!selected) return;
+
+      setSelectedMedicationId(selected.medication_legacy_code);
+      setMedicationSearchText(opt.label);
+      setMedicationOptions([]);
+    },
+    [medicationSearchResults],
+  );
 
   // ── Catálogo de vías de administración ───────────────────────────────────
   const [administrationRoutes, setAdministrationRoutes] = useState<
@@ -119,7 +140,8 @@ export default function AddMedicationReconciliationModal({
     if (!open) return;
     setMedicationSearchText("");
     setMedicationOptions([]);
-    setSelectedMedicationId(null);
+    setMedicationSearchResults([]);
+    setSelectedMedicationId("");
     setRoute("");
     setDoseValue("");
     setFrequencyValue("");
@@ -139,8 +161,8 @@ export default function AddMedicationReconciliationModal({
     try {
       setSaving(true);
       await onSave({
-        medication_product_id: selectedMedicationId,
-        medication_display: medicationSearchText,
+        medication_legacy_code: selectedMedicationId,
+        medication_name: medicationSearchText,
         administration_route_id: Number(route),
         administration_route_description: selectedRouteLabel,
         dose_value: Number(doseValue),
@@ -199,7 +221,9 @@ export default function AddMedicationReconciliationModal({
           onSearch={handleMedicationSearch}
           onSelect={handleMedicationSelect}
           loading={medicationSearchLoading}
-          placeholder={t("addMedicationReconciliationModal.medicationSearchPlaceholder")}
+          placeholder={t(
+            "addMedicationReconciliationModal.medicationSearchPlaceholder",
+          )}
           showModeToggle={false}
         />
 
@@ -208,7 +232,9 @@ export default function AddMedicationReconciliationModal({
             <TextInput
               label={t("addMedicationReconciliationModal.doseLabel")}
               type="number"
-              placeholder={t("addMedicationReconciliationModal.dosePlaceholder")}
+              placeholder={t(
+                "addMedicationReconciliationModal.dosePlaceholder",
+              )}
               value={doseValue}
               onChange={handleDoseChange}
             />
@@ -217,7 +243,9 @@ export default function AddMedicationReconciliationModal({
             <TextInput
               label={t("addMedicationReconciliationModal.frequencyLabel")}
               type="number"
-              placeholder={t("addMedicationReconciliationModal.frequencyPlaceholder")}
+              placeholder={t(
+                "addMedicationReconciliationModal.frequencyPlaceholder",
+              )}
               value={frequencyValue}
               onChange={handleFrequencyChange}
             />
@@ -225,7 +253,9 @@ export default function AddMedicationReconciliationModal({
           <Grid item xs={2} zeroMinWidth>
             <SelectField
               label={t("addMedicationReconciliationModal.routeLabel")}
-              placeholder={t("addMedicationReconciliationModal.routePlaceholder")}
+              placeholder={t(
+                "addMedicationReconciliationModal.routePlaceholder",
+              )}
               value={route}
               onChange={setRoute}
               options={routeOptions}

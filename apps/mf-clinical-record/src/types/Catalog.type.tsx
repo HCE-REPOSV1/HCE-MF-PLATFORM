@@ -85,7 +85,7 @@ export interface CatalogAdministrationRoute {
 }
 
 export interface CatalogMedicationProduct {
-  medication_product_id: number;
+  medication_legacy_code: string;
   medication_product_uuid: string;
   active_principle_id: number;
   pharmaceutical_form_id: number;
