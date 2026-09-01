@@ -207,7 +207,6 @@ export default function AddPatientBackgroundModal({
     }
   }, [isSaveDisabled, draftItems, onSave, onClose]);
 
-  console.log("draftItems actual:", draftItems);
   return (
     <HceFormModal
       open={open}

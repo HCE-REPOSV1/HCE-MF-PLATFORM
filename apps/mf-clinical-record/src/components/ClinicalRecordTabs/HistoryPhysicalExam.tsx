@@ -7,9 +7,9 @@ import {
   Grid,
   RadioGroup,
   SectionHeader,
+  NumericField,
   SegmentedToggle,
   SelectField,
-  TextInput,
   TextareaField,
   UiTrashIcon,
   hceColors,
@@ -193,7 +193,6 @@ const AnamnesisContent = ({
       // ⚠️ nuevo guard: la anamnesis puede venir null si aún no existe para
       // esta atención (ej. encounter_id 104 en tu prueba con Postman)
       if (data.anamnesis) {
-        console.log("anamnesis");
         setAnamnesisType(data.anamnesis.anamnesis_type);
         setCompanionTypeId(
           data.anamnesis.companion_type_id !== null
@@ -756,6 +755,33 @@ const ExamenFisicoContent = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [encounterId]);
 
+  // Registra los signos vitales editables para el guardado (solo si NO es readOnly)
+  useEffect(() => {
+    if (readOnly) return;
+
+    registerTabData("historyPhysicalExam.physicalExamVitals", {
+      oxygen_saturation: oxygenSaturation ? Number(oxygenSaturation) : null,
+      weight_kg: weightKg ? Number(weightKg) : null,
+      height_cm: heightCm ? Number(heightCm) : null,
+      heart_rate: heartRate ? Number(heartRate) : null,
+      respiratory_rate: respiratoryRate ? Number(respiratoryRate) : null,
+      systolic_pressure: systolicPressure ? Number(systolicPressure) : null,
+      diastolic_pressure: diastolicPressure ? Number(diastolicPressure) : null,
+      temperature_c: temperatureC ? Number(temperatureC) : null,
+    });
+  }, [
+    readOnly,
+    oxygenSaturation,
+    weightKg,
+    heightCm,
+    heartRate,
+    respiratoryRate,
+    systolicPressure,
+    diastolicPressure,
+    temperatureC,
+    registerTabData,
+  ]);
+
   // carga el catálogo compartido de Sueño/Apetito, una sola vez
   useEffect(() => {
     const load = async () => {
@@ -828,66 +854,82 @@ const ExamenFisicoContent = ({
       <Box sx={{ fontWeight: 600, mt: 3, mb: 2 }}>Funciones Vitales</Box>
       <Grid container spacing={2}>
         <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <TextInput
+          <NumericField
             label="Saturación O2 (%)"
             value={oxygenSaturation}
             onChange={setOxygenSaturation}
+            suffix="%"
+            numberType="natural"
             disabled={readOnly}
           />
         </Grid>
         <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <TextInput
+          <NumericField
             label="Peso (kg)"
             value={weightKg}
             onChange={setWeightKg}
+            suffix="Kg"
+            numberType="decimal"
             disabled={readOnly}
           />
         </Grid>
         <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <TextInput
+          <NumericField
             label="Talla (cm)"
             value={heightCm}
             onChange={setHeightCm}
+            suffix="cm"
+            numberType="natural"
             disabled={readOnly}
           />
         </Grid>
         <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <TextInput
+          <NumericField
             label="F. Cardiaca (lpm)"
             value={heartRate}
             onChange={setHeartRate}
+            suffix="lpm"
+            numberType="natural"
             disabled={readOnly}
           />
         </Grid>
         <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <TextInput
+          <NumericField
             label="F.Respiratoria (rpm)"
             value={respiratoryRate}
             onChange={setRespiratoryRate}
+            suffix="rpm"
+            numberType="natural"
             disabled={readOnly}
           />
         </Grid>
         <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <TextInput
+          <NumericField
             label="P. Sistólica (mmHg)"
             value={systolicPressure}
             onChange={setSystolicPressure}
+            suffix="mmHg"
+            numberType="natural"
             disabled={readOnly}
           />
         </Grid>
         <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <TextInput
+          <NumericField
             label="P. Diastólica (mmHg)"
             value={diastolicPressure}
             onChange={setDiastolicPressure}
+            suffix="mmHg"
+            numberType="natural"
             disabled={readOnly}
           />
         </Grid>
         <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <TextInput
+          <NumericField
             label="Temperatura (°C)"
             value={temperatureC}
             onChange={setTemperatureC}
+            suffix="°C"
+            numberType="decimal"
             disabled={readOnly}
           />
         </Grid>
