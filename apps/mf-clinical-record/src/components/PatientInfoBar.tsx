@@ -8,10 +8,15 @@ import {
   StatusBadge,
   User,
 } from "@hce/design-system";
-import { useState } from "react";
+import {  useState } from "react";
 import type { ClinicalRecordPatient } from "../types/Patient.type";
-import AllergyModal from "./AllergyModal";
+
 import PatientInfoModal from "./PatientInfoModal";
+
+import { AllergyModal } from "./AllergyModal";
+import { useTranslation } from "@hce/i18n-core";
+
+
 
 interface PatientInfoBarProps {
   /** Paciente ya localizado, o null mientras carga/si no hay encounter en el router state. */
@@ -36,7 +41,8 @@ export default function PatientInfoBar({
 }: PatientInfoBarProps) {
   const [allergyDetailsOpen, setAllergyDetailsOpen] = useState(false);
   const [patientDetailsOpen, setPatientDetailsOpen] = useState(false);
-
+  const { t } = useTranslation("clinical-record");
+  
   return (
     <>
       <DataCard
@@ -55,9 +61,9 @@ export default function PatientInfoBar({
             nuevo.
           </Box>
         ) : loading ? (
-          <Box sx={{ p: 1 }}>Cargando información del paciente...</Box>
+          <Box sx={{ p: 1 }}>{t('actions.loadingPatient')}</Box>
         ) : error ? (
-          <Box sx={{ p: 1 }}>Error al cargar la información del paciente</Box>
+          <Box sx={{ p: 1 }}>{t('actions.patientLoadError')}</Box>
         ) : (
           <Box
             sx={{
@@ -80,30 +86,46 @@ export default function PatientInfoBar({
               <User size={24} />
             </Avatar>
 
-            <PatientField label="Paciente:" value={patient?.fullName ?? "-"} />
-
-            <PatientField label="Género:" value={patient?.gender ?? "-"} />
-
-            <PatientField label="Edad:" value={patient?.ageDisplay ?? "-"} />
-
             <PatientField
-              label="Tipo y N.Documento:"
-              value={`${patient?.documentType ?? "-"} - ${patient?.documentNumber ?? "-"}`}
+              label={t('patient.patient')}
+              value={patient?.fullName ?? "-"}
             />
 
-            <PatientField label="G. Sanguíneo:" value={patient?.bloodType ?? "-"} />
-
-            <PatientField label="Especialidad:" value={patient?.specialty ?? "-"} />
+            <PatientField
+              label={t('patient.gender')}
+              value={patient?.gender ?? "-"}
+            />
 
             <PatientField
-              label="Alergias:"
+              label={t('patient.age')}
+              value={patient?.ageDisplay ?? "-"}
+            />
+
+            <PatientField
+              label={t('patient.document')}
+              value={`${patient?.documentType ?? "-"} ${patient?.documentNumber ?? "-"}`}
+            />
+
+            <PatientField
+              label={t('patient.bloodType')}
+              value={patient?.bloodType ?? "-"}
+            />
+
+            <PatientField
+              label={t('patient.specialty')}
+              value={patient?.specialty ?? "-"}
+            />
+
+            <PatientField
+              label={t('patient.allergies')}
               value={
                 <StatusBadge
-                  label={patient?.hasAllergies ? "Presenta alergias" : "Sin alergias"}
-                  variant={patient?.hasAllergies ? "error" : "success"}
+                  label={patient?.hasAllergies ? t('patient.hasAllergies') : t('patient.noAllergies')}
+                  variant={patient?.hasAllergies ? "error" : "info"}
                   clickable
-                  onClick={() => setAllergyDetailsOpen(true)}
-                  testId="mf-clinical-record-patient-info-bar-allergy-badge"
+                  onClick={() =>
+                    setAllergyDetailsOpen(true)
+                  }
                 />
               }
             />
@@ -115,8 +137,10 @@ export default function PatientInfoBar({
               }}
             >
               <InfoButton
-                onClick={() => setPatientDetailsOpen(true)}
-                testId="mf-clinical-record-patient-info-bar-info-button"
+                onClick={() =>
+                  setPatientDetailsOpen(true)
+                }
+                tooltip={t('actions.info')}
               />
             </Box>
           </Box>
