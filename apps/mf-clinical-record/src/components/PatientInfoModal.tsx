@@ -30,8 +30,7 @@ export default function PatientInfoModal({
       onClose={onClose}
       showCloseButton
       disableOutsideClose
-      maxWidth={320}
-  
+      maxWidth={340}
       backgroundColor={"var(--ds-color-secondary-light, #0043a5)"}
       borderColor={"var(--ds-color-primary, #0043a5)"}
       borderWidth={2}
@@ -39,6 +38,18 @@ export default function PatientInfoModal({
       contentPadding="24px"
       contentAlign="center"
       testId="mf-clinical-record-patient-details-modal"
+      headerContent={
+        <Avatar
+            sx={{
+              width: 42,
+              height: 42,
+              backgroundColor: "var(--ds-color-interactive-button, #0043a5)",
+              color: hceColors.neutro.white[50],
+            }}
+          >
+            <User size={24} />
+          </Avatar>
+      }
     >
       <Box>
         <Box
@@ -51,17 +62,7 @@ export default function PatientInfoModal({
             mb: 2.5,
           }}
         >
-          <Avatar
-            sx={{
-              width: 42,
-              height: 42,
-              backgroundColor: "var(--ds-color-interactive-button, #0043a5)",
-              color: hceColors.neutro.white[50],
-            }}
-          >
-            <User size={24} />
-          </Avatar>
-
+        
            <PatientField
             label={t('patient.patient')}
             value={patient.fullName}
@@ -79,9 +80,9 @@ export default function PatientInfoModal({
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            columnGap: 3,
-            rowGap: 2,
+           gridTemplateColumns: "4fr 2fr",
+           columnGap: 20,
+           rowGap: 10,
           }}
         >
           <PatientField

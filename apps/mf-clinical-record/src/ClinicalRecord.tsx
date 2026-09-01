@@ -35,6 +35,7 @@ import { useTranslation } from "@hce/i18n-core";
 import { getLocalizedCatalogDisplay } from "./utils/catalogLocalization";
 
 
+
 const CSI_GENDER = 3
 
 export default function ClinicalRecordPage() {
@@ -153,7 +154,7 @@ export default function ClinicalRecordPage() {
       fullName: patientRecord.full_name,
       gender: getLocalizedCatalogDisplay(
         catalogGender,
-        i18n.resolvedLanguage,
+        i18n.language,
         patientRecord.gender || "-",
       ),
       ageDisplay: patientRecord.age_display || "-",
@@ -167,7 +168,7 @@ export default function ClinicalRecordPage() {
               display_en: practitioner.speciality_en,
             }
           : null,
-        i18n.resolvedLanguage,
+        i18n.language,
       ),
       doctorName: practitioner?.doctor_name ?? "-",
       attentionCode: patientRecord.attention_code ?? "-",
