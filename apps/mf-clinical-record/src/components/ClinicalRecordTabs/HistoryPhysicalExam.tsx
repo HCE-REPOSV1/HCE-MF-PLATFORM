@@ -36,6 +36,7 @@ import { useCatalog } from "../../hooks/useCatalog";
 import { useMedicalHistory } from "../../hooks/useMedicalHistory";
 import AddPatientBackgroundModal from "./AddPatientBackgroundModal";
 import AddMedicationReconciliationModal from "./AddMedicationReconciliationModal";
+import { formatDate, formatDateTime } from "../../utils/dateFormat";
 
 type ViewMode = "anamnesis" | "examen-fisico";
 type PatientBackgroundCategory = "general" | "gyn_obstetric" | "pathological";
@@ -44,15 +45,14 @@ type PatientBackgroundCategory = "general" | "gyn_obstetric" | "pathological";
 // del encounter_id real desde la fila clickeada en MedicalHistoryModal
 
 // const ENCOUNTER_ID_FIJO = 104;
-const SLEEP_APPETITE_CODE_SYSTEM_ID = 25;
-const URINE_STOOL_WEIGHT_CODE_SYSTEM_ID = 26;
+const SLEEP_APPETITE_CODE_SYSTEM_ID = 127;
+const URINE_STOOL_WEIGHT_CODE_SYSTEM_ID = 128;
 
 const RECONCILIATION_ACTION_LABELS: Record<string, string> = {
   continue: "Continúa",
   suspend: "Suspende",
   modify: "Modifica",
 };
-
 interface HistoryPhysicalExamProps {
   readOnly?: boolean;
   encounterId?: number;
@@ -89,6 +89,7 @@ export const HistoryPhysicalExamContent = ({
         ]}
         value={view}
         onChange={(v) => setView(v as ViewMode)}
+        testId="clinical-record-history-physical-exam-view-toggle"
       />
 
       {view === "anamnesis" && (
@@ -367,7 +368,7 @@ const PatientBackgroundsContent = ({
         .filter((item) => item.background_category === category)
         .map((item) => ({
           id: String(item.patient_background_id),
-          date: "05/04/2024",
+          date: formatDate(item.date_create),
           backgroundType: item.background_name,
           description: item.description,
         })),
@@ -436,6 +437,7 @@ const PatientBackgroundsContent = ({
               is_present: payload.is_present,
               description: payload.description,
               user_create: user?.username ?? "",
+              date_create: new Date().toISOString()
             },
           ]);
         }}
@@ -449,6 +451,7 @@ const PatientBackgroundsContent = ({
         ]}
         value={category}
         onChange={(v) => setCategory(v as PatientBackgroundCategory)}
+        testId="clinical-record-history-physical-exam-backgrounds-category-toggle"
       />
 
       <Box sx={{ pt: 2 }}>
@@ -505,7 +508,7 @@ const ReconciliationContent = ({
         action:
           RECONCILIATION_ACTION_LABELS[item.reconciliation_action] ??
           item.reconciliation_action,
-        dateTime: "24/03/2026 - 13:50", // ⚠️ hardcodeado — el JSON de lectura no trae fecha, ver nota
+        dateTime: formatDateTime(item.last_dose_datetime),
       })),
     [allReconciliations],
   );
@@ -852,142 +855,136 @@ const ExamenFisicoContent = ({
       />
 
       <Box sx={{ fontWeight: 600, mt: 3, mb: 2 }}>Funciones Vitales</Box>
-      <Grid container spacing={2}>
-        <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <NumericField
-            label="Saturación O2 (%)"
-            value={oxygenSaturation}
-            onChange={setOxygenSaturation}
-            suffix="%"
-            numberType="natural"
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <NumericField
-            label="Peso (kg)"
-            value={weightKg}
-            onChange={setWeightKg}
-            suffix="Kg"
-            numberType="decimal"
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <NumericField
-            label="Talla (cm)"
-            value={heightCm}
-            onChange={setHeightCm}
-            suffix="cm"
-            numberType="natural"
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <NumericField
-            label="F. Cardiaca (lpm)"
-            value={heartRate}
-            onChange={setHeartRate}
-            suffix="lpm"
-            numberType="natural"
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <NumericField
-            label="F.Respiratoria (rpm)"
-            value={respiratoryRate}
-            onChange={setRespiratoryRate}
-            suffix="rpm"
-            numberType="natural"
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <NumericField
-            label="P. Sistólica (mmHg)"
-            value={systolicPressure}
-            onChange={setSystolicPressure}
-            suffix="mmHg"
-            numberType="natural"
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <NumericField
-            label="P. Diastólica (mmHg)"
-            value={diastolicPressure}
-            onChange={setDiastolicPressure}
-            suffix="mmHg"
-            numberType="natural"
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <NumericField
-            label="Temperatura (°C)"
-            value={temperatureC}
-            onChange={setTemperatureC}
-            suffix="°C"
-            numberType="decimal"
-            disabled={readOnly}
-          />
-        </Grid>
-      </Grid>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+          gap: "16px",
+        }}
+      >
+        <NumericField
+          label="Saturación O2"
+          value={oxygenSaturation}
+          onChange={setOxygenSaturation}
+          suffix="%"
+          unitLabel="% O2"
+          numberType="natural"
+          disabled={readOnly}
+        />
+        <NumericField
+          label="Peso"
+          value={weightKg}
+          onChange={setWeightKg}
+          suffix="Kg"
+          unitLabel="kg"
+          numberType="decimal"
+          disabled={readOnly}
+        />
+        <NumericField
+          label="Talla"
+          value={heightCm}
+          onChange={setHeightCm}
+          suffix="cm"
+          unitLabel="cm"
+          numberType="natural"
+          disabled={readOnly}
+        />
+        <NumericField
+          label="F. Cardiaca"
+          value={heartRate}
+          onChange={setHeartRate}
+          suffix="lpm"
+          unitLabel="lpm"
+          numberType="natural"
+          disabled={readOnly}
+        />
+        <NumericField
+          label="F.Respiratoria"
+          value={respiratoryRate}
+          onChange={setRespiratoryRate}
+          suffix="rpm"
+          unitLabel="rpm"
+          numberType="natural"
+          disabled={readOnly}
+        />
+        <NumericField
+          label="P. Sistólica"
+          value={systolicPressure}
+          onChange={setSystolicPressure}
+          suffix="mmHg"
+          unitLabel="mmHg"
+          numberType="natural"
+          disabled={readOnly}
+        />
+        <NumericField
+          label="P. Diastólica"
+          value={diastolicPressure}
+          onChange={setDiastolicPressure}
+          suffix="mmHg"
+          unitLabel="mmHg"
+          numberType="natural"
+          disabled={readOnly}
+        />
+        <NumericField
+          label="Temperatura"
+          value={temperatureC}
+          onChange={setTemperatureC}
+          suffix="°C"
+          unitLabel="°C"
+          numberType="decimal"
+          disabled={readOnly}
+        />
+      </Box>
 
       <Box sx={{ fontWeight: 600, mt: 3, mb: 2 }}>Funciones biológicas</Box>
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} md={2.4} zeroMinWidth>
-          <SelectField
-            label="Sueño"
-            placeholder="-Seleccionar opción-"
-            value={sleepFunction}
-            onChange={setSleepFunction}
-            options={sleepAppetiteOptions}
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={2.4} zeroMinWidth>
-          <SelectField
-            label="Apetito"
-            placeholder="-Seleccionar opción-"
-            value={appetiteFunction}
-            onChange={setAppetiteFunction}
-            options={sleepAppetiteOptions}
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={2.4} zeroMinWidth>
-          <SelectField
-            label="Orina"
-            placeholder="-Seleccionar opción-"
-            value={urineFunction}
-            onChange={setUrineFunction}
-            options={urineStoolWeightOptions}
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={2.4} zeroMinWidth>
-          <SelectField
-            label="Deposición"
-            placeholder="-Seleccionar opción-"
-            value={stoolFunction}
-            onChange={setStoolFunction}
-            options={urineStoolWeightOptions}
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={2.4} zeroMinWidth>
-          <SelectField
-            label="Peso"
-            placeholder="-Seleccionar opción-"
-            value={weightFunction}
-            onChange={setWeightFunction}
-            options={urineStoolWeightOptions}
-            disabled={readOnly}
-          />
-        </Grid>
-      </Grid>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+          gap: "16px",
+        }}
+      >
+        <SelectField
+          label="Sueño"
+          placeholder="-Seleccionar opción-"
+          value={sleepFunction}
+          onChange={setSleepFunction}
+          options={sleepAppetiteOptions}
+          disabled={readOnly}
+        />
+        <SelectField
+          label="Apetito"
+          placeholder="-Seleccionar opción-"
+          value={appetiteFunction}
+          onChange={setAppetiteFunction}
+          options={sleepAppetiteOptions}
+          disabled={readOnly}
+        />
+        <SelectField
+          label="Orina"
+          placeholder="-Seleccionar opción-"
+          value={urineFunction}
+          onChange={setUrineFunction}
+          options={urineStoolWeightOptions}
+          disabled={readOnly}
+        />
+        <SelectField
+          label="Deposición"
+          placeholder="-Seleccionar opción-"
+          value={stoolFunction}
+          onChange={setStoolFunction}
+          options={urineStoolWeightOptions}
+          disabled={readOnly}
+        />
+        <SelectField
+          label="Peso"
+          placeholder="-Seleccionar opción-"
+          value={weightFunction}
+          onChange={setWeightFunction}
+          options={urineStoolWeightOptions}
+          disabled={readOnly}
+        />
+      </Box>
     </div>
   );
 };

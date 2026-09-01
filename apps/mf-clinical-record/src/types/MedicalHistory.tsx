@@ -32,6 +32,7 @@ export interface PatientBackgroundApiItem {
   is_present: boolean;
   description: string;
   user_create?: string;
+  date_create?: string;
 }
 export interface medicalHistoryApiMeta {
   limit: number;

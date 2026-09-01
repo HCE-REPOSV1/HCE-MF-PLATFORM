@@ -19,5 +19,19 @@
     "serviceUnavailable": "Servicio de autenticación no disponible. Intenta en unos momentos.",
     "timeout": "El servidor tardó demasiado en responder. Intenta nuevamente.",
     "generic": "Ocurrió un error inesperado."
+  },
+  "tabs": {
+    "historyPhysicalExam": "Anamnesis y EF",
+    "diagnosis": "Diagnóstico",
+    "medicalOrders": "Indicaciones médicas",
+    "nursingKardex": "Kardex de enfermería",
+    "laboratory": "Laboratorio",
+    "imaging": "Imágenes",
+    "referral": "Interconsulta",
+    "medicalProcedures": "Procedimientos Médicos",
+    "progressNotes": "Evolución",
+    "nursingNote": "Nota de enfermería"
   }
 }
+
+

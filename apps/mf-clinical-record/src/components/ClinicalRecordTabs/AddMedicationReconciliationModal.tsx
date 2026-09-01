@@ -12,6 +12,7 @@ import {
   type SearchOption,
 } from "@hce/design-system";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useCatalog } from "../../hooks/useCatalog";
 import type { CatalogAdministrationRoute } from "../../types/Catalog.type";
 
@@ -32,19 +33,23 @@ export interface AddMedicationReconciliationModalProps {
   onSave: (payload: NewMedicationReconciliationPayload) => void | Promise<void>;
 }
 
-const RECONCILIATION_ACTION_OPTIONS = [
-  { value: "continue", label: "Continua" },
-  { value: "suspend", label: "Suspende" },
-  { value: "modify", label: "Modifica" },
-];
-
 export default function AddMedicationReconciliationModal({
   open,
   onClose,
   onSave,
 }: AddMedicationReconciliationModalProps) {
+  const { t } = useTranslation("clinical-record");
   const { fetchAdministrationRoutes, fetchMedicationProductsSearch } =
     useCatalog();
+
+  const RECONCILIATION_ACTION_OPTIONS = useMemo(
+    () => [
+      { value: "continue", label: t("reconciliationActions.continue") },
+      { value: "suspend", label: t("reconciliationActions.suspend") },
+      { value: "modify", label: t("reconciliationActions.modify") },
+    ],
+    [t],
+  );
 
   // ── Búsqueda de medicamento ──────────────────────────────────────────────
   const [medicationSearchText, setMedicationSearchText] = useState("");
@@ -110,7 +115,6 @@ export default function AddMedicationReconciliationModal({
   const [action, setAction] = useState("modify");
   const [saving, setSaving] = useState(false);
 
-  // Reinicia el formulario cada vez que el modal se abre
   useEffect(() => {
     if (!open) return;
     setMedicationSearchText("");
@@ -167,7 +171,6 @@ export default function AddMedicationReconciliationModal({
   ]);
 
   const handleDoseChange = (value: string) => {
-    // Permite vacío (para poder borrar) y solo dígitos positivos
     if (value === "" || /^\d+$/.test(value)) {
       setDoseValue(value);
     }
@@ -183,46 +186,46 @@ export default function AddMedicationReconciliationModal({
     <HceFormModal
       open={open}
       onClose={onClose}
-      title="Registro de medicamento de reconciliación medicamentosa"
+      title={t("addMedicationReconciliationModal.title")}
       maxWidth="xl"
       buttonAlign="right"
     >
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
         <SearchComboInput
-          label="Búsqueda de medicamento"
+          label={t("addMedicationReconciliationModal.medicationSearchLabel")}
           value={medicationSearchText}
           onChange={setMedicationSearchText}
           options={medicationOptions}
           onSearch={handleMedicationSearch}
           onSelect={handleMedicationSelect}
           loading={medicationSearchLoading}
-          placeholder="Ingrese texto"
+          placeholder={t("addMedicationReconciliationModal.medicationSearchPlaceholder")}
           showModeToggle={false}
         />
 
         <Grid container spacing={2} alignItems="flex-end" wrap="nowrap">
           <Grid item xs={2} sm={1} zeroMinWidth>
             <TextInput
-              label="Dosis"
+              label={t("addMedicationReconciliationModal.doseLabel")}
               type="number"
-              placeholder="ej. 1"
+              placeholder={t("addMedicationReconciliationModal.dosePlaceholder")}
               value={doseValue}
               onChange={handleDoseChange}
             />
           </Grid>
           <Grid item xs={2} sm={1} zeroMinWidth>
             <TextInput
-              label="Frecuencia"
+              label={t("addMedicationReconciliationModal.frequencyLabel")}
               type="number"
-              placeholder="ej. 1"
+              placeholder={t("addMedicationReconciliationModal.frequencyPlaceholder")}
               value={frequencyValue}
               onChange={handleFrequencyChange}
             />
           </Grid>
           <Grid item xs={2} zeroMinWidth>
             <SelectField
-              label="Via"
-              placeholder="-Seleccionar opción-"
+              label={t("addMedicationReconciliationModal.routeLabel")}
+              placeholder={t("addMedicationReconciliationModal.routePlaceholder")}
               value={route}
               onChange={setRoute}
               options={routeOptions}
@@ -230,7 +233,7 @@ export default function AddMedicationReconciliationModal({
           </Grid>
           <Grid item xs={2} zeroMinWidth>
             <TextInput
-              label="Fecha ultima"
+              label={t("addMedicationReconciliationModal.lastDoseDateLabel")}
               type="date"
               value={lastDoseDate}
               onChange={setLastDoseDate}
@@ -238,7 +241,7 @@ export default function AddMedicationReconciliationModal({
           </Grid>
           <Grid item xs={2} sm={1} zeroMinWidth>
             <TextInput
-              label="Hora ultima"
+              label={t("addMedicationReconciliationModal.lastDoseTimeLabel")}
               type="time"
               value={lastDoseTime}
               onChange={setLastDoseTime}
@@ -246,11 +249,11 @@ export default function AddMedicationReconciliationModal({
           </Grid>
           <Grid item xs="auto" zeroMinWidth>
             <Box sx={{ mt: "22px" }}>
-                <RadioGroup
-                  value={action}
-                  onChange={(v) => setAction(v as string)}
-                  options={RECONCILIATION_ACTION_OPTIONS}
-                />
+              <RadioGroup
+                value={action}
+                onChange={(v) => setAction(v as string)}
+                options={RECONCILIATION_ACTION_OPTIONS}
+              />
             </Box>
           </Grid>
         </Grid>
@@ -262,7 +265,7 @@ export default function AddMedicationReconciliationModal({
             onClick={handleSave}
             disabled={isSaveDisabled}
           >
-            Agregar
+            {t("addMedicationReconciliationModal.addButton")}
           </Button>
         </Box>
       </Box>
