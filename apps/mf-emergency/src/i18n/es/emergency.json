@@ -1,0 +1,106 @@
+{
+  "MonitorPage": {
+    "actions": {
+      "triage": "Triage",
+      "reports": "Report",
+      "availability": "Bed Availability"
+    },
+    "infoButtonTooltip": "Ver información del paciente",
+    "AssignDoctorButton": "Asignar médico",
+    "dataTableMonitor": {
+      "colPriority": "Prioridad",
+      "colBox": "Box",
+      "colDocumentNumber": "N.Documento",
+      "colPatient": "Paciente",
+      "colAge": "Edad",
+      "colGender": "Sexo",
+      "colDoctor": "Médico",
+      "colLaboratory": "Lab",
+      "colImage": "Img",
+      "colMedicalIndication": "Indc. Med.",
+      "colConsultation": "Interc.",
+      "colAttention": "Atención",
+      "colInformation": "Info"
+    },
+    "box": {
+      "waiting": "ESPERA",
+      "roomD": "SALA D"
+    },
+    "summary": {
+      "activePatients": "pacientes",
+      "dischargedPatients": "pacientes de alta",
+      "totalPatients": "pacientes totales"
+    },
+    "bedAvailability": "Disponibilidad de camas",
+    "bedAvailabilityLoading": "Disponibilidad de camas (cargando...)",
+    "loadingMonitor": "Cargando monitor...",
+    "errorPrefix": "Error:",
+    "attentionPendingTitle": "Paciente aún no cuenta con atención",
+    "attentionPendingDescription": "Por favor comunicarse con el médico."
+  },
+  "BoxModal": {
+    "titleAssign": "Asignación de box",
+    "titleChange": "Cambio de box",
+    "contentTitle": "Cambio de camas entre servicio",
+    "savedSuccessTitle": "Cambio guardado con éxito",
+    "accept": "Aceptar",
+    "saving": "Guardando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "loadingPatient": "Cargando información del paciente",
+    "patientLabel": "Paciente:",
+    "bedsLabel": "Camas disponibles",
+    "loadingBedsPlaceholder": "-Cargando camas-",
+    "noBedsPlaceholder": "-No hay camas disponibles-",
+    "selectPlaceholder": "-Seleccionar opción-",
+    "errors": {
+      "noSede": "No se encontró la sede para cargar camas disponibles",
+      "loadBedsFailed": "No se pudieron cargar las camas disponibles",
+      "assignFailed": "No se pudo asignar la cama",
+      "refreshFailed": "No se pudo refrescar la información"
+    }
+  },
+  "AditionalInfoModal": {
+    "title": "Información adicional",
+    "loadingPatient": "Cargando información del paciente",
+    "colWaitingBox": "Tiempo de espera - BOX",
+    "colWaitingPhysician": "Tiempo de espera - Médico",
+    "colAttentionDate": "F. atención",
+    "colAttentionHour": "H. atención",
+    "colDischargeDate": "Fecha de alta",
+    "colDischargeHour": "Hora de alta",
+    "colVip": "Paciente VIP",
+    "colUndoDischarge": "Deshacer alta"
+  },
+  "AsignarMedicoModal": {
+    "title": "Asignar o reasignar médico a paciente",
+    "assign": "Asignar",
+    "reassign": "Reasignar",
+    "assigning": "Asignando...",
+    "reassigning": "Reasignando...",
+    "cancel": "Cancelar",
+    "assignmentTypeLegend": "Tipo de asignación",
+    "patientListLabel": "Lista de pacientes",
+    "loadingPatientsPlaceholder": "-Cargando pacientes-",
+    "noPatientsPlaceholder": "-No hay pacientes disponibles-",
+    "selectPatientPlaceholder": "-Seleccionar paciente-",
+    "currentPhysicianLabel": "Médico actual asignado:",
+    "successTitle": "Paciente {{action}} correctamente",
+    "accept": "Aceptar",
+    "noPermissionTitle": "No tienes permisos para esta acción",
+    "noPermissionDescription": "Tu usuario no está registrado como médico — solo un médico puede asignarse como tratante.",
+    "actionAssigned": "asignado",
+    "actionReassigned": "reasignado"
+  },
+  "ClinicalRecordTable": {
+    "dataDatableClinicalRecord" : {
+      "colRecordType": "Tipo de historia",
+      "colPractitionerName": "Medico",
+      "colSpeciality_name": "Especialidad",
+      "colAdmission_datetime": "Fecha y Hora",
+      "colSicAttentionId": "C. Atención", 
+      "colEncounterClassDisplay": "Lugar",
+      "colViewDetail": "Ver"
+    }
+  }
+}

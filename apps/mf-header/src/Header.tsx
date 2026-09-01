@@ -167,6 +167,7 @@ export default function Header({
         onMenuClick={onMenuClick}
         title={t("title")}
         labelCloseSesion={t('labelCloseSesion')}
+        testId="mf-header"
         extraActions={
           locales.length > 0 && (
             <HceLanguageSwitch
@@ -174,6 +175,7 @@ export default function Header({
               activeLocale={i18n.language}
               onLocaleChange={handleLocaleChange}
               ariaLabel={t('languageSwitch.ariaLabel')}
+              testId="mf-header-language-switch"
             />
           )
         }
@@ -188,6 +190,7 @@ export default function Header({
                 navigate(item.href);
               }
             }}
+            testId="mf-header-breadcrumb"
           />
         </div>
       )}

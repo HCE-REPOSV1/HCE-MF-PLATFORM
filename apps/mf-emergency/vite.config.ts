@@ -15,7 +15,9 @@ export default defineConfig(({ mode }) => {
     "VITE_APIGW_CNL_WEB_EMERGENCY",
     "VITE_APIGW_CLN_CROSS",
     "VITE_CSI_GENDER",
+    "VITE_REMOTE_CLINICAL_RECORD"
   ];
+
   for (const key of required) {
     if (!env[key])
       throw new Error(`[mf-emergency] Falta variable de entorno: ${key}`);
@@ -41,6 +43,7 @@ export default defineConfig(({ mode }) => {
         remotes: {
           shell: env.VITE_REMOTE_SHELL,
           triage: env.VITE_REMOTE_TRIAGE,
+          clinicalRecord: env.VITE_REMOTE_CLINICAL_RECORD
         },
         exposes: {
           "./Emergency": "./src/Emergency.tsx",

@@ -77,5 +77,8 @@ export const ENDPOINTS = {
     locales:   `${AG_CLN_CROSS}/api/v1/i18n/locales`,
     namespace: (locale: string, namespace: string) => `${AG_CLN_CROSS}/api/v1/i18n/${locale}/${namespace}`,
   },
+  medicalRecords: {
+    medicalRecordByPatiente: (patientId:number) => `${AG_WEB_EMERGENCY}/api/v1/encounter/patient/${patientId}/history`
+  }
 
 } as const

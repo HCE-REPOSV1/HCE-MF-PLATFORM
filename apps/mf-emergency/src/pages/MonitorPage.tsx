@@ -9,7 +9,6 @@ import {
 } from "react";
 import {
   Box,
-  hceClinicalColors,
   hceSpacing,
   MonitoActionBar,
   EmergencyPagination,
@@ -99,6 +98,7 @@ export default function MonitorPage() {
       disabledGetter: (row) =>
         !canReadTriage || row.triage_id == null || row.priority == "none",
       onClick: (row) => onOpenTriage(row),
+      getCellTestId: (row) => `mf-emergency-monitor-row-${row.id}-priority`,
     },
     {
       key: "box",
@@ -111,6 +111,7 @@ export default function MonitorPage() {
       clickable: true,
       disabledGetter: () => !canEditBox,
       onClick: (row) => onOpenBox(row),
+      getCellTestId: (row) => `mf-emergency-monitor-row-${row.id}-box`,
     },
     {
       key: "document",
@@ -133,6 +134,7 @@ export default function MonitorPage() {
       disabledGetter: (row) => !canReadHce || !row.physician_assigned,
       boldGetter: (row) => row.has_discharge,
       onClick: (row) => onOpenHce(row),
+      getCellTestId: (row) => `mf-emergency-monitor-row-${row.id}-patient`,
       cellSx: {
         padding: "0 12px",
       },
@@ -207,6 +209,7 @@ export default function MonitorPage() {
       align: "center",
       clickable: true,
       onClick: (row) => onOpenInfo(row),
+      getCellTestId: (row) => `mf-emergency-monitor-row-${row.id}-interconsult`,
     },
     {
       key: "attentionCode",
@@ -227,6 +230,7 @@ export default function MonitorPage() {
       disabledGetter: (row) => !canReadInfo || row.box.stage === "ESPERA",
       onClick: (row) => onOpenInfo(row),
       tooltip: t("MonitorPage.infoButtonTooltip"),
+      getCellTestId: (row) => `mf-emergency-monitor-row-${row.id}-info`,
     },
   ];
 
@@ -486,7 +490,6 @@ export default function MonitorPage() {
           height: "100% !important",
           display: "flex",
           flexDirection: "column",
-          backgroundColor: hceClinicalColors.rowAlternate,
           overflow: "hidden",
           zIndex: 1,
         }}
@@ -512,6 +515,7 @@ export default function MonitorPage() {
               // onTriaje={canWriteTriage ? handleOpenTriageWrite : undefined}
               onAsignarMedicos={handleOpenAsignarMedicos}
               labelBtn={t("MonitorPage.AssignDoctorButton")}
+              testId="mf-emergency-monitor-action-bar"
               // onReportes={handleReportes}
               // onDisponibilidad={canReadBeds ? handleDisponibilidad : undefined}
               // actions={monitorActions}
@@ -545,6 +549,7 @@ export default function MonitorPage() {
                   rows={rows}
                   columns={columns}
                   getRowId={(row) => row.id}
+                  getRowTestId={(row) => `mf-emergency-monitor-row-${row.id}`}
                   maxHeight="100%"
                   rowAlertGetter={(row) => row.row_alert_color === "red"}
                 />
@@ -565,6 +570,7 @@ export default function MonitorPage() {
               onPageChange={(page) => {
                 setCurrentPage(page);
               }}
+              testId="mf-emergency-monitor-pagination"
             />
           </Box>
         </Box>
@@ -580,6 +586,7 @@ export default function MonitorPage() {
             ? t("MonitorPage.bedAvailabilityLoading")
             : t("MonitorPage.bedAvailability")
         }
+        testId="mf-emergency-monitor-bed-availability"
       />
 
       {/* Modal de Triaje */}
@@ -652,6 +659,7 @@ export default function MonitorPage() {
           label: t("BoxModal.accept"),
           onClick: () => setAttentionWarningOpen(false),
         }}
+        testId="mf-emergency-monitor-attention-warning-modal"
       />
     </>
   );

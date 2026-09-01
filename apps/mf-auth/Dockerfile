@@ -3,6 +3,8 @@
 FROM node:20-alpine AS builder
 ARG VERDACCIO_URL=http://host.docker.internal:10100
 ARG VITE_REMOTE_SHELL=http://localhost:10500/assets/remoteEntry.js
+ARG VITE_APIGW_CNL_CROSS=http://localhost:10601
+ARG VITE_DEFAULT_LOCALE=es
 WORKDIR /app
 
 COPY package*.json .npmrc ./
@@ -16,7 +18,10 @@ RUN --mount=type=cache,target=/root/.npm \
  && npm install --install-strategy=nested
 
 COPY apps/mf-auth ./apps/mf-auth
-RUN VITE_REMOTE_SHELL=${VITE_REMOTE_SHELL} npm run build -w apps/mf-auth
+RUN VITE_REMOTE_SHELL=${VITE_REMOTE_SHELL} \
+    VITE_APIGW_CNL_CROSS=${VITE_APIGW_CNL_CROSS} \
+    VITE_DEFAULT_LOCALE=${VITE_DEFAULT_LOCALE} \
+    npm run build -w apps/mf-auth
 
 # ── Stage 2: Serve ───────────────────────────────────────────
 FROM nginx:alpine

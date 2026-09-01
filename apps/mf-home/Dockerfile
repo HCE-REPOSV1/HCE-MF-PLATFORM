@@ -4,6 +4,7 @@ FROM node:20-alpine AS builder
 ARG VERDACCIO_URL=http://host.docker.internal:10100
 ARG VITE_BASE_URL=http://localhost:10502
 ARG VITE_REMOTE_SHELL=http://localhost:10500/remoteEntry.js
+ARG VITE_APIGW_CNL_CROSS=http://localhost:10601
 WORKDIR /app
 
 COPY package*.json .npmrc ./
@@ -19,6 +20,7 @@ RUN --mount=type=cache,target=/root/.npm \
 COPY apps/mf-home ./apps/mf-home
 RUN VITE_BASE_URL=${VITE_BASE_URL} \
     VITE_REMOTE_SHELL=${VITE_REMOTE_SHELL} \
+    VITE_APIGW_CNL_CROSS=${VITE_APIGW_CNL_CROSS} \
     npm run build -w apps/mf-home
 
 # ── Stage 2: Serve ───────────────────────────────────────────

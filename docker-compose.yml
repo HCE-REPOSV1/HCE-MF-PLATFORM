@@ -13,6 +13,7 @@ services:
       args:
         VERDACCIO_URL: ${VERDACCIO_URL}
         # Build-args leídos desde Vault (secret/hce/mf/mf-shell) — ver deploy-mf.sh
+        VITE_COMPANY_THEME: ${VITE_COMPANY_THEME}
         VITE_APIGW_CNL_CROSS: ${VITE_APIGW_CNL_CROSS}
         VITE_REMOTE_AUTH: ${VITE_REMOTE_AUTH}
         VITE_REMOTE_HOME: ${VITE_REMOTE_HOME}
@@ -24,6 +25,8 @@ services:
         VITE_REMOTE_SIDEBAR: ${VITE_REMOTE_SIDEBAR}
         VITE_REMOTE_FOOTER: ${VITE_REMOTE_FOOTER}
         VITE_REMOTE_TRIAGE: ${VITE_REMOTE_TRIAGE}
+        VITE_REMOTE_CLINICAL_RECORD: ${VITE_REMOTE_CLINICAL_RECORD}
+        VITE_DEFAULT_LOCALE: ${VITE_DEFAULT_LOCALE}
     restart: unless-stopped
     ports:
       - "10500:80"
@@ -45,6 +48,8 @@ services:
         VERDACCIO_URL: ${VERDACCIO_URL}
         # Build-args leídos desde Vault (secret/hce/mf/mf-auth)
         VITE_REMOTE_SHELL: ${VITE_REMOTE_SHELL}
+        VITE_APIGW_CNL_CROSS: ${VITE_APIGW_CNL_CROSS}
+        VITE_DEFAULT_LOCALE: ${VITE_DEFAULT_LOCALE}
     restart: unless-stopped
     ports:
       - "10501:80"
@@ -67,6 +72,7 @@ services:
         # Build-args leídos desde Vault (secret/hce/mf/mf-home)
         MF_HOME_BASE_URL: ${MF_HOME_BASE_URL}
         VITE_REMOTE_SHELL: ${VITE_REMOTE_SHELL}
+        VITE_APIGW_CNL_CROSS: ${VITE_APIGW_CNL_CROSS}
     restart: unless-stopped
     ports:
       - "10502:80"
@@ -89,10 +95,38 @@ services:
         # Build-args leídos desde Vault (secret/hce/mf/mf-emergency)
         VITE_REMOTE_SHELL: ${VITE_REMOTE_SHELL}
         VITE_REMOTE_TRIAGE: ${VITE_REMOTE_TRIAGE}
+        VITE_APIGW_CNL_WEB_EMERGENCY: ${VITE_APIGW_CNL_WEB_EMERGENCY}
+        VITE_APIGW_CLN_CROSS: ${VITE_APIGW_CLN_CROSS}
+        VITE_EMERGENCY_DECRYPT_KEY: ${VITE_EMERGENCY_DECRYPT_KEY}
+        VITE_CSI_GENDER: ${VITE_CSI_GENDER}
+        VITE_REMOTE_CLINICAL_RECORD: ${VITE_REMOTE_CLINICAL_RECORD}
     restart: unless-stopped
     ports:
       - "10503:80"
       - "20503:443"
+    environment:
+      PORT: "80"
+      SSL_PORT: "443"
+      USE_SSL: "true"
+      CERT_PATH: /proyectos/certs
+      NGINX_TYPE: remote
+    volumes:
+      - /proyectos/certs:/proyectos/certs:ro
+
+  mf-clinical-record:
+    build:
+      context: .
+      dockerfile: apps/mf-clinical-record/Dockerfile
+      args:
+        VERDACCIO_URL: ${VERDACCIO_URL}
+        # Build-args leídos desde Vault (secret/hce/mf/mf-clinical-record)
+        VITE_REMOTE_SHELL: ${VITE_REMOTE_SHELL}
+        VITE_APIGW_CNL_WEB_EMERGENCY: ${VITE_APIGW_CNL_WEB_EMERGENCY}
+        VITE_APIGW_CLN_CROSS: ${VITE_APIGW_CLN_CROSS}
+    restart: unless-stopped
+    ports:
+      - "10511:80"
+      - "20511:443"
     environment:
       PORT: "80"
       SSL_PORT: "443"
@@ -196,6 +230,7 @@ services:
         VERDACCIO_URL: ${VERDACCIO_URL}
         # Build-args leídos desde Vault (secret/hce/mf/mf-footer)
         VITE_REMOTE_SHELL: ${VITE_REMOTE_SHELL}
+        VITE_APIGW_CNL_CROSS: ${VITE_APIGW_CNL_CROSS}
     restart: unless-stopped
     ports:
       - "10509:80"

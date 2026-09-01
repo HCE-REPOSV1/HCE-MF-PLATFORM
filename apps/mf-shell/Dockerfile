@@ -2,6 +2,8 @@
 # ── Stage 1: Build ──────────────────────────────────────────
 FROM node:20-alpine AS builder
 ARG VERDACCIO_URL=http://host.docker.internal:10100
+ARG VITE_COMPANY_THEME=csf
+ARG VITE_DEFAULT_LOCALE=es
 # URLs de producción — se hornean en el bundle en build time
 ARG VITE_APIGW_CNL_CROSS=http://localhost:10601
 ARG VITE_REMOTE_AUTH=http://localhost:10501/remoteEntry.js
@@ -14,6 +16,7 @@ ARG VITE_REMOTE_HEADER=http://localhost:10507/remoteEntry.js
 ARG VITE_REMOTE_SIDEBAR=http://localhost:10508/remoteEntry.js
 ARG VITE_REMOTE_FOOTER=http://localhost:10509/remoteEntry.js
 ARG VITE_REMOTE_TRIAGE=http://localhost:10510/remoteEntry.js
+ARG VITE_REMOTE_CLINICAL_RECORD=http://localhost:10511/assets/remoteEntry.js
 WORKDIR /app
 
 # Manifests raíz + workspace propio (Module Federation resuelve los remotes
@@ -32,7 +35,9 @@ RUN --mount=type=cache,target=/root/.npm \
 
 # Solo el código fuente de este microfrontend
 COPY apps/mf-shell ./apps/mf-shell
-RUN VITE_APIGW_CNL_CROSS=${VITE_APIGW_CNL_CROSS} \
+RUN VITE_COMPANY_THEME=${VITE_COMPANY_THEME} \
+    VITE_DEFAULT_LOCALE=${VITE_DEFAULT_LOCALE} \
+    VITE_APIGW_CNL_CROSS=${VITE_APIGW_CNL_CROSS} \
     VITE_REMOTE_AUTH=${VITE_REMOTE_AUTH} \
     VITE_REMOTE_HOME=${VITE_REMOTE_HOME} \
     VITE_REMOTE_EMERGENCY=${VITE_REMOTE_EMERGENCY} \
@@ -43,6 +48,7 @@ RUN VITE_APIGW_CNL_CROSS=${VITE_APIGW_CNL_CROSS} \
     VITE_REMOTE_SIDEBAR=${VITE_REMOTE_SIDEBAR} \
     VITE_REMOTE_FOOTER=${VITE_REMOTE_FOOTER} \
     VITE_REMOTE_TRIAGE=${VITE_REMOTE_TRIAGE} \
+    VITE_REMOTE_CLINICAL_RECORD=${VITE_REMOTE_CLINICAL_RECORD} \
     npm run build -w apps/mf-shell
 
 # ── Stage 2: Serve ───────────────────────────────────────────

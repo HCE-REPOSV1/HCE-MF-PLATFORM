@@ -1,7 +1,12 @@
 import "./layout.css";
 import { useState, useEffect, lazy } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { HceModal, UiWarningIcon, useMediaQuery } from "@hce/design-system";
+import {
+  HceModal,
+  UiWarningIcon,
+  hceColors,
+  useMediaQuery,
+} from "@hce/design-system";
 import { useUser } from "./context/UserContext";
 import { useSidebarOpciones } from "./config/sidebarConfig";
 import { useTranslation } from "@hce/i18n-core";
@@ -118,7 +123,7 @@ export default function AppLayout() {
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        backgroundColor: "#f0f4f8",
+        backgroundColor: hceColors.neutro.white[50],
       }}
     >
       {/* ── Modal: usuario sin sedes asignadas ──────────────────────── */}
@@ -132,6 +137,7 @@ export default function AppLayout() {
           label: "Aceptar",
           onClick: handleSinSedesAceptar,
         }}
+        testId="mf-shell-no-sedes-modal"
       />
 
       {/* ── Modal: usuario sin permisos de acceso ────────────────────── */}
@@ -145,6 +151,7 @@ export default function AppLayout() {
           label: "Aceptar",
           onClick: handleSinPermisosAceptar,
         }}
+        testId="mf-shell-no-permisos-modal"
       />
 
       {/* ── SIDEBAR MÓVIL: backdrop + overlay ───────────────────────── */}
@@ -153,6 +160,7 @@ export default function AppLayout() {
           {/* Backdrop — click cierra el sidebar */}
           <div
             onClick={closeMobileSidebar}
+            data-testid="mf-shell-mobile-sidebar-backdrop"
             style={{
               position: "fixed",
               inset: 0,
