@@ -1,11 +1,31 @@
-import type { AllergyDeclarationApi } from "../types/Allergy.type";
+export interface AllergySubstanceAPI {
+  allergy_substance_id: number;
+  active_principle_id: number;
+  active_principle_name?: string;
+}
+
+export interface AllergyAPIForm {
+  allergy_intolerance_id: number;
+  encounter_id: number;
+
+  // Según lo que muestras en tu componente,
+  // backend aparentemente devuelve "S" / "N"
+  has_allergies: "S" | "N";
+
+  substances?: AllergySubstanceAPI[] | null;
+
+  food_allergies: string | null;
+  other_allergies: string | null;
+}
 
 export interface AllergyForm {
   allergy_id: number;
   encounter_id: number;
   has_allergy: boolean;
-  /** IDs (como string, para compatibilizar con el value de MultiSelect), no nombres. */
+
+  // IMPORTANTE: aquí guardamos IDs, no nombres
   api: string[];
+
   food: string;
   other: string;
 }
@@ -14,19 +34,19 @@ export interface AllergyTableItem extends AllergyForm {
   apiLabels: string[];
 }
 
-/** Mapea la declaración cruda del backend (GET .../allergy-declaration) al form que usa el modal. */
 export function mapAllergyApiToForm(
-  declaration: AllergyDeclarationApi,
-  encounterId: number,
+  allergy: AllergyAPIForm,
 ): AllergyForm {
   return {
-    allergy_id: declaration.allergy_intolerance_id,
-    encounter_id: encounterId,
-    has_allergy: declaration.has_allergies === "S",
-    api: (declaration.substances ?? []).map((substance) =>
+    allergy_id: allergy.allergy_intolerance_id,
+    encounter_id: allergy.encounter_id,
+    has_allergy: allergy.has_allergies === "S",
+
+    api: (allergy.substances ?? []).map((substance) =>
       String(substance.active_principle_id),
     ),
-    food: declaration.food_allergies ?? "",
-    other: declaration.other_allergies ?? "",
+
+    food: allergy.food_allergies ?? "",
+    other: allergy.other_allergies ?? "",
   };
 }

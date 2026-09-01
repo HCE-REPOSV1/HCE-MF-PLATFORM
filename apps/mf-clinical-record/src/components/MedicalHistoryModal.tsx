@@ -18,7 +18,7 @@ import type {
 } from "../types/MedicalHistory";
 import { useMedicalHistory } from "../hooks/useMedicalHistory";
 import { mapMedicalHistoryApiItemToTableRow } from "../mapper/medicalHistory.mapper";
-import { registerClinicalRecordNamespace } from "../i18n";
+import { registerClinicalRecordNamespace } from "../i18n/index";
 import { ClinicalRecordTabs } from "./ClinicalRecordTabs";
 import { ClinicalRecordFormProvider } from "../context/ClinicalRecordFormContext";
 

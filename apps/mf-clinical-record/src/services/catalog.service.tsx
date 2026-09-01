@@ -23,8 +23,14 @@ import type {
   CatalogCodeSystemValuesResponse,
   CatalogCompanionTypes,
   CatalogCompanionTypesResponse,
+  CatalogIdentifierType,
+  CatalogIdentifierTypeResponse,
   CatalogMedicationProduct,
   CatalogMedicationProductSearchResponse,
+  CatalogTimeUnit,
+  CatalogTimeUnitResponse,
+  CatalogAgeGroup,
+  CatalogAgeGroupResponse,
 } from "../types/Catalog.type";
 import { ENDPOINTS } from "../config/endpoints";
 
@@ -124,6 +130,47 @@ export async function getCodeSystemValues(
     throw new Error(`Error ${res.status} al obtener valores de code system`);
 
   const json = (await res.json()) as CatalogCodeSystemValuesResponse;
+  if (!json.success) return null;
+  return json.data;
+}
+
+export async function getIdentifierTypes(
+  entityType: string,
+): Promise<CatalogIdentifierType[] | null> {
+  const res = await apiFetch(ENDPOINTS.catalogs.IdentifierTypes(entityType));
+  if (res.status === 404) return null;
+  if (!res.ok)
+    throw new Error(
+      `Error ${res.status} al obtener datos del Catalog Identifier Types`,
+    );
+
+  const json = (await res.json()) as CatalogIdentifierTypeResponse;
+  if (!json.success) return null;
+  return json.data;
+}
+
+export async function getTimeUnits(): Promise<CatalogTimeUnit[] | null> {
+  const res = await apiFetch(ENDPOINTS.catalogs.TimeUnits());
+  if (res.status === 404) return null;
+  if (!res.ok)
+    throw new Error(
+      `Error ${res.status} al obtener datos del Catalog Time Units`,
+    );
+
+  const json = (await res.json()) as CatalogTimeUnitResponse;
+  if (!json.success) return null;
+  return json.data;
+}
+
+export async function getAgeGroups(): Promise<CatalogAgeGroup[] | null> {
+  const res = await apiFetch(ENDPOINTS.catalogs.AgeGroups());
+  if (res.status === 404) return null;
+  if (!res.ok)
+    throw new Error(
+      `Error ${res.status} al obtener datos del Catalog Age Groups`,
+    );
+
+  const json = (await res.json()) as CatalogAgeGroupResponse;
   if (!json.success) return null;
   return json.data;
 }

@@ -3,17 +3,21 @@ import {
   getActivePrinciples,
   getActivePrinciplesSearch,
   getAdministrationRoutes,
+  getAgeGroups,
   getBackgroundCatalog,
   getCodeSystemValues,
   getCompanionTypes,
+  getIdentifierTypes,
   searchMedicationProducts,
 } from "../services/catalog.service";
 import type {
   CatalogActivePrinciples,
   CatalogAdministrationRoute,
+  CatalogAgeGroup,
   CatalogBackgroundItem,
   CatalogCodeSystemValue,
   CatalogCompanionTypes,
+  CatalogIdentifierType,
   CatalogMedicationProduct,
 } from "../types/Catalog.type";
 import { createCachedFetcher } from "../utils/createCachedFetcher";
@@ -52,6 +56,9 @@ export function useCatalog() {
   const catalogMedicationProducts = useResourceState<CatalogMedicationProduct[]>();
   const catalogAdministrationRoutes = useResourceState<CatalogAdministrationRoute[]>();
   const catalogCodeSystemValues = useResourceState<CatalogCodeSystemValue[]>();
+
+    const ageGroups = useResourceState<CatalogAgeGroup[]>();
+     const identifierTypes = useResourceState<CatalogIdentifierType[]>();
 
   const fetchCatalogActivePrinciples = useCallback(async (): Promise<
     CatalogActivePrinciples[] | null
@@ -206,7 +213,51 @@ export function useCatalog() {
       }
     },
     [],
+
+
+    
   );
+
+  const fetchAgeGroups = async (): Promise<CatalogAgeGroup[] | null> => {
+    ageGroups.setLoading(true);
+    ageGroups.setError(null);
+    try {
+      const response = await getAgeGroups();
+      ageGroups.setData(response);
+      return response;
+    } catch (err) {
+      ageGroups.setError(
+        err instanceof Error ? err.message : "Error al cargar grupos etarios",
+      );
+      ageGroups.setData(null);
+      return null;
+    } finally {
+      ageGroups.setLoading(false);
+    }
+  };
+
+   const fetchIdentifierTypes = async (
+    entityType: string,
+  ): Promise<CatalogIdentifierType[] | null> => {
+    identifierTypes.setLoading(true);
+    identifierTypes.setError(null);
+    try {
+      const response = await getIdentifierTypes(entityType);
+      identifierTypes.setData(response);
+      return response;
+    } catch (err) {
+      identifierTypes.setError(
+        err instanceof Error
+          ? err.message
+          : "Error al cargar tipos de documento",
+      );
+      identifierTypes.setData(null);
+      return null;
+    } finally {
+      identifierTypes.setLoading(false);
+    }
+  };
+
 
   return {
     fetchCatalogActivePrinciples,
@@ -216,6 +267,8 @@ export function useCatalog() {
     fetchAdministrationRoutes,
     fetchMedicationProductsSearch,
     fetchCodeSystemValues,
+    fetchAgeGroups,
+    fetchIdentifierTypes,
     dataCatalogActivePrinciples: catalogActivePrinciples.data,
     loadingCatalogActivePrinciples: catalogActivePrinciples.loading,
     errorCatalogActivePrinciples: catalogActivePrinciples.error,
@@ -231,5 +284,11 @@ export function useCatalog() {
     dataCatalogCodeSystemValues: catalogCodeSystemValues.data,
     loadingCatalogCodeSystemValues: catalogCodeSystemValues.loading,
     errorCatalogCodeSystemValues: catalogCodeSystemValues.error,
+    dataAgeGroups: ageGroups.data,
+    loadingAgeGroups: ageGroups.loading,
+    errorAgeGroups: ageGroups.error,
+    dataIdentifierTypes: identifierTypes.data,
+    loadingIdentifierTypes: identifierTypes.loading,
+    errorIdentifierTypes: identifierTypes.error,
   };
 }
