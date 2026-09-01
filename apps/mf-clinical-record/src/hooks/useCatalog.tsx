@@ -4,6 +4,7 @@ import {
   getActivePrinciplesSearch,
   getAdministrationRoutes,
   getBackgroundCatalog,
+  getCodeSystemValues,
   getCompanionTypes,
   searchMedicationProducts,
 } from "../services/catalog.service";
@@ -11,35 +12,46 @@ import type {
   CatalogActivePrinciples,
   CatalogAdministrationRoute,
   CatalogBackgroundItem,
+  CatalogCodeSystemValue,
   CatalogCompanionTypes,
   CatalogMedicationProduct,
 } from "../types/Catalog.type";
 import { createCachedFetcher } from "../utils/createCachedFetcher";
 
-// Estado de loading/error/data de un recurso de catálogo. Nota: fetchCatalogActivePrinciples
-// y fetchCatalogActivePrinciplesSearch comparten la misma instancia (catalogActivePrinciples)
-// — si en el futuro se llaman en paralelo, se pisarán el loading/error entre sí. Si eso llega
-// a pasar, dales cada uno su propio useResourceState().
 function useResourceState<T>() {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   return { data, setData, loading, setLoading, error, setError };
 }
+
+// ⚠️ TODOS los fetchers cacheados van a nivel de MÓDULO, nunca dentro de
+// useCatalog() — si no, se recrean en cada render y se pierde el cache
+// (el mismo bug que ya resolvimos con companionTypesFetcher).
 const companionTypesFetcher = createCachedFetcher(getCompanionTypes);
 const backgroundCatalogFetcher = createCachedFetcher(getBackgroundCatalog);
-const administrationRoutesFetcher = createCachedFetcher(
-  getAdministrationRoutes,
-);
+const administrationRoutesFetcher = createCachedFetcher(getAdministrationRoutes);
+
+// Un fetcher cacheado POR cada code_system_id distinto (Sueño, Apetito, etc.
+// cada uno tiene su propio id, así que no pueden compartir un solo fetcher)
+const codeSystemFetchers = new Map<number, ReturnType<typeof createCachedFetcher>>();
+function getCodeSystemFetcher(codeSystemId: number) {
+  if (!codeSystemFetchers.has(codeSystemId)) {
+    codeSystemFetchers.set(
+      codeSystemId,
+      createCachedFetcher(() => getCodeSystemValues(codeSystemId)),
+    );
+  }
+  return codeSystemFetchers.get(codeSystemId)!;
+}
 
 export function useCatalog() {
   const catalogActivePrinciples = useResourceState<CatalogActivePrinciples[]>();
   const catalogCompanionTypes = useResourceState<CatalogCompanionTypes[]>();
   const catalogBackground = useResourceState<CatalogBackgroundItem[]>();
   const catalogMedicationProducts = useResourceState<CatalogMedicationProduct[]>();
-
-  const catalogAdministrationRoutes =
-    useResourceState<CatalogAdministrationRoute[]>();
+  const catalogAdministrationRoutes = useResourceState<CatalogAdministrationRoute[]>();
+  const catalogCodeSystemValues = useResourceState<CatalogCodeSystemValue[]>();
 
   const fetchCatalogActivePrinciples = useCallback(async (): Promise<
     CatalogActivePrinciples[] | null
@@ -153,25 +165,48 @@ export function useCatalog() {
   }, []);
 
   const fetchMedicationProductsSearch = useCallback(
-  async (text: string): Promise<CatalogMedicationProduct[] | null> => {
-    catalogMedicationProducts.setLoading(true);
-    catalogMedicationProducts.setError(null);
-    try {
-      const response = await searchMedicationProducts(text);
-      catalogMedicationProducts.setData(response);
-      return response;
-    } catch (err) {
-      catalogMedicationProducts.setError(
-        err instanceof Error ? err.message : "Error al buscar medicamentos",
-      );
-      catalogMedicationProducts.setData(null);
-      return null;
-    } finally {
-      catalogMedicationProducts.setLoading(false);
-    }
-  },
-  [],
-);
+    async (text: string): Promise<CatalogMedicationProduct[] | null> => {
+      catalogMedicationProducts.setLoading(true);
+      catalogMedicationProducts.setError(null);
+      try {
+        const response = await searchMedicationProducts(text);
+        catalogMedicationProducts.setData(response);
+        return response;
+      } catch (err) {
+        catalogMedicationProducts.setError(
+          err instanceof Error ? err.message : "Error al buscar medicamentos",
+        );
+        catalogMedicationProducts.setData(null);
+        return null;
+      } finally {
+        catalogMedicationProducts.setLoading(false);
+      }
+    },
+    [],
+  );
+
+  const fetchCodeSystemValues = useCallback(
+    async (codeSystemId: number): Promise<CatalogCodeSystemValue[] | null> => {
+      catalogCodeSystemValues.setLoading(true);
+      catalogCodeSystemValues.setError(null);
+      try {
+        const response = await getCodeSystemFetcher(codeSystemId).fetch();
+        catalogCodeSystemValues.setData(response as CatalogCodeSystemValue[]);
+        return response as CatalogCodeSystemValue[];
+      } catch (err) {
+        catalogCodeSystemValues.setError(
+          err instanceof Error
+            ? err.message
+            : "Error al buscar valores del catálogo",
+        );
+        catalogCodeSystemValues.setData(null);
+        return null;
+      } finally {
+        catalogCodeSystemValues.setLoading(false);
+      }
+    },
+    [],
+  );
 
   return {
     fetchCatalogActivePrinciples,
@@ -180,6 +215,7 @@ export function useCatalog() {
     fetchBackgroundCatalog,
     fetchAdministrationRoutes,
     fetchMedicationProductsSearch,
+    fetchCodeSystemValues,
     dataCatalogActivePrinciples: catalogActivePrinciples.data,
     loadingCatalogActivePrinciples: catalogActivePrinciples.loading,
     errorCatalogActivePrinciples: catalogActivePrinciples.error,
@@ -192,5 +228,8 @@ export function useCatalog() {
     dataCatalogAdministrationRoutes: catalogAdministrationRoutes.data,
     loadingCatalogAdministrationRoutes: catalogAdministrationRoutes.loading,
     errorCatalogAdministrationRoutes: catalogAdministrationRoutes.error,
+    dataCatalogCodeSystemValues: catalogCodeSystemValues.data,
+    loadingCatalogCodeSystemValues: catalogCodeSystemValues.loading,
+    errorCatalogCodeSystemValues: catalogCodeSystemValues.error,
   };
 }

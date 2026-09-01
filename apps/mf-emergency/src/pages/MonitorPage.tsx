@@ -9,7 +9,6 @@ import {
 } from "react";
 import {
   Box,
-  hceClinicalColors,
   hceSpacing,
   MonitoActionBar,
   EmergencyPagination,
@@ -491,7 +490,6 @@ export default function MonitorPage() {
           height: "100% !important",
           display: "flex",
           flexDirection: "column",
-          backgroundColor: hceClinicalColors.rowAlternate,
           overflow: "hidden",
           zIndex: 1,
         }}

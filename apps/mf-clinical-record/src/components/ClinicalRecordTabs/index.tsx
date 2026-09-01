@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { EditModeProvider } from "../../context/EditModeContext";
 import { PERMISSIONS_CLINICAL_RECORD } from "../../config/permissions";
-import { NavTab } from "@hce/design-system";
+import { Box, NavTab } from "@hce/design-system";
 import { HistoryPhysicalExam } from "./HistoryPhysicalExam";
 // import { DiagnosisPanel } from "./DiagnosisPanel"; // se van agregando a medida que se crean
 // ...
@@ -20,19 +20,20 @@ const TABS = [
 ];
 
 interface ClinicalRecordTabsProps {
-  readOnly?: boolean; // ⚠️ nuevo
+  readOnly?: boolean;
+  encounterId?: number;
 }
 
-export const ClinicalRecordTabs = ({ readOnly = false }: ClinicalRecordTabsProps) => {
+export const ClinicalRecordTabs = ({ readOnly = false, encounterId }: ClinicalRecordTabsProps) => {
   const [activeTab, setActiveTab] = useState(TABS[0].value);
 
   return (
-    <div className="hce-clinical-record-tabs">
+    <Box sx={{width:"100%"}}>
       <NavTab tabs={TABS} value={activeTab} onChange={setActiveTab} />
 
       {activeTab === "history-physical-exam" && (
         <EditModeProvider tabWriteCode={PERMISSIONS_CLINICAL_RECORD.historyPhysicalExam.write}>
-          <HistoryPhysicalExam readOnly={readOnly} /> {/* ⚠️ reenviar el prop */}
+          <HistoryPhysicalExam readOnly={readOnly} encounterId={encounterId}/>
         </EditModeProvider>
       )}
 
@@ -43,6 +44,6 @@ export const ClinicalRecordTabs = ({ readOnly = false }: ClinicalRecordTabsProps
       )} */}
 
       {/* Ir descomentando/agregando cada tab a medida que se cree su panel — recordar pasar readOnly también */}
-    </div>
+    </Box>
   );
 };

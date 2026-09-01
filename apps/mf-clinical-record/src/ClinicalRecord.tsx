@@ -66,7 +66,8 @@ export default function ClinicalRecordPage() {
       documentType: patientRecord.document_type || "-",
       documentNumber: patientRecord.document_number || "-",
       bloodType: patientRecord.blood_type || "-",
-      specialty: practitioner?.speciality_es || practitioner?.speciality_en || "-",
+      specialty:
+        practitioner?.speciality_es || practitioner?.speciality_en || "-",
       doctorName: practitioner?.doctor_name ?? "-",
       attentionCode: patientRecord.attention_code ?? "-",
       clinicalHistoryNumber: patientRecord.clinical_history_number ?? "-",
@@ -75,8 +76,7 @@ export default function ClinicalRecordPage() {
       email: patientRecord.email ?? "-",
       phone: patientRecord.phone ?? "-",
       address: patientRecord.address ?? "-",
-      hasAllergies:
-        patientRecord.allergy?.declaration?.has_allergies === "S",
+      hasAllergies: patientRecord.allergy?.declaration?.has_allergies === "S",
     };
   }, [patientRecord]);
 
@@ -202,7 +202,7 @@ export default function ClinicalRecordPage() {
   }
 
   return (
- <>
+    <>
       <MedicalHistoryModal
         open={openMedicalHistory}
         onClose={() => setOpenMedicalHistory(false)}
@@ -229,6 +229,7 @@ export default function ClinicalRecordPage() {
               flexDirection: "row",
               justifyContent: "space-between",
               alignItems: "center",
+              padding: "0px 16px"
             }}
           >
             <Box>
@@ -242,9 +243,8 @@ export default function ClinicalRecordPage() {
               <SaveButton />
             </Box>
           </Box>
-
-          <Box sx={{ pt: "15px" }}>
-            <ClinicalRecordTabs />
+          <Box sx={{ padding: "16px" }}>
+            <ClinicalRecordTabs encounterId={encounterId}/>
           </Box>
         </ClinicalRecordFormProvider>
       </Box>

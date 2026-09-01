@@ -19,6 +19,8 @@ import type {
   CatalogAdministrationRoutesResponse,
   CatalogBackgroundItem,
   CatalogBackgroundResponse,
+  CatalogCodeSystemValue,
+  CatalogCodeSystemValuesResponse,
   CatalogCompanionTypes,
   CatalogCompanionTypesResponse,
   CatalogMedicationProduct,
@@ -109,6 +111,19 @@ export async function searchMedicationProducts(
     throw new Error(`Error ${res.status} al buscar productos medicamentosos`);
 
   const json = (await res.json()) as CatalogMedicationProductSearchResponse;
+  if (!json.success) return null;
+  return json.data;
+}
+
+export async function getCodeSystemValues(
+  codeSystemId: number,
+): Promise<CatalogCodeSystemValue[] | null> {
+  const res = await apiFetch(ENDPOINTS.catalogs.CodeSystemValues(codeSystemId));
+  if (res.status === 404) return null;
+  if (!res.ok)
+    throw new Error(`Error ${res.status} al obtener valores de code system`);
+
+  const json = (await res.json()) as CatalogCodeSystemValuesResponse;
   if (!json.success) return null;
   return json.data;
 }

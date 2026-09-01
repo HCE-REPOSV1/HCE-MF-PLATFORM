@@ -6,7 +6,9 @@ if (!AG_WEB_EMERGENCY)
     "[mf-clinical-record] VITE_APIGW_CNL_WEB_EMERGENCY no está configurado",
   );
 if (!AG_CLN_CROSS)
-  throw new Error("[mf-clinical-record] VITE_APIGW_CLN_CROSS no está configurado");
+  throw new Error(
+    "[mf-clinical-record] VITE_APIGW_CLN_CROSS no está configurado",
+  );
 
 export const ENDPOINTS = {
   encounter: {
@@ -64,6 +66,8 @@ export const ENDPOINTS = {
       `${AG_CLN_CROSS}/api/v1/catalogs/administration-routes`,
     MedicationProductsSearch: (text: string) =>
       `${AG_CLN_CROSS}/api/v1/catalogs/medication-products/search?text=${encodeURIComponent(text)}`,
+    CodeSystemValues: (codeSystemId: number) =>
+      `${AG_CLN_CROSS}/api/v1/catalogs/code-system-values?code_system_id=${codeSystemId}`,
   },
   medicalRecords: {
     medicalRecordByPatiente: (patientId: number, page = 1, limit = 10) =>

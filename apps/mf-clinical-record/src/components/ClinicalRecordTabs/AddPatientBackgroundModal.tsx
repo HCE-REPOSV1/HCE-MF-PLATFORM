@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   Checkbox,
   Grid,
   HceFormModal,
@@ -18,7 +17,7 @@ type PatientBackgroundCategory = "general" | "gyn_obstetric" | "pathological";
 
 export interface NewPatientBackgroundPayload {
   background_catalog_id: number;
-  background_name: string; // ⬅️ confirmá que esta línea esté presente
+  background_name: string;
   background_category: PatientBackgroundCategory;
   is_present: boolean;
   description: string;
@@ -28,8 +27,15 @@ export interface AddPatientBackgroundModalProps {
   open: boolean;
   onClose: () => void;
   onSave: (payload: NewPatientBackgroundPayload) => void | Promise<void>;
-  /** Categoría inicial con la que abre el modal (ej. la pestaña activa al hacer click en "Agregar") */
   initialCategory?: PatientBackgroundCategory;
+}
+
+interface DraftItem {
+  background_catalog_id: number;
+  label: string;
+  is_present: boolean;
+  description: string;
+  category: PatientBackgroundCategory; // ⚠️ nuevo — cada ítem recuerda su propia pestaña
 }
 
 export default function AddPatientBackgroundModal({
@@ -46,13 +52,10 @@ export default function AddPatientBackgroundModal({
     CatalogBackgroundItem[]
   >([]);
   const [backgroundCatalogId, setBackgroundCatalogId] = useState<string>("");
-  const [isPresent, setIsPresent] = useState<boolean>(true);
-  const [description, setDescription] = useState<string>("");
+  const [draftItems, setDraftItems] = useState<DraftItem[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Carga el catálogo de antecedentes UNA sola vez al montar (createCachedFetcher
-  // ya evita el refetch entre aperturas del modal — mismo patrón que companionTypes)
   useEffect(() => {
     const loadCatalog = async () => {
       const data = await fetchBackgroundCatalog();
@@ -61,22 +64,17 @@ export default function AddPatientBackgroundModal({
     loadCatalog();
   }, [fetchBackgroundCatalog]);
 
-  // Reinicia el formulario cada vez que el modal se abre
+  // Reinicia todo SOLO al abrir el modal (sesión nueva) — ya no se resetea
+  // al cambiar de pestaña, para no perder lo agregado en otras categorías
   useEffect(() => {
     if (!open) return;
     setCategory(initialCategory);
     setBackgroundCatalogId("");
-    setIsPresent(true);
-    setDescription("");
+    setDraftItems([]);
     setError(null);
   }, [open, initialCategory]);
 
-  // Al cambiar de categoría, limpia la selección previa (ya no aplica a la nueva lista)
-  useEffect(() => {
-    setBackgroundCatalogId("");
-  }, [category]);
-
-  const backgroundCatalogOptions = useMemo(
+  const allBackgroundCatalogOptions = useMemo(
     () =>
       backgroundCatalog
         .filter(
@@ -89,24 +87,114 @@ export default function AddPatientBackgroundModal({
     [backgroundCatalog, category],
   );
 
-  const selectedLabel = backgroundCatalogOptions.find(
-    (opt) => opt.value === backgroundCatalogId,
-  )?.label;
+  // Solo oculta del dropdown lo ya agregado EN LA MISMA pestaña activa
+  const backgroundCatalogOptions = useMemo(
+    () =>
+      allBackgroundCatalogOptions.filter(
+        (opt) =>
+          !draftItems.some(
+            (item) =>
+              item.background_catalog_id === Number(opt.value) &&
+              item.category === category,
+          ),
+      ),
+    [allBackgroundCatalogOptions, draftItems, category],
+  );
 
-  const isSaveDisabled = saving || !backgroundCatalogId;
+  const handleSelectFromCatalog = useCallback(
+    (value: string) => {
+      const id = Number(value);
+      const option = allBackgroundCatalogOptions.find(
+        (opt) => opt.value === value,
+      );
+      if (!option) return;
+
+      setDraftItems((prev) => {
+        if (
+          prev.some(
+            (item) =>
+              item.background_catalog_id === id && item.category === category,
+          )
+        )
+          return prev;
+        return [
+          ...prev,
+          {
+            background_catalog_id: id,
+            label: option.label,
+            is_present: true,
+            description: "",
+            category, // ⚠️ nuevo — guarda a qué pestaña pertenece
+          },
+        ];
+      });
+
+      setBackgroundCatalogId("");
+    },
+    [allBackgroundCatalogOptions, category],
+  );
+
+  const updateDraftItem = useCallback(
+    (
+      id: number,
+      itemCategory: PatientBackgroundCategory,
+      patch: Partial<Pick<DraftItem, "description">>,
+    ) => {
+      setDraftItems((prev) =>
+        prev.map((item) =>
+          item.background_catalog_id === id && item.category === itemCategory
+            ? { ...item, ...patch }
+            : item,
+        ),
+      );
+    },
+    [],
+  );
+
+  const handleTogglePresent = useCallback(
+    (
+      id: number,
+      itemCategory: PatientBackgroundCategory,
+      checked: boolean,
+    ) => {
+      if (checked) return;
+      setDraftItems((prev) =>
+        prev.filter(
+          (item) =>
+            !(
+              item.background_catalog_id === id &&
+              item.category === itemCategory
+            ),
+        ),
+      );
+    },
+    [],
+  );
+
+  // Solo se muestran los ítems de la pestaña activa; los demás siguen
+  // guardados en draftItems, listos para guardarse todos juntos
+  const visibleDraftItems = useMemo(
+    () => draftItems.filter((item) => item.category === category),
+    [draftItems, category],
+  );
+
+  const isSaveDisabled = saving || draftItems.length === 0;
 
   const handleSave = useCallback(async () => {
-    if (!backgroundCatalogId || !selectedLabel) return;
+    if (isSaveDisabled) return;
     try {
       setSaving(true);
       setError(null);
-      await onSave({
-        background_catalog_id: Number(backgroundCatalogId),
-        background_name: selectedLabel, // ⬅️ confirmá que esta línea esté presente
-        background_category: category,
-        is_present: isPresent,
-        description,
-      });
+      // Guarda TODOS los ítems agregados, sin importar la pestaña activa ahora
+      for (const item of draftItems) {
+        await onSave({
+          background_catalog_id: item.background_catalog_id,
+          background_name: item.label,
+          background_category: item.category, // ⚠️ usa la categoría propia del ítem
+          is_present: item.is_present,
+          description: item.description,
+        });
+      }
       onClose();
     } catch (err) {
       setError(
@@ -117,15 +205,7 @@ export default function AddPatientBackgroundModal({
     } finally {
       setSaving(false);
     }
-  }, [
-    backgroundCatalogId,
-    selectedLabel,
-    category,
-    isPresent,
-    description,
-    onSave,
-    onClose,
-  ]);
+  }, [isSaveDisabled, draftItems, onSave, onClose]);
 
   return (
     <HceFormModal
@@ -134,17 +214,16 @@ export default function AddPatientBackgroundModal({
       title="Agregar antecedentes"
       maxWidth="md"
       buttonAlign="right"
+      primaryButton={{
+        label: "Guardar",
+        onClick: handleSave,
+        disabled: isSaveDisabled,
+        color: hceColors.primary.green[600],
+      }}
     >
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 2,
-          textAlign: "start",
-          mt: 1,
-        }}
-      >
+      <Box sx={{ display: "flex", flexDirection: "column", mt: 1 }}>
         <SegmentedToggle
+          variant="panel"
           options={[
             { label: "Generales", value: "general" },
             { label: "Gineco - obstétricos", value: "gyn_obstetric" },
@@ -154,64 +233,89 @@ export default function AddPatientBackgroundModal({
           onChange={(v) => setCategory(v as PatientBackgroundCategory)}
         />
 
-        <SelectField
-          label="Registro de Antecedentes"
-          placeholder="-Seleccionar opción-"
-          value={backgroundCatalogId}
-          onChange={(v) => setBackgroundCatalogId(v)}
-          options={backgroundCatalogOptions}
-        />
+        <Box
+          sx={{
+            backgroundColor: hceColors.primary.blue[50],
+            border: `1px solid ${hceColors.primary.blue[600]}`,
+            borderRadius: "0 0 12px 12px",
+            p: 3,
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            textAlign: "start",
+          }}
+        >
+          <SelectField
+            label="Registro de Antecedentes"
+            placeholder="-Seleccionar opción-"
+            value={backgroundCatalogId}
+            onChange={handleSelectFromCatalog}
+            options={backgroundCatalogOptions}
+          />
 
-        {backgroundCatalogId && (
-          <Box
-            sx={{
-              border: "1px solid var(--ds-color-success, #8bc34a)",
-              borderRadius: "8px",
-              p: 2,
-            }}
-          >
-            <Box sx={{ fontWeight: 600, mb: 2 }}>{selectedLabel}</Box>
-            <Grid container spacing={2} alignItems="flex-end" wrap="nowrap">
-              <Grid item xs={12} sm={3} md={3} zeroMinWidth>
-                <Checkbox
-                  label="SI"
-                  checked={isPresent}
-                  onChange={(v) => setIsPresent(v)}
-                />
+          {visibleDraftItems.map((item) => (
+            <fieldset
+              key={item.background_catalog_id}
+              style={{
+                border: `2px solid ${hceColors.primary.green[600]}`,
+                borderRadius: "8px",
+                padding: "10px",
+                margin: "10px 0px",
+              }}
+            >
+              <legend
+                style={{
+                  padding: "0 8px",
+                  fontWeight: 600,
+                  fontSize: "0.85rem",
+                  color: hceColors.primary.blue[600],
+                  fontFamily: hceTypography.fontFamily,
+                }}
+              >
+                {item.label}
+              </legend>
+              <Grid container spacing={2} alignItems="center" wrap="nowrap">
+                <Grid item xs="auto" zeroMinWidth>
+                  <Checkbox
+                    label="SI"
+                    checked={item.is_present}
+                    onChange={(v) =>
+                      handleTogglePresent(
+                        item.background_catalog_id,
+                        item.category,
+                        v,
+                      )
+                    }
+                  />
+                </Grid>
+                <Grid item xs zeroMinWidth>
+                  <TextInput
+                    placeholder="Ingresa texto"
+                    value={item.description}
+                    onChange={(v) =>
+                      updateDraftItem(
+                        item.background_catalog_id,
+                        item.category,
+                        { description: v },
+                      )
+                    }
+                  />
+                </Grid>
               </Grid>
-              <Grid item xs={12} sm={9} md={9} zeroMinWidth>
-                <TextInput
-                  placeholder="Ingresa texto"
-                  value={description}
-                  onChange={(v) => setDescription(v)}
-                />
-              </Grid>
-            </Grid>
-          </Box>
-        )}
+            </fieldset>
+          ))}
 
-        {error && (
-          <Box
-            sx={{
-              color: hceColors.alert.error[600],
-              fontFamily: hceTypography.fontFamily,
-              fontSize: "0.875rem",
-            }}
-          >
-            {error}
-          </Box>
-        )}
-
-        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-          <Button
-            variant="contained"
-            color={"var(--ds-color-interactive-button)"}
-            onClick={handleSave}
-            disabled={isSaveDisabled}
-            aria-label="Guardar"
-          >
-            Guardar
-          </Button>
+          {error && (
+            <Box
+              sx={{
+                color: hceColors.alert.error[600],
+                fontFamily: hceTypography.fontFamily,
+                fontSize: "0.875rem",
+              }}
+            >
+              {error}
+            </Box>
+          )}
         </Box>
       </Box>
     </HceFormModal>
