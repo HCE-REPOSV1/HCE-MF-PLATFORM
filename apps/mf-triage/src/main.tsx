@@ -7,6 +7,6 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Triage  open={true}
       onClose={() => {}}
-      onGuardar={(data) => console.log(data)}/>
+      onGuardar={() => {}}/>
   </StrictMode>,
 )

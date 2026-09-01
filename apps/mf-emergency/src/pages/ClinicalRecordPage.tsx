@@ -80,19 +80,6 @@ export default function ClinicalRecordPage() {
 
 
 
-  useEffect(() => {
-    console.log("Paciente del monitor:", patient);
-    console.log("Patient record:", patientRecord);
-    console.log("Loading:", patientRecordLoading);
-    console.log("Error:", patientRecordError);
-  }, [
-    patient,
-    patientRecord,
-    patientRecordLoading,
-    patientRecordError,
-  ]);
-
-
   const LIST_ACTION_BAR: ExtraAction[] = [
     {
       id: "monitor",
@@ -260,8 +247,8 @@ export default function ClinicalRecordPage() {
         }
 
       
-      } catch (err) {
-        console.error("Error al cargar información", err);
+      } catch {
+        console.error("[ClinicalRecord] Error al cargar catálogos");
        // setLoadError(t("errors.catalog.loadCatalogs"));
       }
     };
@@ -548,5 +535,3 @@ export default function ClinicalRecordPage() {
     </Box>
   );
 }
-
-         

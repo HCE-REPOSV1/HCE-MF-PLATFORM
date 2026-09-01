@@ -363,8 +363,8 @@ const handleSave = useCallback(async () => {
             }));
           setOptionsActivePrinciples(transformerOptions);
         }
-      } catch (err) {
-        console.error("Error al cargar información", err);
+      } catch {
+        console.error("[AllergyModal] Error al cargar el catálogo");
         setLoadError(t("ClinicalRecord.allergy.catalogError"));
       }
     };
