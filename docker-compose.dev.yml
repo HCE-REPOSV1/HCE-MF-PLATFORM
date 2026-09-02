@@ -13,20 +13,20 @@ services:
       dockerfile: apps/mf-shell/Dockerfile
       args:
         VITE_COMPANY_THEME: csf
-        VERDACCIO_URL: http://192.168.42.44:10100
+        VERDACCIO_URL: http://192.168.42.45:10100
         # URLs de producción — se hornean en el bundle al compilar
-        VITE_APIGW_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
-        VITE_REMOTE_AUTH:        https://servicios.dev.sanfelipe.com:20501/assets/remoteEntry.js
-        VITE_REMOTE_HOME:        https://servicios.dev.sanfelipe.com:20502/assets/remoteEntry.js
-        VITE_REMOTE_EMERGENCY:   https://servicios.dev.sanfelipe.com:20503/assets/remoteEntry.js
-        VITE_REMOTE_HOSPITAL:    https://servicios.dev.sanfelipe.com:20504/assets/remoteEntry.js
-        VITE_REMOTE_AMBULATORIO: https://servicios.dev.sanfelipe.com:20505/assets/remoteEntry.js
-        VITE_REMOTE_AUDITORIA:   https://servicios.dev.sanfelipe.com:20506/assets/remoteEntry.js
-        VITE_REMOTE_HEADER:      https://servicios.dev.sanfelipe.com:20507/assets/remoteEntry.js
-        VITE_REMOTE_SIDEBAR:     https://servicios.dev.sanfelipe.com:20508/assets/remoteEntry.js
-        VITE_REMOTE_FOOTER:      https://servicios.dev.sanfelipe.com:20509/assets/remoteEntry.js
-        VITE_REMOTE_TRIAGE:      https://servicios.dev.sanfelipe.com:20510/assets/remoteEntry.js
-        VITE_REMOTE_CLINICAL_RECORD: https://servicios.dev.sanfelipe.com:20511/assets/remoteEntry.js
+        VITE_APIGW_CNL_CROSS: https://servicios.qa.sanfelipe.com:20601
+        VITE_REMOTE_AUTH:        https://servicios.qa.sanfelipe.com:20501/assets/remoteEntry.js
+        VITE_REMOTE_HOME:        https://servicios.qa.sanfelipe.com:20502/assets/remoteEntry.js
+        VITE_REMOTE_EMERGENCY:   https://servicios.qa.sanfelipe.com:20503/assets/remoteEntry.js
+        VITE_REMOTE_HOSPITAL:    https://servicios.qa.sanfelipe.com:20504/assets/remoteEntry.js
+        VITE_REMOTE_AMBULATORIO: https://servicios.qa.sanfelipe.com:20505/assets/remoteEntry.js
+        VITE_REMOTE_AUDITORIA:   https://servicios.qa.sanfelipe.com:20506/assets/remoteEntry.js
+        VITE_REMOTE_HEADER:      https://servicios.qa.sanfelipe.com:20507/assets/remoteEntry.js
+        VITE_REMOTE_SIDEBAR:     https://servicios.qa.sanfelipe.com:20508/assets/remoteEntry.js
+        VITE_REMOTE_FOOTER:      https://servicios.qa.sanfelipe.com:20509/assets/remoteEntry.js
+        VITE_REMOTE_TRIAGE:      https://servicios.qa.sanfelipe.com:20510/assets/remoteEntry.js
+        VITE_REMOTE_CLINICAL_RECORD: https://servicios.qa.sanfelipe.com:20511/assets/remoteEntry.js
         VITE_DEFAULT_LOCALE: es
     restart: unless-stopped
     ports:
@@ -46,9 +46,9 @@ services:
       context: .
       dockerfile: apps/mf-auth/Dockerfile
       args:
-        VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
-        VITE_APIGW_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
+        VERDACCIO_URL: http://192.168.42.45:10100
+        VITE_REMOTE_SHELL: https://servicios.qa.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_APIGW_CNL_CROSS: https://servicios.qa.sanfelipe.com:20601
         VITE_DEFAULT_LOCALE: es
     restart: unless-stopped
     ports:
@@ -68,10 +68,10 @@ services:
       context: .
       dockerfile: apps/mf-home/Dockerfile
       args:
-        VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_BASE_URL: https://servicios.dev.sanfelipe.com:20502
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
-        VITE_APIGW_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
+        VERDACCIO_URL: http://192.168.42.45:10100
+        VITE_BASE_URL: https://servicios.qa.sanfelipe.com:20502
+        VITE_REMOTE_SHELL: https://servicios.qa.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_APIGW_CNL_CROSS: https://servicios.qa.sanfelipe.com:20601
     restart: unless-stopped
     ports:
       - "10502:80"
@@ -90,14 +90,14 @@ services:
       context: .
       dockerfile: apps/mf-emergency/Dockerfile
       args:
-        VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
-        VITE_REMOTE_TRIAGE: https://servicios.dev.sanfelipe.com:20510/assets/remoteEntry.js
-        VITE_APIGW_CNL_WEB_EMERGENCY: https://servicios.dev.sanfelipe.com:20602
-        VITE_APIGW_CLN_CROSS: https://servicios.dev.sanfelipe.com:20601
+        VERDACCIO_URL: http://192.168.42.45:10100
+        VITE_REMOTE_SHELL: https://servicios.qa.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_REMOTE_TRIAGE: https://servicios.qa.sanfelipe.com:20510/assets/remoteEntry.js
+        VITE_APIGW_CNL_WEB_EMERGENCY: https://servicios.qa.sanfelipe.com:20602
+        VITE_APIGW_CLN_CROSS: https://servicios.qa.sanfelipe.com:20601
         VITE_EMERGENCY_DECRYPT_KEY: 98fd5dd5c3584001b1b3e225aa10e04c9032a0dbc81936599b2f52a2a166c356
         VITE_CSI_GENDER: 3
-        VITE_REMOTE_CLINICAL_RECORD: https://servicios.dev.sanfelipe.com:20511/assets/remoteEntry.js
+        VITE_REMOTE_CLINICAL_RECORD: https://servicios.qa.sanfelipe.com:20511/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10503:80"
@@ -116,10 +116,10 @@ services:
       context: .
       dockerfile: apps/mf-clinical-record/Dockerfile
       args:
-        VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
-        VITE_APIGW_CNL_WEB_EMERGENCY: https://servicios.dev.sanfelipe.com:20602
-        VITE_APIGW_CLN_CROSS: https://servicios.dev.sanfelipe.com:20601
+        VERDACCIO_URL: http://192.168.42.45:10100
+        VITE_REMOTE_SHELL: https://servicios.qa.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_APIGW_CNL_WEB_EMERGENCY: https://servicios.qa.sanfelipe.com:20602
+        VITE_APIGW_CLN_CROSS: https://servicios.qa.sanfelipe.com:20601
     restart: unless-stopped
     ports:
       - "10511:80"
@@ -138,8 +138,8 @@ services:
       context: .
       dockerfile: apps/mf-hospital/Dockerfile
       args:
-        VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
+        VERDACCIO_URL: http://192.168.42.45:10100
+        VITE_REMOTE_SHELL: https://servicios.qa.sanfelipe.com:20500/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10504:80"
@@ -158,8 +158,8 @@ services:
       context: .
       dockerfile: apps/mf-ambulatorio/Dockerfile
       args:
-        VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
+        VERDACCIO_URL: http://192.168.42.45:10100
+        VITE_REMOTE_SHELL: https://servicios.qa.sanfelipe.com:20500/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10505:80"
@@ -178,10 +178,10 @@ services:
       context: .
       dockerfile: apps/mf-header/Dockerfile
       args:
-        VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
-        VITE_APIGW_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
-        VITE_APIGW_CNL_WEB_EMERGENCY: https://servicios.dev.sanfelipe.com:20602
+        VERDACCIO_URL: http://192.168.42.45:10100
+        VITE_REMOTE_SHELL: https://servicios.qa.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_APIGW_CNL_CROSS: https://servicios.qa.sanfelipe.com:20601
+        VITE_APIGW_CNL_WEB_EMERGENCY: https://servicios.qa.sanfelipe.com:20602
     restart: unless-stopped
     ports:
       - "10507:80"
@@ -200,8 +200,8 @@ services:
       context: .
       dockerfile: apps/mf-sidebar/Dockerfile
       args:
-        VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
+        VERDACCIO_URL: http://192.168.42.45:10100
+        VITE_REMOTE_SHELL: https://servicios.qa.sanfelipe.com:20500/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10508:80"
@@ -220,9 +220,9 @@ services:
       context: .
       dockerfile: apps/mf-footer/Dockerfile
       args:
-        VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
-        VITE_APIGW_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
+        VERDACCIO_URL: http://192.168.42.45:10100
+        VITE_REMOTE_SHELL: https://servicios.qa.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_APIGW_CNL_CROSS: https://servicios.qa.sanfelipe.com:20601
     restart: unless-stopped
     ports:
       - "10509:80"
@@ -241,10 +241,10 @@ services:
       context: .
       dockerfile: apps/mf-triage/Dockerfile
       args:
-        VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
-        VITE_APIGW_WEB_EMERGENCY: https://servicios.dev.sanfelipe.com:20602
-        VITE_APIGW_CLN_CROSS : https://servicios.dev.sanfelipe.com:20601
+        VERDACCIO_URL: http://192.168.42.45:10100
+        VITE_REMOTE_SHELL: https://servicios.qa.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_APIGW_WEB_EMERGENCY: https://servicios.qa.sanfelipe.com:20602
+        VITE_APIGW_CLN_CROSS : https://servicios.qa.sanfelipe.com:20601
         VITE_CSI_INPUT_TIPO_MOTIVO : 24
         VITE_CSI_GENDER : 3
 
@@ -266,8 +266,8 @@ services:
       context: .
       dockerfile: apps/mf-auditoria/Dockerfile
       args:
-        VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
+        VERDACCIO_URL: http://192.168.42.45:10100
+        VITE_REMOTE_SHELL: https://servicios.qa.sanfelipe.com:20500/assets/remoteEntry.js
     restart: unless-stopped
     ports:
       - "10506:80"
