@@ -15,6 +15,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useCatalog } from "../../hooks/useCatalog";
 import type { CatalogAdministrationRoute } from "../../types/Catalog.type";
+import { getLocalizedCatalogDisplay } from "../../utils/catalogLocalization";
 
 export interface NewMedicationReconciliationPayload {
   medication_legacy_code: string;
@@ -46,7 +47,7 @@ export default function AddMedicationReconciliationModal({
   onClose,
   onSave,
 }: AddMedicationReconciliationModalProps) {
-  const { t } = useTranslation("clinical-record");
+  const { t, i18n } = useTranslation("clinical-record");
   const { fetchAdministrationRoutes, fetchMedicationProductsSearch } =
     useCatalog();
 
@@ -122,9 +123,16 @@ export default function AddMedicationReconciliationModal({
         .filter((item) => item.is_active)
         .map((item) => ({
           value: String(item.administration_route_id),
-          label: item.description,
+          label: getLocalizedCatalogDisplay(
+            {
+              description_es: item.description_es,
+              description_en: item.description_en,
+            },
+            i18n.language,
+            item.description,
+          ), //item.description,
         })),
-    [administrationRoutes],
+    [administrationRoutes, i18n.language],
   );
 
   // ── Resto del formulario ─────────────────────────────────────────────────

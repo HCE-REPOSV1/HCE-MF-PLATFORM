@@ -33,17 +33,12 @@ import { usePatientRecord } from "./hooks/usePatientRecord";
 import { useCatalog } from "./hooks/useCatalog";
 import { useTranslation } from "@hce/i18n-core";
 import { getLocalizedCatalogDisplay } from "./utils/catalogLocalization";
-import { registerClinicalRecordNamespace } from "./i18n";
+import { useClinicalRecordNamespaceReady } from "./i18n";
 
-let registered = false;
-
-const CSI_GENDER = 3
+const CSI_GENDER = 3;
 
 export default function ClinicalRecordPage() {
-  if (!registered) {
-    registerClinicalRecordNamespace();
-    registered = true;
-  }
+  const namespaceReady = useClinicalRecordNamespaceReady();
 
   const { state } = useLocation();
   const navigatedPatient = (state as { patient?: NavigatedPatientState } | null)
@@ -103,9 +98,7 @@ export default function ClinicalRecordPage() {
         console.error(t("clinicalRecordPage.errors.loadCatalogs"), err);
       }
     };
-
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const {
@@ -120,8 +113,7 @@ export default function ClinicalRecordPage() {
 
     const catalogGender = codeSystemValues?.find(
       ({ code, is_active }) =>
-        is_active &&
-        code.toLowerCase() === patientRecord.gender?.toLowerCase(),
+        is_active && code.toLowerCase() === patientRecord.gender?.toLowerCase(),
     );
 
     const practitioner = patientRecord.attending_practitioner;
@@ -262,6 +254,14 @@ export default function ClinicalRecordPage() {
         >
           {t("clinicalRecordPage.saveButton.label")}
         </Button>
+      </Box>
+    );
+  }
+
+  if (!namespaceReady) {
+    return (
+      <Box sx={{ p: 4, display: "flex", justifyContent: "center" }}>
+        Cargando...
       </Box>
     );
   }

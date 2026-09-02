@@ -14,6 +14,7 @@ import {
   UiTrashIcon,
   hceColors,
   type GenericTableColumn,
+  LoadingOverlay,
 } from "@hce/design-system";
 import { useTranslation } from "react-i18next";
 import "./HistoryPhysicalExam.css";
@@ -38,6 +39,8 @@ import { useMedicalHistory } from "../../hooks/useMedicalHistory";
 import AddPatientBackgroundModal from "./AddPatientBackgroundModal";
 import AddMedicationReconciliationModal from "./AddMedicationReconciliationModal";
 import { formatDate, formatDateTime } from "../../utils/dateFormat";
+import { getLocalizedCatalogDisplay } from "../../utils/catalogLocalization";
+import type { CatalogCompanionTypes } from "../../types/Catalog.type";
 
 type ViewMode = "anamnesis" | "examen-fisico";
 type PatientBackgroundCategory = "general" | "gyn_obstetric" | "pathological";
@@ -108,9 +111,10 @@ const AnamnesisContent = ({
   readOnly: boolean;
   encounterId?: number;
 }) => {
-  const { t } = useTranslation("clinical-record");
+  const { t, i18n } = useTranslation("clinical-record");
   const { fetchCompanionTypes } = useCatalog();
-  const { fetchHistoryPhysicalExam } = useMedicalHistory();
+  const { fetchHistoryPhysicalExam } =
+    useMedicalHistory();
   const { user } = useUser();
   const { registerTabData, getTabData } = useClinicalRecordForm();
   const [expanded, setExpanded] = useState({
@@ -162,26 +166,37 @@ const AnamnesisContent = ({
     [t],
   );
 
-  const [companionTypeOptions, setCompanionTypeOptions] = useState<
-    { value: string; label: string }[]
-  >([]);
-
   const [medicationReconciliations, setMedicationReconciliations] = useState<
     MedicationReconciliationApiItem[]
   >(savedMedicationReconciliations ?? []);
 
+  const [companionTypes, setCompanionTypes] = useState<CatalogCompanionTypes[]>(
+    [],
+  );
+
   useEffect(() => {
     const loadCatalog = async () => {
-      const companionTypes = await fetchCompanionTypes();
-      setCompanionTypeOptions(
-        (companionTypes ?? []).map((item) => ({
-          value: String(item.companion_type_id),
-          label: item.description,
-        })),
-      );
+      const data = await fetchCompanionTypes();
+      setCompanionTypes(data ?? []);
     };
     loadCatalog();
   }, [fetchCompanionTypes]);
+
+  const companionTypeOptions = useMemo(
+    () =>
+      companionTypes.map((item) => ({
+        value: String(item.companion_type_id),
+        label: getLocalizedCatalogDisplay(
+          {
+            display_es: item.description_es,
+            display_en: item.description_en,
+          },
+          i18n.language,
+          item.description,
+        ),
+      })),
+    [companionTypes, i18n.language],
+  );
 
   useEffect(() => {
     if (savedAnamnesis) return;
@@ -463,6 +478,7 @@ const PatientBackgroundsContent = ({
 
       <Box sx={{ pt: 2 }}>
         <GenericTable
+          emptyMessage={t("EmptyMessageDataTable")}
           columns={columnsTable}
           rows={filteredRows}
           getRowId={(row) => row.id}
@@ -652,6 +668,7 @@ const ReconciliationContent = ({
       />
 
       <GenericTable
+        emptyMessage={t("EmptyMessageDataTable")}
         columns={columnsTable}
         rows={rows}
         getRowId={(row) => row.id}
@@ -667,11 +684,15 @@ const ExamenFisicoContent = ({
   readOnly: boolean;
   encounterId?: number;
 }) => {
-  const { t } = useTranslation("clinical-record");
+  const { t, i18n } = useTranslation("clinical-record");
   const { user } = useUser();
-  const { fetchHistoryPhysicalExam } = useMedicalHistory();
-  const { fetchCodeSystemValues } = useCatalog();
+  const { fetchHistoryPhysicalExam, loadingHistoryPhysicalExam } =
+    useMedicalHistory();
+  const { fetchCodeSystemValues, loadingCatalogCodeSystemValues } =
+    useCatalog();
   const { registerTabData, getTabData } = useClinicalRecordForm();
+
+  const formBusy = loadingHistoryPhysicalExam || loadingCatalogCodeSystemValues;
 
   const savedVitals = getTabData("historyPhysicalExam.physicalExamVitals") as
     | PhysicalExamApiItem
@@ -740,34 +761,32 @@ const ExamenFisicoContent = ({
   >([]);
 
   useEffect(() => {
-    if (savedVitals) return;
-    if (encounterId === undefined) return;
+    // if (savedVitals) return;
+    // if (encounterId === undefined) return;
 
-    const validEncounterId = encounterId;
+    // const validEncounterId = encounterId;
 
     const load = async () => {
-      const data = await fetchHistoryPhysicalExam(validEncounterId);
-      if (!data?.physicalExam) return;
-
-      const v = data.physicalExam;
-      setOxygenSaturation(
-        v.oxygen_saturation != null ? String(v.oxygen_saturation) : "",
-      );
-      setWeightKg(v.weight_kg != null ? String(v.weight_kg) : "");
-      setHeightCm(v.height_cm != null ? String(v.height_cm) : "");
-      setHeartRate(v.heart_rate != null ? String(v.heart_rate) : "");
-      setRespiratoryRate(
-        v.respiratory_rate != null ? String(v.respiratory_rate) : "",
-      );
-      setSystolicPressure(
-        v.systolic_pressure != null ? String(v.systolic_pressure) : "",
-      );
-      setDiastolicPressure(
-        v.diastolic_pressure != null ? String(v.diastolic_pressure) : "",
-      );
-      setTemperatureC(v.temperature_c != null ? String(v.temperature_c) : "");
-
-      registerTabData("historyPhysicalExam.physicalExamVitals", v);
+      // const data = await fetchHistoryPhysicalExam(validEncounterId);
+      // if (!data?.physicalExam) return;
+      // const v = data.physicalExam;
+      // setOxygenSaturation(
+      //   v.oxygen_saturation != null ? String(v.oxygen_saturation) : "",
+      // );
+      // setWeightKg(v.weight_kg != null ? String(v.weight_kg) : "");
+      // setHeightCm(v.height_cm != null ? String(v.height_cm) : "");
+      // setHeartRate(v.heart_rate != null ? String(v.heart_rate) : "");
+      // setRespiratoryRate(
+      //   v.respiratory_rate != null ? String(v.respiratory_rate) : "",
+      // );
+      // setSystolicPressure(
+      //   v.systolic_pressure != null ? String(v.systolic_pressure) : "",
+      // );
+      // setDiastolicPressure(
+      //   v.diastolic_pressure != null ? String(v.diastolic_pressure) : "",
+      // );
+      // setTemperatureC(v.temperature_c != null ? String(v.temperature_c) : "");
+      // registerTabData("historyPhysicalExam.physicalExamVitals", v);
     };
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -800,32 +819,116 @@ const ExamenFisicoContent = ({
   ]);
 
   useEffect(() => {
-    const load = async () => {
-      const data = await fetchCodeSystemValues(SLEEP_APPETITE_CODE_SYSTEM_ID);
-      setSleepAppetiteOptions(
-        (data ?? [])
-          .filter((item) => item.is_active)
-          .sort((a, b) => a.sort_order - b.sort_order)
-          .map((item) => ({ value: item.code, label: item.display })),
-      );
-    };
-    load();
-  }, [fetchCodeSystemValues]);
+    if (savedVitals) return;
+    if (encounterId === undefined) return;
 
-  useEffect(() => {
+    const validEncounterId = encounterId;
+
     const load = async () => {
-      const data = await fetchCodeSystemValues(
-        URINE_STOOL_WEIGHT_CODE_SYSTEM_ID,
-      );
-      setUrineStoolWeightOptions(
-        (data ?? [])
-          .filter((item) => item.is_active)
-          .sort((a, b) => a.sort_order - b.sort_order)
-          .map((item) => ({ value: item.code, label: item.display })),
-      );
+      const result = await Promise.all([
+        fetchCodeSystemValues(SLEEP_APPETITE_CODE_SYSTEM_ID),
+        fetchCodeSystemValues(URINE_STOOL_WEIGHT_CODE_SYSTEM_ID),
+        fetchHistoryPhysicalExam(validEncounterId),
+      ]);
+      const [
+        biologicalFunctionsSAData,
+        biologicalFunctionsUSWData,
+        historyPhysicalExamData,
+      ] = result;
+
+      if (biologicalFunctionsSAData) {
+        setSleepAppetiteOptions(
+          (biologicalFunctionsSAData ?? [])
+            .filter((item) => item.is_active)
+            .sort((a, b) => a.sort_order - b.sort_order)
+            .map((item) => ({
+              value: item.code,
+              label: getLocalizedCatalogDisplay(
+                {
+                  display_es: item.display_es,
+                  display_en: item.display_en,
+                },
+                i18n.language,
+                item.display,
+              ),
+              // item.display
+            })),
+        );
+      }
+      if (biologicalFunctionsUSWData) {
+        setUrineStoolWeightOptions(
+          (biologicalFunctionsUSWData ?? [])
+            .filter((item) => item.is_active)
+            .sort((a, b) => a.sort_order - b.sort_order)
+            .map((item) => ({ value: item.code, label: item.display })),
+        );
+      }
+      if (historyPhysicalExamData) {
+        if (!historyPhysicalExamData?.physicalExam) return;
+
+        const v = historyPhysicalExamData.physicalExam;
+        setOxygenSaturation(
+          v.oxygen_saturation != null ? String(v.oxygen_saturation) : "",
+        );
+        setWeightKg(v.weight_kg != null ? String(v.weight_kg) : "");
+        setHeightCm(v.height_cm != null ? String(v.height_cm) : "");
+        setHeartRate(v.heart_rate != null ? String(v.heart_rate) : "");
+        setRespiratoryRate(
+          v.respiratory_rate != null ? String(v.respiratory_rate) : "",
+        );
+        setSystolicPressure(
+          v.systolic_pressure != null ? String(v.systolic_pressure) : "",
+        );
+        setDiastolicPressure(
+          v.diastolic_pressure != null ? String(v.diastolic_pressure) : "",
+        );
+        setTemperatureC(v.temperature_c != null ? String(v.temperature_c) : "");
+
+        registerTabData("historyPhysicalExam.physicalExamVitals", v);
+      }
     };
     load();
-  }, [fetchCodeSystemValues]);
+  },[encounterId,i18n.language]);
+
+  // useEffect(() => {
+  //   const load = async () => {
+  //     // const data = await fetchCodeSystemValues(SLEEP_APPETITE_CODE_SYSTEM_ID);
+  //     // setSleepAppetiteOptions(
+  //     //   (data ?? [])
+  //     //     .filter((item) => item.is_active)
+  //     //     .sort((a, b) => a.sort_order - b.sort_order)
+  //     //     .map((item) => ({ value: item.code,
+  //     //       label:
+  //     //       getLocalizedCatalogDisplay(
+  //     //               {
+  //     //                 display_es: item.display_es,
+  //     //                 display_en: item.display_en,
+  //     //               },
+  //     //               i18n.language,
+  //     //               item.display,
+  //     //             ),
+  //     //       // item.display
+  //     //     })),
+  //     // );
+  //   };
+  //   load();
+  //   console.log("cargando idioma: ", i18n.language);
+  // }, [fetchCodeSystemValues, i18n.language]);
+
+  // useEffect(() => {
+  //   const load = async () => {
+  //     // const data = await fetchCodeSystemValues(
+  //     //   URINE_STOOL_WEIGHT_CODE_SYSTEM_ID,
+  //     // );
+  //     // setUrineStoolWeightOptions(
+  //     //   (data ?? [])
+  //     //     .filter((item) => item.is_active)
+  //     //     .sort((a, b) => a.sort_order - b.sort_order)
+  //     //     .map((item) => ({ value: item.code, label: item.display })),
+  //     // );
+  //   };
+  //   load();
+  // }, [fetchCodeSystemValues]);
 
   useEffect(() => {
     if (readOnly) return;
@@ -853,7 +956,13 @@ const ExamenFisicoContent = ({
   ]);
 
   return (
-    <div className="hce-examen-fisico">
+    <Box>
+      <LoadingOverlay
+        open={formBusy}
+        message={"Cargando información..."}
+      />
+
+          <div className="hce-examen-fisico">
       <Box sx={{ fontWeight: 600, mb: 2 }}>
         {t("historyPhysicalExam.physicalExam.title")}
       </Box>
@@ -1013,5 +1122,6 @@ const ExamenFisicoContent = ({
         />
       </Box>
     </div>
+    </Box>
   );
 };

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { i18n } from "@hce/i18n-core";
 import { apiFetch } from "shell/ApiClient";
 import { ENDPOINTS } from "../config/endpoints";
@@ -39,4 +40,32 @@ export function registerClinicalRecordNamespace(): Promise<void> {
   })();
 
   return registered;
+}
+
+/**
+ * Hook para gatear el render de una página hasta que el namespace
+ * "clinical-record" terminó de cargar. registerClinicalRecordNamespace()
+ * es asíncrono de verdad (dos fetches en cadena antes de addResourceBundle),
+ * así que llamarlo sin esperar la promesa deja un instante en el que t()
+ * devuelve la clave cruda en vez del texto traducido. Usar así, en el
+ * cuerpo del componente, ANTES de cualquier early return (Rules of Hooks):
+ *
+ *   const namespaceReady = useClinicalRecordNamespaceReady();
+ *   // ... resto de hooks del componente, sin condicionar nada por esto ...
+ *   if (!namespaceReady) return <LoadingState />;
+ */
+export function useClinicalRecordNamespaceReady(): boolean {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    registerClinicalRecordNamespace().then(() => {
+      if (!cancelled) setReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return ready;
 }

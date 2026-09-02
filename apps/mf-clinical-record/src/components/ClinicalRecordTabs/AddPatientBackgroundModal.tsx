@@ -13,6 +13,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useCatalog } from "../../hooks/useCatalog";
 import type { CatalogBackgroundItem } from "../../types/Catalog.type";
+import { getLocalizedCatalogDisplay } from "../../utils/catalogLocalization";
 
 type PatientBackgroundCategory = "general" | "gyn_obstetric" | "pathological";
 
@@ -45,7 +46,7 @@ export default function AddPatientBackgroundModal({
   onSave,
   initialCategory = "general",
 }: AddPatientBackgroundModalProps) {
-  const { t } = useTranslation("clinical-record");
+  const { t, i18n } = useTranslation("clinical-record");
   const { fetchBackgroundCatalog } = useCatalog();
 
   const [category, setCategory] =
@@ -82,9 +83,16 @@ export default function AddPatientBackgroundModal({
         )
         .map((item) => ({
           value: String(item.background_catalog_id),
-          label: item.background_name,
+          label: getLocalizedCatalogDisplay(
+                    {
+                      background_name_es: item.background_name_es,
+                      background_name_en: item.background_name_en,
+                    },
+                    i18n.language,
+                    item.background_name,
+                  ),//item.background_name,
         })),
-    [backgroundCatalog, category],
+    [backgroundCatalog, category, i18n.language],
   );
 
   const backgroundCatalogOptions = useMemo(
@@ -224,7 +232,8 @@ export default function AddPatientBackgroundModal({
             { label: t("addPatientBackgroundModal.categories.pathological"), value: "pathological" },
           ]}
           value={category}
-          onChange={(v) => setCategory(v as PatientBackgroundCategory)}
+          onChange={setCategory}
+          testId="clinical-record-add-patient-background-category-toggle"
         />
 
         <Box
