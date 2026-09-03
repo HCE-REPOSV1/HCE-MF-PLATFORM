@@ -26,7 +26,8 @@ export interface PractitionerProfile {
   speciality_id:            number
   speciality_fhir_code:     string
   speciality_fhir_display:  string
-  speciality_local_name:    string       // "ANESTESIOLOGIA"
+  speciality_local_name:    string       // "ANESTESIOLOGIA" (siempre en español, no usar para mostrar en UI)
+  speciality_display:       string       // resuelto por Accept-Language — usar este para mostrar en UI
   organisation_uuid:        string
   organisation_name:        string
   location_uuid:            string
@@ -85,8 +86,8 @@ export function getPractitionerPhotoUrl(practitionerUuid: string): string {
  * - Sin especialidad: muestra role_display como fallback
  */
 export function getPractitionerSubtitle(practitioner: PractitionerProfile): string {
-  if (practitioner.speciality_local_name?.trim()) {
-    return practitioner.speciality_local_name
+  if (practitioner.speciality_display?.trim()) {
+    return practitioner.speciality_display
       .toLowerCase()
       .replace(/\b\w/g, char => char.toUpperCase())
   }
