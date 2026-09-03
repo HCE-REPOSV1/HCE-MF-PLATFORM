@@ -29,6 +29,7 @@ import {
 } from "./context/ClinicalRecordFormContext";
 import { ClinicalRecordTabs } from "./components/ClinicalRecordTabs";
 import { mapToSavePayload } from "./mapper/medicalHistory.mapper";
+import { formatAddress } from "./utils/formatAddress";
 import { usePatientRecord } from "./hooks/usePatientRecord";
 import { useTranslation } from "@hce/i18n-core";
 import { useClinicalRecordNamespaceReady } from "./i18n";
@@ -84,7 +85,9 @@ export default function ClinicalRecordPage() {
       insuranceProduct: patientRecord.insurance?.product_name ?? "-",
       email: patientRecord.email ?? "-",
       phone: patientRecord.phone ?? "-",
-      address: patientRecord.address ?? "-",
+      // patientRecord.address es PatientRecordAddress (objeto), no string --
+      // formatAddress lo concatena en una sola línea para PatientField.
+      address: formatAddress(patientRecord.address),
       hasAllergies: patientRecord.allergy?.declaration?.has_allergies === "S",
     };
   }, [patientRecord]);

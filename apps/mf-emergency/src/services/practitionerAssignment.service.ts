@@ -1,4 +1,5 @@
 import { ENDPOINTS } from '../config/endpoints'
+import { apiFetch } from 'shell/ApiClient'
 
 // Espejo de PractitionerAssignmentCandidateRow (ms-bs-core-emergency-monitor).
 // practitioner_name siempre null en assignment-candidates (por definición no tienen
@@ -29,7 +30,7 @@ export class HttpError extends Error {
 }
 
 async function getCandidates(url: string): Promise<AssignmentCandidate[]> {
-  const res = await fetch(url, { method: 'GET', credentials: 'include' })
+  const res = await apiFetch(url, { method: 'GET' })
   const body = await res.json()
   if (!res.ok) throw new Error(body?.message ?? `HTTP ${res.status}`)
   return body?.data ?? []
@@ -47,9 +48,8 @@ export function getReassignmentCandidates(locationUuid: string, page = 1, limit 
 
 /** PATCH /encounter/:id/assign-practitioner — mismo endpoint para asignar y reasignar. */
 export async function assignPractitioner(encounterId: number, payload: AssignPractitionerPayload): Promise<unknown> {
-  const res = await fetch(ENDPOINTS.practitionerAssignment.assign(encounterId), {
+  const res = await apiFetch(ENDPOINTS.practitionerAssignment.assign(encounterId), {
     method: 'PATCH',
-    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { ENDPOINTS } from '../config/endpoints'
+import { apiFetch } from 'shell/ApiClient'
 import type { BedApiItem } from '../mapper/bed.mapper'
 
 interface BedBoardApiResponse {
@@ -36,9 +37,8 @@ export function useBedBoard({ locationId, enabled }: UseBedBoardOptions): UseBed
     setLoading(true)
     setError(null)
 
-    fetch(ENDPOINTS.bedManagement.board(locationId), {
+    apiFetch(ENDPOINTS.bedManagement.board(locationId), {
       method: 'GET',
-      credentials: 'include',
     })
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)

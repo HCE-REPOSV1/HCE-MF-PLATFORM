@@ -3,6 +3,7 @@ import { useSedeUuid } from './useSedeUuid'
 import { decryptAesGcm } from '../services/crypto.service'
 import type { EncryptedPayload } from '../services/crypto.service'
 import { ENDPOINTS } from '../config/endpoints'
+import { apiFetch } from 'shell/ApiClient'
 
 
 const DECRYPT_KEY = import.meta.env.VITE_EMERGENCY_DECRYPT_KEY as string
@@ -63,11 +64,16 @@ export function useEmergencyMonitor({
     // cache: "no-store" — sin esto, refetch() podía pegarle a la misma URL y recibir una
     // respuesta HTTP cacheada vieja en vez de la data fresca (ej. tras guardar un triaje,
     // la grilla seguía mostrando el conteo anterior hasta un reload completo).
-    fetch(url, {
-      method: "GET",
-      credentials: "include"
-      //cache: "no-store",
-    })
+    //
+    // isPublicView => monitor TV público, SIN sesión: se queda en fetch() plano.
+    // apiFetch fuerza credentials:"include" y dispara refresh-on-401 +
+    // SESSION_EXPIRED_EVENT si el refresh falla -- eso no aplica a una pantalla
+    // sin usuario logueado (ver comentario de isPublicView más arriba en este archivo).
+    const request = isPublicView
+      ? fetch(url, { method: "GET", credentials: "include" })
+      : apiFetch(url, { method: "GET" })
+
+    request
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         return res.json()

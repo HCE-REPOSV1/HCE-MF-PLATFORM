@@ -1,4 +1,5 @@
 import { ENDPOINTS } from '../config/endpoints'
+import { apiFetch } from 'shell/ApiClient'
 
 export interface AvailableBedApiItem {
   bed_id: number
@@ -23,9 +24,8 @@ export interface ReassignBedPayload {
 export async function getAvailableBeds(
   locationId: number | string,
 ): Promise<BedOption[]> {
-  const res = await fetch(ENDPOINTS.bedManagement.available(locationId), {
+  const res = await apiFetch(ENDPOINTS.bedManagement.available(locationId), {
     method: "GET",
-    credentials: "include",
   })
 
   const body = await res.json()
@@ -36,8 +36,6 @@ export async function getAvailableBeds(
 
   const items = body?.data ?? []
 
-  console.log(body)
-
   return items.map((bed: any) => ({
     id: String(bed.bed_id),
     label:  bed.bed_code || `Cama ${bed.bed_id}`,
@@ -47,9 +45,8 @@ export async function getAvailableBeds(
 
 /** POST /encounter/beds/reassign — libera la asignación activa actual del encounter (si existe) y ocupa la nueva cama. */
 export async function reassignBed(payload: ReassignBedPayload): Promise<unknown> {
-  const res = await fetch(ENDPOINTS.bedManagement.reassign(), {
+  const res = await apiFetch(ENDPOINTS.bedManagement.reassign(), {
     method: 'POST',
-    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })

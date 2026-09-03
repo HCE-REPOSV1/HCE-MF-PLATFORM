@@ -36,6 +36,18 @@ export interface PatientRecordPractitioner {
   speciality_display: string | null;
 }
 
+/** Dirección del paciente, tal como la devuelve GET /encounter/:id/patient-summary (PatientSummaryAddressDto). */
+export interface PatientRecordAddress {
+  address_line_1: string | null;
+  address_line_2: string | null;
+  /** Distrito */
+  address_district: string | null;
+  address_city: string | null;
+  /** Departamento */
+  address_state: string | null;
+  address_country: string | null;
+}
+
 /** Seguro del encounter, tal como lo devuelve GET /encounter/:id/patient-summary (PatientSummaryInsuranceDto). */
 export interface PatientRecordInsurance {
   insurance_provider_id: number | null;
@@ -67,7 +79,8 @@ export interface PatientRecordApi {
   blood_type: string | null;
   phone: string | null;
   email: string | null;
-  address: string | null;
+  /** Objeto de dirección (PatientSummaryAddressDto), no string. Ver formatAddress() en utils/formatAddress.tsx para mostrarla como una sola línea. */
+  address: PatientRecordAddress | null;
   insurance: PatientRecordInsurance | null;
 
   attending_practitioner?: PatientRecordPractitioner | null;
