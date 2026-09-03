@@ -14,7 +14,6 @@ export default defineConfig(({ mode }) => {
     "VITE_REMOTE_TRIAGE",
     "VITE_APIGW_CNL_WEB_EMERGENCY",
     "VITE_APIGW_CLN_CROSS",
-    "VITE_CSI_GENDER",
     "VITE_REMOTE_CLINICAL_RECORD"
   ];
 

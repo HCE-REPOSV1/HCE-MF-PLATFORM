@@ -96,7 +96,6 @@ services:
         VITE_APIGW_CNL_WEB_EMERGENCY: https://servicios.dev.sanfelipe.com:20602
         VITE_APIGW_CLN_CROSS: https://servicios.dev.sanfelipe.com:20601
         VITE_EMERGENCY_DECRYPT_KEY: 98fd5dd5c3584001b1b3e225aa10e04c9032a0dbc81936599b2f52a2a166c356
-        VITE_CSI_GENDER: 3
         VITE_REMOTE_CLINICAL_RECORD: https://servicios.dev.sanfelipe.com:20511/assets/remoteEntry.js
     restart: unless-stopped
     ports:
@@ -245,8 +244,6 @@ services:
         VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
         VITE_APIGW_WEB_EMERGENCY: https://servicios.dev.sanfelipe.com:20602
         VITE_APIGW_CLN_CROSS : https://servicios.dev.sanfelipe.com:20601
-        VITE_CSI_INPUT_TIPO_MOTIVO : 24
-        VITE_CSI_GENDER : 3
 
     restart: unless-stopped
     ports:

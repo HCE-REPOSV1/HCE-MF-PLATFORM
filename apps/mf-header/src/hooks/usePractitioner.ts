@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { apiFetch } from "shell/ApiClient"
+import { useTranslation } from "@hce/i18n-core"
 import {
   getPractitionerByUsername,
   getPractitionerPhotoUrl,
@@ -22,6 +23,10 @@ export function usePractitioner(username: string | null | undefined): UsePractit
   const [error,     setError]     = useState<string | null>(null)
 
   const loading = username !== loadedFor
+  // i18n.language como dependencia: el subtítulo (speciality_display) lo resuelve
+  // el backend según Accept-Language, así que un cambio de idioma sin re-fetch
+  // dejaría el subtítulo viejo hasta el próximo cambio de username.
+  const { i18n } = useTranslation()
 
   useEffect(() => {
     if (!username) {
@@ -81,7 +86,7 @@ export function usePractitioner(username: string | null | undefined): UsePractit
       cancelled = true
       if (blobUrl) URL.revokeObjectURL(blobUrl)
     }
-  }, [username])
+  }, [username, i18n.language])
 
   const subtitle = data ? getPractitionerSubtitle(data) : null
 

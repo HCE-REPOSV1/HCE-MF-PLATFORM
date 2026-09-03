@@ -44,8 +44,11 @@ import type { CatalogCompanionTypes } from "../../types/Catalog.type";
 type ViewMode = "anamnesis" | "examen-fisico";
 type PatientBackgroundCategory = "general" | "gyn_obstetric" | "pathological";
 
-const SLEEP_APPETITE_CODE_SYSTEM_ID = 127;
-const URINE_STOOL_WEIGHT_CODE_SYSTEM_ID = 128;
+// code_system_id es un IDENTITY autoincremental de SQL Server: NO es estable
+// entre entornos/bases de datos. Se usa code_system_code (string estable)
+// contra el endpoint catalogs/code-system-values?code_system_code=...
+const SLEEP_APPETITE_CODE_SYSTEM_CODE = "PHYSICAL_EXAM_FUNCTION_LEVEL";
+const URINE_STOOL_WEIGHT_CODE_SYSTEM_CODE = "PHYSICAL_EXAM_BINARY_STATUS";
 
 interface HistoryPhysicalExamProps {
   readOnly?: boolean;
@@ -687,7 +690,7 @@ const ExamenFisicoContent = ({
   const { user } = useUser();
   const { fetchHistoryPhysicalExam, loadingHistoryPhysicalExam } =
     useMedicalHistory();
-  const { fetchCodeSystemValues, loadingCatalogCodeSystemValues } =
+  const { fetchCodeSystemValuesByCode, loadingCatalogCodeSystemValues } =
     useCatalog();
   const { registerTabData, getTabData } = useClinicalRecordForm();
 
@@ -825,8 +828,8 @@ const ExamenFisicoContent = ({
 
     const load = async () => {
       const result = await Promise.all([
-        fetchCodeSystemValues(SLEEP_APPETITE_CODE_SYSTEM_ID),
-        fetchCodeSystemValues(URINE_STOOL_WEIGHT_CODE_SYSTEM_ID),
+        fetchCodeSystemValuesByCode(SLEEP_APPETITE_CODE_SYSTEM_CODE),
+        fetchCodeSystemValuesByCode(URINE_STOOL_WEIGHT_CODE_SYSTEM_CODE),
         fetchHistoryPhysicalExam(validEncounterId),
       ]);
       const [

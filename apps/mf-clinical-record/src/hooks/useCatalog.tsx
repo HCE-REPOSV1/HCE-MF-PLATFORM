@@ -7,6 +7,7 @@ import {
   getAgeGroups,
   getBackgroundCatalog,
   getCodeSystemValues,
+  getCodeSystemValuesByCode,
   getCompanionTypes,
   getIdentifierTypes,
   searchMedicationProducts,
@@ -48,6 +49,21 @@ function getCodeSystemFetcher(codeSystemId: number) {
     );
   }
   return codeSystemFetchers.get(codeSystemId)!;
+}
+
+// Mismo patrón que codeSystemFetchers pero keyeado por code_system_code
+// (string estable, ej. "GENDER") en vez de code_system_id (IDENTITY
+// autoincremental de SQL Server, no estable entre entornos/bases de datos).
+// Preferir esta variante para cualquier consumo nuevo.
+const codeSystemFetchersByCode = new Map<string, ReturnType<typeof createCachedFetcher>>();
+function getCodeSystemFetcherByCode(codeSystemCode: string) {
+  if (!codeSystemFetchersByCode.has(codeSystemCode)) {
+    codeSystemFetchersByCode.set(
+      codeSystemCode,
+      createCachedFetcher(() => getCodeSystemValuesByCode(codeSystemCode)),
+    );
+  }
+  return codeSystemFetchersByCode.get(codeSystemCode)!;
 }
 
 export function useCatalog() {
@@ -214,9 +230,34 @@ export function useCatalog() {
       }
     },
     [],
+  );
 
-
-    
+  // Preferida sobre fetchCodeSystemValues: recibe code_system_code (string
+  // estable) en vez de code_system_id (IDENTITY no estable entre entornos).
+  const fetchCodeSystemValuesByCode = useCallback(
+    async (
+      codeSystemCode: string,
+    ): Promise<CatalogCodeSystemValue[] | null> => {
+      catalogCodeSystemValues.setLoading(true);
+      catalogCodeSystemValues.setError(null);
+      try {
+        const response =
+          await getCodeSystemFetcherByCode(codeSystemCode).fetch(i18n.language);
+        catalogCodeSystemValues.setData(response as CatalogCodeSystemValue[]);
+        return response as CatalogCodeSystemValue[];
+      } catch (err) {
+        catalogCodeSystemValues.setError(
+          err instanceof Error
+            ? err.message
+            : "Error al buscar valores del catálogo",
+        );
+        catalogCodeSystemValues.setData(null);
+        return null;
+      } finally {
+        catalogCodeSystemValues.setLoading(false);
+      }
+    },
+    [],
   );
 
   const fetchAgeGroups = async (): Promise<CatalogAgeGroup[] | null> => {
@@ -268,6 +309,7 @@ export function useCatalog() {
     fetchAdministrationRoutes,
     fetchMedicationProductsSearch,
     fetchCodeSystemValues,
+    fetchCodeSystemValuesByCode,
     fetchAgeGroups,
     fetchIdentifierTypes,
     dataCatalogActivePrinciples: catalogActivePrinciples.data,

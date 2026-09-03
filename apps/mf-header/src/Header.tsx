@@ -139,13 +139,6 @@ export default function Header({
 
   const showBreadcrumb = breadcrumbItems.length > 0;
 
-  console.log(
-    "idioma activo:",
-    i18n.language,
-    "| namespaces cargados:",
-    i18n.reportNamespaces?.getUsedNamespaces?.(),
-  );
-  console.log("bundle header en:", i18n.getResourceBundle("en", "header"));
   return (
     <div
       style={{
