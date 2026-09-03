@@ -25,10 +25,6 @@ function RequireNavigatedPatient({ children }: { children: ReactNode }) {
   const encounterId = (state as { patient?: MonitorTableRow } | null)
     ?.patient?.encounter_id;
 
-  // 🔍 TEMPORAL — quitar una vez confirmado el diagnóstico
-  console.log("[RequireNavigatedPatient] state recibido:", state);
-  console.log("[RequireNavigatedPatient] encounterId resuelto:", encounterId);
-
   if (encounterId == null) {
     return <Navigate to="/home/emergencia" replace />;
   }

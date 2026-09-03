@@ -16,7 +16,7 @@ import {
 } from "@hce/design-system";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { mapAllergyApiToForm, type AllergyForm, type AllergyTableItem } from "../mapper/allergy.mapper";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@hce/i18n-core";
 import { usePermission } from "../hooks/usePermission";
 import { PERMISSIONS_CLINICAL_RECORD } from "../config/permissions";
 import { useUser } from "shell/UserContext";
@@ -385,6 +385,7 @@ const handleSave = useCallback(async () => {
           label: t("allergy.cancel"),
           onClick: handleCancel,
         }}
+        testId="mf-clinical-record-allergy-confirm-modal"
       />
 
       {!confirm && (
@@ -394,6 +395,7 @@ const handleSave = useCallback(async () => {
           title={t("allergy.title")}
           maxWidth={allergyEditionOpen ? "md" : 1200}
           buttonAlign="right"
+          testId="mf-clinical-record-allergy-modal"
         >
           {/* El HceModal acepta children opcionales — aquí metemos el select */}
           <Box sx={{ textAlign: "center", mt: 1 }}>
@@ -476,6 +478,7 @@ const handleSave = useCallback(async () => {
                               set("other", "");
                             }
                           }}
+                          testId="mf-clinical-record-allergy-modal-radio"
                         />
                       </Grid>
 
@@ -493,6 +496,7 @@ const handleSave = useCallback(async () => {
                             setValuePrincipioActivo(values);
                             set("api", values);
                           }}
+                          testId="mf-clinical-record-allergy-modal-active-principle"
                         />
                       </Grid>
                     </Grid>
@@ -509,6 +513,7 @@ const handleSave = useCallback(async () => {
                       !enabledAlergiasTriage ||
                       form.has_allergy == false
                     }
+                    testId="mf-clinical-record-allergy-modal-food"
                   />
                 </Box>
                 <Box sx={{ mt: "20px" }}>
@@ -523,6 +528,7 @@ const handleSave = useCallback(async () => {
                       !enabledAlergiasTriage ||
                       form.has_allergy == false
                     }
+                    testId="mf-clinical-record-allergy-modal-other"
                   />
                 </Box>
               </Box>
@@ -554,6 +560,7 @@ const handleSave = useCallback(async () => {
                       onClick={handleSave}
                       disabled={isSaveDisabled}
                       aria-label={t("allergy.accept")}
+                      testId="mf-clinical-record-allergy-modal-save"
                       sx={{
                         fontFamily: hceTypography.fontFamily,
                         fontWeight: 600,

@@ -364,12 +364,6 @@ export default function MonitorPage() {
 
   const handlePatientClick = useCallback(
     (row: MonitorTableRow) => {
-      console.log("[MonitorPage] handlePatientClick — row completa:", row);
-      console.log(
-        "[MonitorPage] handlePatientClick — encounter_id:",
-        row.encounter_id,
-      );
-
       navigate("historiacli", {
         state: {
           patient: row,

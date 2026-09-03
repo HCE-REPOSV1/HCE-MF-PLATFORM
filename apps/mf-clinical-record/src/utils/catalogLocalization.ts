@@ -21,10 +21,7 @@ export function getLocalizedCatalogDisplay(
 ): string {
   if (!item) return fallback;
 
-  console.log('language  '+ language)
   const normalizedLanguage = language?.toLowerCase().split("-")[0];
-
-  console.log( normalizedLanguage)
 
   const localizedDisplay =
     normalizedLanguage === "en"
