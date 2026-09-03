@@ -1,70 +1,8 @@
 // hooks/usePatientRecord.tsx
 import { useCallback, useEffect, useState } from "react";
+import { i18n } from "@hce/i18n-core";
 import { getPatientRecord } from "../services/patientRecord.service";
 import type { PatientRecordApi } from "../types/Patient.type";
-
-export interface PatientIdentifier {
-  practitioner_id: number;
-  doctor_name: string;
-  speciality_id: number;
-  speciality_es: string | null;
-  speciality_en: string | null;
-}
-
-export interface AllergySubstances {
-  allergy_substance_id: number ;
-  active_principle_id: number;
-  active_principle_name: string;
- 
-}
-
-export interface Declaration {
-  allergy_intolerance_id: number;
-  triage_id: string;
-  has_allergies: "S" | "N";
-  food_allergies: string | null;
-  other_allergies: string | null;
-  declared_at: string;
-  substances: AllergySubstances[];
-}
-
-export interface PatientAllergy{
-
-  encounter_id: number;
-    has_triage: string;
-  
-    has_declaration: string;
-    declaration: Declaration | null;
-}
-
-export interface PatientRecord {
-  encounter_id: number;
-  encounter_class: string;
-
-  attention_code: string;
-  clinical_history_number: string;
-  patient_id: string;
-
-  full_name:string;
-  gender: string;
-  birth_date: string;
- age_display: string;
- document_type:string;
- document_number:string;
-
-  blood_type: string | null;
-
-  phone: string | null;
-  email: string | null;
-  address: string | null;
-
-  insurance:string| null ;
- 
-
-  attending_practitioner?: PatientIdentifier  | null;
-  allergy?: PatientAllergy;
-}
-
 
 export interface UsePatientRecordResult {
   data: PatientRecordApi | null;
@@ -86,6 +24,12 @@ export function usePatientRecord(
     setTick((value) => value + 1);
   }, []);
 
+  // i18n.language se agrega como dependencia del efecto de abajo: gender_display/
+  // speciality_display/provider_name/product_name vienen ya resueltos por el
+  // backend según el header Accept-Language que se manda en el momento del
+  // fetch (ver apiFetch en mf-shell) -- si el usuario cambia de idioma en
+  // caliente hay que volver a pedir el recurso para que esos campos se
+  // actualicen (mismo patrón que ExamenFisicoContent en HistoryPhysicalExam.tsx).
   useEffect(() => {
     if (!encounterId) {
       setData(null);
@@ -124,7 +68,7 @@ export function usePatientRecord(
     return () => {
       cancelled = true;
     };
-  }, [encounterId, tick]);
+  }, [encounterId, tick, i18n.language]);
 
   return { data, loading, error, refetch };
 }

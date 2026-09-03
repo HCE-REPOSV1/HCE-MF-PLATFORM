@@ -426,15 +426,7 @@ export function Triage({
   //Usuario y sede activa (federados desde mf-shell)
   const { user, sedeActual } = useUser();
 
-  const { t, i18n } = useTranslation("triage");
-
-  const localeLabelKey =
-    i18n.resolvedLanguage === "en"
-      ? "display_en"
-      : i18n.resolvedLanguage === "pt"
-        ? "display_pt"
-        : "display_es";
-
+  const { t } = useTranslation("triage");
 
   useEffect(() => {
     registerTriageNamespace();
@@ -485,12 +477,15 @@ export function Triage({
           ageGroups,
         ] = results;
 
+        // g.display / t.display ya vienen resueltos según Accept-Language
+        // (fallback a es) -- reemplazan a los antiguos display_es/display_en,
+        // no hace falta elegir el idioma en el cliente.
         if (genders && Array.isArray(genders)) {
           setGenderOptions(
             genders
               .filter((g) => g.is_active)
               .sort((a, b) => a.sort_order - b.sort_order)
-              .map((g) => ({ value: g.code, label: String(g[localeLabelKey as keyof typeof g] ?? g.display_es) })),
+              .map((g) => ({ value: g.code, label: g.display })),
           );
         }
 
@@ -499,7 +494,7 @@ export function Triage({
             ageGroups
               .filter((g) => g.is_active)
               .sort((a, b) => a.sort_order - b.sort_order)
-              .map((g) => ({ value: g.code, label: String(g[localeLabelKey as keyof typeof g] ?? g.display_es) })),
+              .map((g) => ({ value: g.code, label: g.display })),
           );
         }
 
@@ -518,7 +513,7 @@ export function Triage({
             identifierTypes
               .filter((t) => t.is_active)
               .sort((a, b) => a.sort_order - b.sort_order)
-              .map((t) => ({ value: t.code, label: String(t[localeLabelKey as keyof typeof t] ?? t.display_es) })),
+              .map((t) => ({ value: t.code, label: t.display })),
           );
         } else {
           setLoadError(t("errors.catalog.loadIdentifierTypes"));

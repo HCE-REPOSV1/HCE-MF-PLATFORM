@@ -28,8 +28,6 @@ export interface CatalogCompanionTypes {
   date_create: string;
   date_modify: string | null;
   is_active: boolean;
-  description_es: string;
-  description_en: string;
 }
 
 export interface CatalogCompanionTypesResponse {
@@ -51,8 +49,6 @@ export interface CatalogBackgroundItem {
   date_create: string;
   date_modify: string | null;
   is_active: boolean;
-  background_name_es: string;
-  background_name_en: string;
 }
 
 export interface CatalogBackgroundResponse {
@@ -80,8 +76,6 @@ export interface CatalogAdministrationRoute {
   date_create: string;
   date_modify: string | null;
   is_active: boolean;
-  description_es: string;
-  description_en: string;
 }
 
 export interface CatalogMedicationProduct {
@@ -95,8 +89,6 @@ export interface CatalogMedicationProduct {
   product_display: string;
   product_display_search: string;
   is_active: boolean;
-  product_display_es: string;
-  product_display_en: string;
 }
 
 export interface CatalogMedicationProductSearchResponse {
@@ -120,8 +112,6 @@ export interface CatalogCodeSystemValue {
   date_create: string;
   date_modify: string | null;
   is_active: boolean;
-  display_es: string;
-  display_en: string;
 }
 
 export interface CatalogCodeSystemValuesResponse {
@@ -136,8 +126,8 @@ export interface CatalogIdentifierType {
   identifier_type_id:       number;
   identifier_type_uuid:     string;
   code:                     string;
-  display_es:               string;
-  display_en:               string;
+  /** Resuelto según Accept-Language (fallback a es). Reemplaza a los antiguos display_es/display_en. */
+  display:                  string;
   entity_type:              string;
   requires_expiry:          boolean;
   is_reniec_verifiable:     boolean;
@@ -180,7 +170,8 @@ export interface CatalogAgeGroup {
   age_group_id:    number;
   age_group_uuid:  string;
   code:            string;
-  display_es:      string;
+  /** Resuelto según Accept-Language (fallback a es). Reemplaza al antiguo display_es (nunca hubo display_en real). */
+  display:         string;
   description:     string | null;
   age_min_days:    number;
   age_max_days:    number | null;

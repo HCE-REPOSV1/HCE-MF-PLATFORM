@@ -13,7 +13,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useCatalog } from "../../hooks/useCatalog";
 import type { CatalogBackgroundItem } from "../../types/Catalog.type";
-import { getLocalizedCatalogDisplay } from "../../utils/catalogLocalization";
 
 type PatientBackgroundCategory = "general" | "gyn_obstetric" | "pathological";
 
@@ -65,7 +64,11 @@ export default function AddPatientBackgroundModal({
       setBackgroundCatalog(data ?? []);
     };
     loadCatalog();
-  }, [fetchBackgroundCatalog]);
+    // i18n.language: item.background_name ya viene resuelto por el backend
+    // según Accept-Language al momento del fetch -- hay que volver a pedirlo
+    // si el usuario cambia de idioma en caliente (createCachedFetcher ahora
+    // cachea por locale, así que esto sí dispara una request nueva).
+  }, [fetchBackgroundCatalog, i18n.language]);
 
   useEffect(() => {
     if (!open) return;
@@ -81,18 +84,13 @@ export default function AddPatientBackgroundModal({
         .filter(
           (item) => item.background_category === category && item.is_active,
         )
+        // item.background_name ya viene resuelto según Accept-Language
+        // (fallback a es) -- no hace falta traducirlo de nuevo en el cliente.
         .map((item) => ({
           value: String(item.background_catalog_id),
-          label: getLocalizedCatalogDisplay(
-                    {
-                      background_name_es: item.background_name_es,
-                      background_name_en: item.background_name_en,
-                    },
-                    i18n.language,
-                    item.background_name,
-                  ),//item.background_name,
+          label: item.background_name,
         })),
-    [backgroundCatalog, category, i18n.language],
+    [backgroundCatalog, category],
   );
 
   const backgroundCatalogOptions = useMemo(

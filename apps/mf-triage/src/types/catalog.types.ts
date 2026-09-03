@@ -35,8 +35,8 @@ export interface CatalogCodeSystemValue {
     value_uuid:     string,
     code_system_id: number,
     code:           string,
-    display_es:     string,
-    display_en:     string,
+    /** Resuelto según Accept-Language (fallback a es). Reemplaza a los antiguos display_es/display_en. */
+    display:        string,
     sort_order:     number,
     is_default:     boolean,
     metadata_json:  string | null,
@@ -76,8 +76,8 @@ export interface CatalogIdentifierType {
   identifier_type_id:       number;
   identifier_type_uuid:     string;
   code:                     string;
-  display_es:               string;
-  display_en:               string;
+  /** Resuelto según Accept-Language (fallback a es). Reemplaza a los antiguos display_es/display_en. */
+  display:                  string;
   entity_type:              string;
   requires_expiry:          boolean;
   is_reniec_verifiable:     boolean;
@@ -120,7 +120,8 @@ export interface CatalogAgeGroup {
   age_group_id:    number;
   age_group_uuid:  string;
   code:            string;
-  display_es:      string;
+  /** Resuelto según Accept-Language (fallback a es). Reemplaza al antiguo display_es (nunca hubo display_en real). */
+  display:         string;
   description:     string | null;
   age_min_days:    number;
   age_max_days:    number | null;

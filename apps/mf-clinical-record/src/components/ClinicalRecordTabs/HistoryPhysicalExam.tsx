@@ -39,7 +39,6 @@ import { useMedicalHistory } from "../../hooks/useMedicalHistory";
 import AddPatientBackgroundModal from "./AddPatientBackgroundModal";
 import AddMedicationReconciliationModal from "./AddMedicationReconciliationModal";
 import { formatDate, formatDateTime } from "../../utils/dateFormat";
-import { getLocalizedCatalogDisplay } from "../../utils/catalogLocalization";
 import type { CatalogCompanionTypes } from "../../types/Catalog.type";
 
 type ViewMode = "anamnesis" | "examen-fisico";
@@ -180,22 +179,22 @@ const AnamnesisContent = ({
       setCompanionTypes(data ?? []);
     };
     loadCatalog();
-  }, [fetchCompanionTypes]);
+    // i18n.language: item.description ya viene resuelto por el backend según
+    // Accept-Language al momento del fetch -- hay que volver a pedirlo si el
+    // usuario cambia de idioma en caliente (createCachedFetcher ahora cachea
+    // por locale, así que esto sí dispara una request nueva).
+  }, [fetchCompanionTypes, i18n.language]);
 
   const companionTypeOptions = useMemo(
+    // item.description ya viene resuelto según Accept-Language (fallback a es)
+    // -- el backend reemplazó el par description_es/description_en por este
+    // único campo, no hace falta traducirlo de nuevo en el cliente.
     () =>
       companionTypes.map((item) => ({
         value: String(item.companion_type_id),
-        label: getLocalizedCatalogDisplay(
-          {
-            display_es: item.description_es,
-            display_en: item.description_en,
-          },
-          i18n.language,
-          item.description,
-        ),
+        label: item.description,
       })),
-    [companionTypes, i18n.language],
+    [companionTypes],
   );
 
   useEffect(() => {
@@ -837,21 +836,14 @@ const ExamenFisicoContent = ({
       ] = result;
 
       if (biologicalFunctionsSAData) {
+        // item.display ya viene resuelto según Accept-Language (fallback a es).
         setSleepAppetiteOptions(
           (biologicalFunctionsSAData ?? [])
             .filter((item) => item.is_active)
             .sort((a, b) => a.sort_order - b.sort_order)
             .map((item) => ({
               value: item.code,
-              label: getLocalizedCatalogDisplay(
-                {
-                  display_es: item.display_es,
-                  display_en: item.display_en,
-                },
-                i18n.language,
-                item.display,
-              ),
-              // item.display
+              label: item.display,
             })),
         );
       }

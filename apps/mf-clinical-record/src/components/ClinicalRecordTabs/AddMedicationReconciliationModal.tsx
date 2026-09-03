@@ -15,7 +15,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useCatalog } from "../../hooks/useCatalog";
 import type { CatalogAdministrationRoute } from "../../types/Catalog.type";
-import { getLocalizedCatalogDisplay } from "../../utils/catalogLocalization";
 
 export interface NewMedicationReconciliationPayload {
   medication_legacy_code: string;
@@ -115,24 +114,23 @@ export default function AddMedicationReconciliationModal({
       setAdministrationRoutes(data ?? []);
     };
     loadRoutes();
-  }, [fetchAdministrationRoutes]);
+    // i18n.language: item.description ya viene resuelto por el backend según
+    // Accept-Language al momento del fetch -- hay que volver a pedirlo si el
+    // usuario cambia de idioma en caliente (createCachedFetcher ahora cachea
+    // por locale, así que esto sí dispara una request nueva).
+  }, [fetchAdministrationRoutes, i18n.language]);
 
   const routeOptions = useMemo(
     () =>
       administrationRoutes
         .filter((item) => item.is_active)
+        // item.description ya viene resuelto según Accept-Language (fallback
+        // a es) -- no hace falta traducirlo de nuevo en el cliente.
         .map((item) => ({
           value: String(item.administration_route_id),
-          label: getLocalizedCatalogDisplay(
-            {
-              description_es: item.description_es,
-              description_en: item.description_en,
-            },
-            i18n.language,
-            item.description,
-          ), //item.description,
+          label: item.description,
         })),
-    [administrationRoutes, i18n.language],
+    [administrationRoutes],
   );
 
   // ── Resto del formulario ─────────────────────────────────────────────────

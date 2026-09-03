@@ -13,9 +13,26 @@
  *      se emite SESSION_EXPIRED_EVENT (para que mf-shell cierre la sesión
  *      aunque la request protegida venga de otro microfrontend) y se
  *      lanza SessionExpiredError.
+ *
+ * Agrega además `Accept-Language` en cada request, derivado del idioma
+ * activo de @hce/i18n-core (i18n.language, lectura sincrónica del singleton
+ * i18next -- no requiere await ni contexto de React). El backend (ver
+ * TranslationEnricher en ms-bs-catalogs y los endpoints de patient-summary/
+ * patient/:id/full) resuelve campos de catálogo server-side según este
+ * header, con fallback a "es" si no se envía. Sin este header, el backend
+ * SIEMPRE responde en español sin importar el idioma activo de la UI.
  * ---------------------------------------------------------
  */
+import { i18n } from "@hce/i18n-core"
 import { ENDPOINTS } from "../config/endpoints"
+
+function withAcceptLanguage(headers: HeadersInit | undefined): Headers {
+  const merged = new Headers(headers)
+  if (!merged.has("Accept-Language")) {
+    merged.set("Accept-Language", i18n.language)
+  }
+  return merged
+}
 
 export const SESSION_EXPIRED_EVENT = "hce:session-expired"
 
@@ -38,7 +55,11 @@ function refreshToken(): Promise<boolean> {
 }
 
 export async function apiFetch(url: string, options: RequestInit = {}, _retried = false): Promise<Response> {
-  const res = await fetch(url, { ...options, credentials: "include" })
+  const res = await fetch(url, {
+    ...options,
+    credentials: "include",
+    headers: withAcceptLanguage(options.headers),
+  })
 
   if (res.status !== 401 || _retried) return res
 

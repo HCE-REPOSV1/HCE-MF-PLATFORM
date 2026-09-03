@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { i18n } from "@hce/i18n-core";
 import {
   getActivePrinciples,
   getActivePrinciplesSearch,
@@ -111,7 +112,7 @@ export function useCatalog() {
     catalogCompanionTypes.setLoading(true);
     catalogCompanionTypes.setError(null);
     try {
-      const response = await companionTypesFetcher.fetch();
+      const response = await companionTypesFetcher.fetch(i18n.language);
       catalogCompanionTypes.setData(response);
       return response;
     } catch (err) {
@@ -133,7 +134,7 @@ export function useCatalog() {
     catalogBackground.setLoading(true);
     catalogBackground.setError(null);
     try {
-      const response = await backgroundCatalogFetcher.fetch();
+      const response = await backgroundCatalogFetcher.fetch(i18n.language);
       catalogBackground.setData(response);
       return response;
     } catch (err) {
@@ -155,7 +156,7 @@ export function useCatalog() {
     catalogAdministrationRoutes.setLoading(true);
     catalogAdministrationRoutes.setError(null);
     try {
-      const response = await administrationRoutesFetcher.fetch();
+      const response = await administrationRoutesFetcher.fetch(i18n.language);
       catalogAdministrationRoutes.setData(response);
       return response;
     } catch (err) {
@@ -197,7 +198,7 @@ export function useCatalog() {
       catalogCodeSystemValues.setLoading(true);
       catalogCodeSystemValues.setError(null);
       try {
-        const response = await getCodeSystemFetcher(codeSystemId).fetch();
+        const response = await getCodeSystemFetcher(codeSystemId).fetch(i18n.language);
         catalogCodeSystemValues.setData(response as CatalogCodeSystemValue[]);
         return response as CatalogCodeSystemValue[];
       } catch (err) {

@@ -15,7 +15,7 @@ import {
   DisketteIcon,
   hceColors,
 } from "@hce/design-system";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import type {
   ClinicalRecordPatient,
@@ -30,12 +30,8 @@ import {
 import { ClinicalRecordTabs } from "./components/ClinicalRecordTabs";
 import { mapToSavePayload } from "./mapper/medicalHistory.mapper";
 import { usePatientRecord } from "./hooks/usePatientRecord";
-import { useCatalog } from "./hooks/useCatalog";
 import { useTranslation } from "@hce/i18n-core";
-import { getLocalizedCatalogDisplay } from "./utils/catalogLocalization";
 import { useClinicalRecordNamespaceReady } from "./i18n";
-
-const CSI_GENDER = 3;
 
 export default function ClinicalRecordPage() {
   const namespaceReady = useClinicalRecordNamespaceReady();
@@ -47,59 +43,14 @@ export default function ClinicalRecordPage() {
     () => navigatedPatient?.encounter_id ?? undefined,
   );
 
-  const { t, i18n } = useTranslation("clinical-record");
-  const {
-    fetchAgeGroups,
-    fetchIdentifierTypes,
-    fetchCodeSystemValues,
-    dataCatalogCodeSystemValues: codeSystemValues,
-  } = useCatalog();
+  const { t } = useTranslation("clinical-record");
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const results = await Promise.all([
-          fetchIdentifierTypes("patient"),
-          fetchCodeSystemValues(CSI_GENDER),
-          fetchAgeGroups(),
-        ]);
-        const [identifierTypes, genders, ageGroups] = results;
-
-        if (genders && Array.isArray(genders)) {
-          genders
-            .filter((g) => g.is_active)
-            .sort((a, b) => a.sort_order - b.sort_order)
-            .map((g) => ({
-              value: g.code,
-              label: getLocalizedCatalogDisplay(g, i18n.resolvedLanguage),
-            }));
-        }
-
-        if (ageGroups && Array.isArray(ageGroups)) {
-          ageGroups
-            .filter((g) => g.is_active)
-            .sort((a, b) => a.sort_order - b.sort_order)
-            .map((g) => ({
-              value: g.code,
-              label: getLocalizedCatalogDisplay(g, i18n.resolvedLanguage),
-            }));
-        }
-
-        if (identifierTypes && Array.isArray(identifierTypes)) {
-          identifierTypes
-            .filter((t) => t.is_active)
-            .sort((a, b) => a.sort_order - b.sort_order)
-            .map((t) => ({
-              value: t.code,
-              label: getLocalizedCatalogDisplay(t, i18n.resolvedLanguage),
-            }));
-        }
-      } catch (err) {
-        console.error(t("clinicalRecordPage.errors.loadCatalogs"), err);
-      }
-    };
-    loadData();
-  }, []);
+  // Nota: age-groups/identifier-types se pidieron acá en algún momento como
+  // "precarga", pero fetchAgeGroups/fetchIdentifierTypes (ver useCatalog.tsx)
+  // no pasan por createCachedFetcher -- no hay cache de módulo que calentar
+  // -- y ningún componente de este árbol lee dataAgeGroups/dataIdentifierTypes
+  // (confirmado por grep). Se quitó el fetch muerto; si hace falta ese
+  // catálogo en algún lado, hay que llamarlo desde donde realmente se usa.
 
   const {
     data: patientRecord,
@@ -111,45 +62,32 @@ export default function ClinicalRecordPage() {
   const patient = useMemo<ClinicalRecordPatient | null>(() => {
     if (!patientRecord) return null;
 
-    const catalogGender = codeSystemValues?.find(
-      ({ code, is_active }) =>
-        is_active && code.toLowerCase() === patientRecord.gender?.toLowerCase(),
-    );
-
     const practitioner = patientRecord.attending_practitioner;
 
     return {
       patientId: String(patientRecord.patient_id),
       fullName: patientRecord.full_name,
-      gender: getLocalizedCatalogDisplay(
-        catalogGender,
-        i18n.language,
-        patientRecord.gender || "-",
-      ),
+      // gender_display/speciality_display/provider_name/product_name ya vienen
+      // resueltos por el backend según Accept-Language -- no hay que traducirlos
+      // de nuevo en el cliente (ver apiFetch en mf-shell y usePatientRecord,
+      // que refetchea al cambiar de idioma para mantener estos campos al día).
+      gender: patientRecord.gender_display || "-",
       ageDisplay: patientRecord.age_display || "-",
       documentType: patientRecord.document_type || "-",
       documentNumber: patientRecord.document_number || "-",
       bloodType: patientRecord.blood_type || "-",
-      specialty: getLocalizedCatalogDisplay(
-        practitioner
-          ? {
-              display_es: practitioner.speciality_es,
-              display_en: practitioner.speciality_en,
-            }
-          : null,
-        i18n.language,
-      ),
+      specialty: practitioner?.speciality_display || "-",
       doctorName: practitioner?.doctor_name ?? "-",
       attentionCode: patientRecord.attention_code ?? "-",
       clinicalHistoryNumber: patientRecord.clinical_history_number ?? "-",
-      insuranceName: patientRecord.insurance ?? "-",
-      insuranceProduct: "-",
+      insuranceName: patientRecord.insurance?.provider_name ?? "-",
+      insuranceProduct: patientRecord.insurance?.product_name ?? "-",
       email: patientRecord.email ?? "-",
       phone: patientRecord.phone ?? "-",
       address: patientRecord.address ?? "-",
       hasAllergies: patientRecord.allergy?.declaration?.has_allergies === "S",
     };
-  }, [patientRecord, codeSystemValues, i18n.resolvedLanguage]);
+  }, [patientRecord]);
 
   const patientIdNumber = useMemo<number | undefined>(() => {
     const raw = patientRecord?.patient_id ?? navigatedPatient?.patient_id;

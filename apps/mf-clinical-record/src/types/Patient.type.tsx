@@ -31,9 +31,19 @@ export interface NavigatedPatientState {
 export interface PatientRecordPractitioner {
   practitioner_id: number;
   doctor_name: string;
-  speciality_id: number;
-  speciality_es: string | null;
-  speciality_en: string | null;
+  speciality_id: number | null;
+  /** Especialidad resuelta según Accept-Language (fallback a es). Reemplaza a los antiguos speciality_es/speciality_en. */
+  speciality_display: string | null;
+}
+
+/** Seguro del encounter, tal como lo devuelve GET /encounter/:id/patient-summary (PatientSummaryInsuranceDto). */
+export interface PatientRecordInsurance {
+  insurance_provider_id: number | null;
+  /** Nombre de la aseguradora resuelto según Accept-Language (fallback a es). Reemplaza a los antiguos provider_name_es/_en. */
+  provider_name: string | null;
+  insurance_product_id: number | null;
+  /** Nombre del producto de seguro resuelto según Accept-Language (fallback a es). Reemplaza a los antiguos product_name_es/_en. */
+  product_name: string | null;
 }
 
 /** Respuesta cruda de GET /encounter/:id/patient-summary (mismo contrato que consume mf-emergency). */
@@ -45,7 +55,10 @@ export interface PatientRecordApi {
   patient_id: string;
 
   full_name: string;
+  /** Código crudo (catalog.code_system_value, code_system GENDER). Ver gender_display para el texto ya traducido. */
   gender: string;
+  /** Texto de gender resuelto según Accept-Language (fallback a es). Campo aditivo, no reemplaza a `gender`. */
+  gender_display: string | null;
   birth_date: string;
   age_display: string;
   document_type: string;
@@ -55,7 +68,7 @@ export interface PatientRecordApi {
   phone: string | null;
   email: string | null;
   address: string | null;
-  insurance: string | null;
+  insurance: PatientRecordInsurance | null;
 
   attending_practitioner?: PatientRecordPractitioner | null;
   allergy?: {

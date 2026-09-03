@@ -48,8 +48,6 @@ const MOCK_MEDICATION_PRODUCTS: CatalogMedicationProduct[] = [
     product_display: "Paracetamol 500mg Tableta",
     product_display_search: "paracetamol acetaminofen 500mg tableta",
     is_active: true,
-    product_display_es: "Paracetamol 500mg Tableta",
-    product_display_en: "Paracetamol 500mg Tablet",
   },
   {
     medication_legacy_code: "LOG-000456",
@@ -62,8 +60,6 @@ const MOCK_MEDICATION_PRODUCTS: CatalogMedicationProduct[] = [
     product_display: "Amoxicilina 250mg Cápsula",
     product_display_search: "amoxicilina 250mg capsula",
     is_active: true,
-    product_display_es: "Amoxicilina 250mg Cápsula",
-    product_display_en: "Amoxicillin 250mg Capsule",
   },
   {
     medication_legacy_code: "LOG-000789",
@@ -76,8 +72,6 @@ const MOCK_MEDICATION_PRODUCTS: CatalogMedicationProduct[] = [
     product_display: "Ibuprofeno 100mg Jarabe",
     product_display_search: "ibuprofeno 100mg jarabe",
     is_active: true,
-    product_display_es: "Ibuprofeno 100mg Jarabe",
-    product_display_en: "Ibuprofen 100mg Syrup",
   },
 ];
 
