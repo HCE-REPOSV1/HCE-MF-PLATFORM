@@ -4,8 +4,9 @@ import {
   getActivePrinciplesSearch,
   getAgeGroups,
   getCodeSystemValues,
+  getCodeSystemValuesByCode,
   getIdentifierTypes,
-  
+
 } from "../services/catalog.service";
 import type {
   CatalogActivePrinciples,
@@ -128,12 +129,40 @@ export function useCatalog() {
   };
 
    const fetchCodeSystemValues = useCallback(async (
-    codeSystemId: string | number,
+    codeSystemId: number,
   ): Promise<CatalogCodeSystemValue[] | null> => {
     setCodeSystemLoading(true);
     setCodeSystemError(null);
     try {
       const response = await getCodeSystemValues(codeSystemId);
+      setCodeSystemData(response);
+      return response;
+    } catch (err) {
+      setCodeSystemError(
+        err instanceof Error
+          ? err.message
+          : "Error al cargar valores del catálogo",
+      );
+      setCodeSystemData(null);
+      return null;
+    } finally {
+      setCodeSystemLoading(false);
+    }
+  }, [
+    setCodeSystemData,
+    setCodeSystemError,
+    setCodeSystemLoading,
+  ]);
+
+  // Preferida sobre fetchCodeSystemValues: recibe code_system_code (string
+  // estable) en vez de code_system_id (IDENTITY no estable entre entornos).
+  const fetchCodeSystemValuesByCode = useCallback(async (
+    codeSystemCode: string,
+  ): Promise<CatalogCodeSystemValue[] | null> => {
+    setCodeSystemLoading(true);
+    setCodeSystemError(null);
+    try {
+      const response = await getCodeSystemValuesByCode(codeSystemCode);
       setCodeSystemData(response);
       return response;
     } catch (err) {
@@ -159,6 +188,7 @@ export function useCatalog() {
     fetchCatalogActivePrinciplesSearch,
     fetchIdentifierTypes,
     fetchCodeSystemValues,
+    fetchCodeSystemValuesByCode,
     dataCatalogActivePrinciples: catalogActivePrinciples.data,  
     loadingCatalogActivePrinciples: catalogActivePrinciples.loading,
     errorCatalogActivePrinciples: catalogActivePrinciples.error,

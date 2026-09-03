@@ -42,7 +42,6 @@ import { useCatalog } from "./hooks/useCatalog";
 import { useTriage } from "./hooks/useTriage";
 import { useTriageFull } from "./hooks/useTriageFull";
 import { useUser } from "shell/UserContext";
-import { CSI_GENDER } from "./config/endpoints";
 import type { CatalogTimeUnit } from "./types/catalog.types";
 import type {
   TriageFormRequest,
@@ -393,7 +392,7 @@ export function Triage({
   const { fetchPatient } = usePatient();
   //Data de Catalogo
   const {
-    fetchCodeSystemValues,
+    fetchCodeSystemValuesByCode,
     fetchCatalogCie,
     fetchCatalogCieById,
     fetchCatalogActivePrinciples,
@@ -466,7 +465,7 @@ export function Triage({
           fetchCatalogActivePrinciples(),
           fetchIdentifierTypes("patient"),
           fetchTimeUnits(),
-          fetchCodeSystemValues(CSI_GENDER),
+          fetchCodeSystemValuesByCode("GENDER"),
           fetchAgeGroups(),
         ]);
         const [

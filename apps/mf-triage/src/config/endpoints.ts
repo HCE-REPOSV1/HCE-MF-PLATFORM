@@ -11,18 +11,12 @@ const AG_WEB_EMERGENCY = import.meta.env.VITE_APIGW_WEB_EMERGENCY;
 
 const AG_CLN_CROSS = import.meta.env.VITE_APIGW_CLN_CROSS;
 
-// code_system_id de catálogos genéricos (tabla code-system-values)
-export const CSI_INPUT_TIPO_MOTIVO = import.meta.env.VITE_CSI_INPUT_TIPO_MOTIVO;
-export const CSI_GENDER = import.meta.env.VITE_CSI_GENDER;
-
 if (!AG_WEB_EMERGENCY)
   throw new Error(
     "[mf-triage] VITE_APIGW_WEB_EMERGENCY no está configurado",
   );
 if (!AG_CLN_CROSS)
   throw new Error("[mf-triage] VITE_APIGW_CLN_CROSS no está configurado");
-if (!CSI_GENDER)
-  throw new Error("[mf-triage] VITE_CSI_GENDER no está configurado");
 
 export const ENDPOINTS = {
   patients: {
@@ -43,8 +37,14 @@ export const ENDPOINTS = {
     CieById: (id: number) =>
       `${AG_CLN_CROSS}/api/v1/catalogs/cie/${id}`,
     // Catálogo genérico de valores predeterminados del sistema (tabla code-system-values)
-    CodeSystemValues: (codeSystemId: string | number) =>
+    CodeSystemValues: (codeSystemId: number) =>
       `${AG_CLN_CROSS}/api/v1/catalogs/code-system-values?code_system_id=${codeSystemId}`,
+    /** Preferido sobre CodeSystemValues: code_system_id es IDENTITY autoincremental
+     * y NO es estable entre entornos/bases de datos (colisiona entre dev/qa/prod).
+     * code_system_code (ej. "GENDER") es el identificador estable — usar este
+     * para cualquier consumo nuevo. */
+    CodeSystemValuesByCode: (codeSystemCode: string) =>
+      `${AG_CLN_CROSS}/api/v1/catalogs/code-system-values?code_system_code=${encodeURIComponent(codeSystemCode)}`,
     ActivePrinciples: () => `${AG_CLN_CROSS}/api/v1/catalogs/active-principles`,
     ActivePrinciplesSearch: (text: string) =>
       `${AG_CLN_CROSS}/api/v1/catalogs/active-principles/search?text=${encodeURIComponent(text)}`,
