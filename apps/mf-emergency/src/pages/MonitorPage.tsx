@@ -47,7 +47,7 @@ import { monitorSortComparator } from "../../src/utils/monitorSort";
 import { BoxModal } from "../components/monitor/BoxModal";
 
 import { useNavigate } from "react-router-dom";
-import { registerEmergencyNamespace } from "../i18n";
+import { useEmergencyNamespaceReady } from "../i18n";
 import { useTranslation } from "@hce/i18n-core";
 
 const PAGE_SIZE = 10;
@@ -62,9 +62,9 @@ export default function MonitorPage() {
   const canReadHce = true;
   const canReadInfo = true;
 
-  registerEmergencyNamespace();
+  const namespaceReady = useEmergencyNamespaceReady();
   const { t } = useTranslation("emergency");
-  
+
   const createMonitorDskColumns = ({
     canReadTriage,
     canEditBox,
@@ -285,13 +285,13 @@ export default function MonitorPage() {
     return response.data.items
       .map(mapMonitorApiItemToTableRow)
       .sort(monitorSortComparator);
-  }, [response]);
+  }, [response, namespaceReady]);
 
   const summary = useMemo<MonitorSummary[]>(() => {
     if (!response?.data?.summary) return [];
 
     return mapMonitorApiSummaryToSummary(response.data.summary);
-  }, [response]);
+  }, [response, namespaceReady]);
 
   const meta = response?.data?.meta;
 
@@ -362,17 +362,16 @@ export default function MonitorPage() {
   //   },
   // ], [handleOpenTriageWrite, canWriteTriage, handleReportes, handleDisponibilidad, canReadBeds])
 
-  const handlePatientClick = useCallback((row: MonitorTableRow) => {
-
-   //console.info("[MonitorPage] Abrir HCE:", row);
-
-    navigate("historiacli", {
-      state: {
-        patient: row,
-      },
-    });
-  },[navigate
-  ],);
+  const handlePatientClick = useCallback(
+    (row: MonitorTableRow) => {
+      navigate("historiacli", {
+        state: {
+          patient: row,
+        },
+      });
+    },
+    [navigate],
+  );
 
   const handlePriorityClick = useCallback(
     (row: MonitorTableRow) => {
@@ -481,6 +480,13 @@ export default function MonitorPage() {
       onClick: canReadBeds ? handleDisponibilidad : undefined,
     },
   ];
+  if (!namespaceReady) {
+    return (
+      <Box sx={{ p: 4, display: "flex", justifyContent: "center" }}>
+        Cargando...
+      </Box>
+    );
+  }
 
   return (
     <>

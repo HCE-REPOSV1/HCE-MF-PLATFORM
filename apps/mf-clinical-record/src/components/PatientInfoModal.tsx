@@ -1,5 +1,6 @@
 import { Avatar, Box, DataCardModal, hceColors, PatientField, StatusBadge, User } from "@hce/design-system";
 import type { ClinicalRecordPatient } from "../types/Patient.type";
+import { useTranslation } from "@hce/i18n-core";
 
 interface PatientInformationModalProps {
   open: boolean
@@ -11,28 +12,44 @@ export default function PatientInfoModal({
   onClose,
   patient,
 }: PatientInformationModalProps) {
-  if (!patient) return null;
+ const { t } = useTranslation("clinical-record");
+
+   if (!patient) return null
 
   const allergyLabel = patient.hasAllergies
-    ? "Presenta alergias"
-    : "Sin alergias";
+    ? t('patient.hasAllergies')
+    : t('patient.noAllergies')
 
-  const allergyVariant = patient.hasAllergies ? "error" : "success";
+  const allergyVariant = patient.hasAllergies
+    ? "error"
+    : "info"
+
   return (
     <DataCardModal
       open={open}
       onClose={onClose}
       showCloseButton
       disableOutsideClose
-      maxWidth={304}
-      maxHeight="98vh"
+      maxWidth={340}
       backgroundColor={"var(--ds-color-secondary-light, #0043a5)"}
       borderColor={"var(--ds-color-primary, #0043a5)"}
       borderWidth={2}
-      borderRadius="12px"
+      borderRadius="10px"
       contentPadding="24px"
       contentAlign="center"
       testId="mf-clinical-record-patient-details-modal"
+      headerContent={
+        <Avatar
+            sx={{
+              width: 42,
+              height: 42,
+              backgroundColor: "var(--ds-color-interactive-button, #0043a5)",
+              color: hceColors.neutro.white[50],
+            }}
+          >
+            <User size={24} />
+          </Avatar>
+      }
     >
       <Box>
         <Box
@@ -45,19 +62,9 @@ export default function PatientInfoModal({
             mb: 2.5,
           }}
         >
-          <Avatar
-            sx={{
-              width: 42,
-              height: 42,
-              backgroundColor: "var(--ds-color-interactive-button, #0043a5)",
-              color: hceColors.neutro.white[50],
-            }}
-          >
-            <User size={24} />
-          </Avatar>
-
-          <PatientField
-            label="Paciente:"
+        
+           <PatientField
+            label={t('patient.patient')}
             value={patient.fullName}
             align="center"
           />
@@ -67,52 +74,84 @@ export default function PatientInfoModal({
             variant={allergyVariant}
             clickable={false}
             sx={{ marginTop: 1 }}
-            testId="mf-clinical-record-patient-details-modal-allergy-badge"
           />
         </Box>
 
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            columnGap: 3,
-            rowGap: 2,
+           gridTemplateColumns: "4fr 2fr",
+           columnGap: 20,
+           rowGap: 10,
           }}
         >
-          <PatientField label="Género:" value={patient.gender} />
-
-          <PatientField label="Edad:" value={patient.ageDisplay} />
+          <PatientField
+           label={t('patient.gender')}
+            value={patient.gender}
+          />
 
           <PatientField
-            label="Tipo y N.Documento:"
-            value={[patient.documentType, patient.documentNumber]
+            label={t('patient.age')}
+            value={patient.ageDisplay}
+          />
+
+          <PatientField
+            label={t('patient.document')}
+            value={[
+              patient.documentType,
+              patient.documentNumber,
+            ]
               .filter(Boolean)
               .join(" - ")}
           />
 
-          <PatientField label="G. Sanguíneo:" value={patient.bloodType} />
-
-          <PatientField label="Médico:" value={patient.doctorName} />
-
-          <PatientField label="Especialidad:" value={patient.specialty} />
-
-          <PatientField label="C. de atención:" value={patient.attentionCode} />
+          <PatientField
+            label={t('patient.bloodType')}
+            value={patient.bloodType}
+          />
 
           <PatientField
-            label="N° de Historia:"
+            label={t('patient.doctor')}
+            value={patient.doctorName}
+          />
+
+          <PatientField
+            label={t('patient.specialty')}
+            value={patient.specialty}
+          />
+
+          <PatientField
+            label={t('patient.attentionCode')}
+            value={patient.attentionCode}
+          />
+
+          <PatientField
+            label={t('patient.clinicalHistoryNumber')}
             value={patient.clinicalHistoryNumber}
           />
 
-          <PatientField label="Aseguradora:" value={patient.insuranceName} />
+          <PatientField
+            label={t('patient.insurance')}
+            value={patient.insuranceName}
+          />
 
-          <PatientField label="Producto:" value={patient.insuranceProduct} />
+          <PatientField
+            label={t('patient.product')}
+            value={patient.insuranceProduct}
+          />
 
-          <PatientField label="Correo:" value={patient.email} />
+          <PatientField
+           label={t('patient.email')}
+            value={patient.email}
+          />
 
-          <PatientField label="Celular:" value={patient.phone} />
+          <PatientField
+            label={t('patient.phone')}
+            value={patient.phone}
+          />
 
           <Box sx={{ gridColumn: "1 / -1" }}>
-            <PatientField label="Dirección:" value={patient.address} />
+            <PatientField label={t('patient.address')} value={patient.address} />
           </Box>
         </Box>
       </Box>

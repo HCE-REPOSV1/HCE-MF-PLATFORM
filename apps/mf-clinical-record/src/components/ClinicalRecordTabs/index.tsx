@@ -3,37 +3,42 @@ import { EditModeProvider } from "../../context/EditModeContext";
 import { PERMISSIONS_CLINICAL_RECORD } from "../../config/permissions";
 import { Box, NavTab } from "@hce/design-system";
 import { HistoryPhysicalExam } from "./HistoryPhysicalExam";
-// import { DiagnosisPanel } from "./DiagnosisPanel"; // se van agregando a medida que se crean
-// ...
-
-const TABS = [
-  { label: "Anamnesis y EF", value: "history-physical-exam" },
-  { label: "Diagnóstico", value: "diagnosis" },
-  { label: "Indicaciones médicas", value: "medical-orders" },
-  { label: "Kardex de enfermería", value: "nursing-kardex" },
-  { label: "Laboratorio", value: "laboratory" },
-  { label: "Imágenes", value: "imaging" },
-  { label: "Interconsulta", value: "referral" },
-  { label: "Procedimientos Médicos", value: "medical-procedures" },
-  { label: "Evolución", value: "progress-notes" },
-  { label: "Nota de enfermería", value: "nursing-note" },
-];
+import { useTranslation } from "react-i18next";
 
 interface ClinicalRecordTabsProps {
   readOnly?: boolean;
   encounterId?: number;
 }
 
-export const ClinicalRecordTabs = ({ readOnly = false, encounterId }: ClinicalRecordTabsProps) => {
-  const [activeTab, setActiveTab] = useState(TABS[0].value);
+export const ClinicalRecordTabs = ({
+  readOnly = false,
+  encounterId,
+}: ClinicalRecordTabsProps) => {
+  const { t } = useTranslation("clinical-record");
+  const [activeTab, setActiveTab] = useState("history-physical-exam");
+
+  const TABS = [
+    { label: t("tabs.historyPhysicalExam"), value: "history-physical-exam" },
+    { label: t("tabs.diagnosis"), value: "diagnosis" },
+    { label: t("tabs.medicalOrders"), value: "medical-orders" },
+    { label: t("tabs.nursingKardex"), value: "nursing-kardex" },
+    { label: t("tabs.laboratory"), value: "laboratory" },
+    { label: t("tabs.imaging"), value: "imaging" },
+    { label: t("tabs.referral"), value: "referral" },
+    { label: t("tabs.medicalProcedures"), value: "medical-procedures" },
+    { label: t("tabs.progressNotes"), value: "progress-notes" },
+    { label: t("tabs.nursingNote"), value: "nursing-note" },
+  ];
 
   return (
-    <Box sx={{width:"100%"}}>
+    <Box sx={{ width: "100%" }}>
       <NavTab tabs={TABS} value={activeTab} onChange={setActiveTab} />
 
       {activeTab === "history-physical-exam" && (
-        <EditModeProvider tabWriteCode={PERMISSIONS_CLINICAL_RECORD.historyPhysicalExam.write}>
-          <HistoryPhysicalExam readOnly={readOnly} encounterId={encounterId}/>
+        <EditModeProvider
+          tabWriteCode={PERMISSIONS_CLINICAL_RECORD.historyPhysicalExam.write}
+        >
+          <HistoryPhysicalExam readOnly={readOnly} encounterId={encounterId} />
         </EditModeProvider>
       )}
 

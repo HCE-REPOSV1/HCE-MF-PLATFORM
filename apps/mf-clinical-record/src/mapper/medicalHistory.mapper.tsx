@@ -49,7 +49,7 @@ export function mapToSavePayload(
   const medicationReconciliations:
     | MedicationReconciliationSavePayload[]
     | undefined = addedReconciliations?.map((item) => ({
-    medication_product_id: item.medication_product_id,
+    medication_legacy_code: item.medication_legacy_code,
     administration_route_id: item.administration_route_id,
     dose_value: item.dose_value,
     frequency_value: item.frequency_value,

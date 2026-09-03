@@ -1,27 +1,4 @@
-// import { i18n } from "@hce/i18n-core";
-// import es from "./es/clinical-record.json";
-// import en from "./en/clinical-record.json";
-
-// let registered = false;
-
-// export function registerClinicalRecordNamespace() {
-//   console.log('[clinical-record namespace] llamando registerClinicalRecordNamespace, registered =', registered);
-//   if (registered) return;
-
-//   console.log('[clinical-record namespace] antes de addResourceBundle, i18n:', i18n);
-
-//   try {
-//     i18n.addResourceBundle("es", "clinical-record", es);
-//     i18n.addResourceBundle("en", "clinical-record", en);
-//     console.log('[clinical-record namespace] addResourceBundle OK');
-//   } catch (err) {
-//     console.error('[clinical-record namespace] ERROR en addResourceBundle:', err);
-//   }
-
-//   registered = true;
-// }
-
-
+import { useEffect, useState } from "react";
 import { i18n } from "@hce/i18n-core";
 import { apiFetch } from "shell/ApiClient";
 import { ENDPOINTS } from "../config/endpoints";
@@ -29,9 +6,9 @@ import { ENDPOINTS } from "../config/endpoints";
 let registered: Promise<void> | null = null;
 
 /**
- * Trae el namespace "emergency" para CADA idioma del manifest
+ * Trae el namespace "clinical-record" para CADA idioma del manifest
  * (`i18n/locales`, público) y lo registra vía addResourceBundle. El bundle
- * en sí (`i18n/{locale}/emergency`) requiere sesión -- por eso usa
+ * en sí (`i18n/{locale}/clinical-record`) requiere sesión -- por eso usa
  * `apiFetch` de `shell/ApiClient` (cookie + auto-refresh en 401).
  */
 export function registerClinicalRecordNamespace(): Promise<void> {
@@ -63,4 +40,32 @@ export function registerClinicalRecordNamespace(): Promise<void> {
   })();
 
   return registered;
+}
+
+/**
+ * Hook para gatear el render de una página hasta que el namespace
+ * "clinical-record" terminó de cargar. registerClinicalRecordNamespace()
+ * es asíncrono de verdad (dos fetches en cadena antes de addResourceBundle),
+ * así que llamarlo sin esperar la promesa deja un instante en el que t()
+ * devuelve la clave cruda en vez del texto traducido. Usar así, en el
+ * cuerpo del componente, ANTES de cualquier early return (Rules of Hooks):
+ *
+ *   const namespaceReady = useClinicalRecordNamespaceReady();
+ *   // ... resto de hooks del componente, sin condicionar nada por esto ...
+ *   if (!namespaceReady) return <LoadingState />;
+ */
+export function useClinicalRecordNamespaceReady(): boolean {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    registerClinicalRecordNamespace().then(() => {
+      if (!cancelled) setReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return ready;
 }

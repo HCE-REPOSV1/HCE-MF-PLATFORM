@@ -14,7 +14,9 @@ import {
   UiTrashIcon,
   hceColors,
   type GenericTableColumn,
+  LoadingOverlay,
 } from "@hce/design-system";
+import { useTranslation } from "react-i18next";
 import "./HistoryPhysicalExam.css";
 import {
   EditModeProvider,
@@ -36,22 +38,15 @@ import { useCatalog } from "../../hooks/useCatalog";
 import { useMedicalHistory } from "../../hooks/useMedicalHistory";
 import AddPatientBackgroundModal from "./AddPatientBackgroundModal";
 import AddMedicationReconciliationModal from "./AddMedicationReconciliationModal";
+import { formatDate, formatDateTime } from "../../utils/dateFormat";
+import { getLocalizedCatalogDisplay } from "../../utils/catalogLocalization";
+import type { CatalogCompanionTypes } from "../../types/Catalog.type";
 
 type ViewMode = "anamnesis" | "examen-fisico";
 type PatientBackgroundCategory = "general" | "gyn_obstetric" | "pathological";
 
-// ⚠️ hardcodeado temporalmente — reemplazar cuando se resuelva la captura
-// del encounter_id real desde la fila clickeada en MedicalHistoryModal
-
-// const ENCOUNTER_ID_FIJO = 104;
-const SLEEP_APPETITE_CODE_SYSTEM_ID = 25;
-const URINE_STOOL_WEIGHT_CODE_SYSTEM_ID = 26;
-
-const RECONCILIATION_ACTION_LABELS: Record<string, string> = {
-  continue: "Continúa",
-  suspend: "Suspende",
-  modify: "Modifica",
-};
+const SLEEP_APPETITE_CODE_SYSTEM_ID = 127;
+const URINE_STOOL_WEIGHT_CODE_SYSTEM_ID = 128;
 
 interface HistoryPhysicalExamProps {
   readOnly?: boolean;
@@ -78,17 +73,25 @@ export const HistoryPhysicalExamContent = ({
   readOnly = false,
   encounterId,
 }: HistoryPhysicalExamProps) => {
+  const { t } = useTranslation("clinical-record");
   const [view, setView] = useState<ViewMode>("anamnesis");
 
   return (
     <div className="hce-history-physical-exam">
-      <SegmentedToggle
+      <SegmentedToggle<ViewMode>
         options={[
-          { label: "Anamnesis", value: "anamnesis" },
-          { label: "Examen Físico", value: "examen-fisico" },
+          {
+            label: t("historyPhysicalExam.viewToggle.anamnesis"),
+            value: "anamnesis",
+          },
+          {
+            label: t("historyPhysicalExam.viewToggle.physicalExam"),
+            value: "examen-fisico",
+          },
         ]}
         value={view}
-        onChange={(v) => setView(v as ViewMode)}
+        onChange={setView}
+        testId="clinical-record-history-physical-exam-view-toggle"
       />
 
       {view === "anamnesis" && (
@@ -108,8 +111,10 @@ const AnamnesisContent = ({
   readOnly: boolean;
   encounterId?: number;
 }) => {
+  const { t, i18n } = useTranslation("clinical-record");
   const { fetchCompanionTypes } = useCatalog();
-  const { fetchHistoryPhysicalExam } = useMedicalHistory();
+  const { fetchHistoryPhysicalExam } =
+    useMedicalHistory();
   const { user } = useUser();
   const { registerTabData, getTabData } = useClinicalRecordForm();
   const [expanded, setExpanded] = useState({
@@ -123,10 +128,8 @@ const AnamnesisContent = ({
   const canEditMotivoRaw = useFieldEditMode(
     PERMISSIONS_CLINICAL_RECORD.historyPhysicalExam.campos.motivoConsulta,
   );
-  // En modo lectura, ningún campo es editable sin importar el permiso MAC
   const canEditMotivo = readOnly ? false : canEditMotivoRaw;
 
-  // Lee lo que ya se hubiera guardado en el context ANTES de inicializar el estado
   const savedAnamnesis = getTabData("historyPhysicalExam.anamnesis") as
     | AnamnesisPayload
     | undefined;
@@ -152,46 +155,57 @@ const AnamnesisContent = ({
     PatientBackgroundApiItem[]
   >(savedPatientBackgrounds ?? []);
 
-  const optionCompanionRadio = [
-    { value: "direct", label: "Directo" },
-    { value: "indirect", label: "Indirecto" },
-  ];
-
-  const [companionTypeOptions, setCompanionTypeOptions] = useState<
-    { value: string; label: string }[]
-  >([]);
+  const optionCompanionRadio = useMemo(
+    () => [
+      { value: "direct", label: t("historyPhysicalExam.anamnesisType.direct") },
+      {
+        value: "indirect",
+        label: t("historyPhysicalExam.anamnesisType.indirect"),
+      },
+    ],
+    [t],
+  );
 
   const [medicationReconciliations, setMedicationReconciliations] = useState<
     MedicationReconciliationApiItem[]
   >(savedMedicationReconciliations ?? []);
 
-  // Efecto 1: carga el catálogo de acompañantes UNA sola vez al montar
+  const [companionTypes, setCompanionTypes] = useState<CatalogCompanionTypes[]>(
+    [],
+  );
+
   useEffect(() => {
     const loadCatalog = async () => {
-      const companionTypes = await fetchCompanionTypes();
-      setCompanionTypeOptions(
-        (companionTypes ?? []).map((item) => ({
-          value: String(item.companion_type_id),
-          label: item.description,
-        })),
-      );
+      const data = await fetchCompanionTypes();
+      setCompanionTypes(data ?? []);
     };
     loadCatalog();
   }, [fetchCompanionTypes]);
 
-  // Efecto 2: solo trae del backend si NUNCA se cargó en esta sesión del modal.
-  // Si ya había datos en el context (savedAnamnesis), el usuario ya vio/editó
-  // este tab antes — no lo pisamos con el fetch.
+  const companionTypeOptions = useMemo(
+    () =>
+      companionTypes.map((item) => ({
+        value: String(item.companion_type_id),
+        label: getLocalizedCatalogDisplay(
+          {
+            display_es: item.description_es,
+            display_en: item.description_en,
+          },
+          i18n.language,
+          item.description,
+        ),
+      })),
+    [companionTypes, i18n.language],
+  );
+
   useEffect(() => {
-    if (savedAnamnesis) return; // ya se cargó/editó antes en esta sesión
+    if (savedAnamnesis) return;
     if (encounterId === undefined) return;
     const validEncounterId = encounterId;
     const loadHistoryData = async () => {
       const data = await fetchHistoryPhysicalExam(validEncounterId);
       if (!data) return;
 
-      // ⚠️ nuevo guard: la anamnesis puede venir null si aún no existe para
-      // esta atención (ej. encounter_id 104 en tu prueba con Postman)
       if (data.anamnesis) {
         setAnamnesisType(data.anamnesis.anamnesis_type);
         setCompanionTypeId(
@@ -216,9 +230,8 @@ const AnamnesisContent = ({
     };
     loadHistoryData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [encounterId]); // corre una sola vez al montar — el guard de arriba evita pisar ediciones
+  }, [encounterId]);
 
-  // Efecto 3: registra los datos del tab para el guardado (solo si NO es readOnly)
   useEffect(() => {
     if (readOnly) return;
     if (!user?.username) return;
@@ -249,7 +262,7 @@ const AnamnesisContent = ({
     <>
       <div className="hce-section">
         <SectionHeader
-          title="Motivo de consulta"
+          title={t("historyPhysicalExam.sections.chiefComplaint")}
           expanded={expanded.motivo}
           onToggle={() => toggle("motivo")}
         />
@@ -270,8 +283,8 @@ const AnamnesisContent = ({
               </Grid>
               <Grid item xs>
                 <SelectField
-                  label="Acompañante"
-                  placeholder="-Seleccionar opción-"
+                  label={t("historyPhysicalExam.companionLabel")}
+                  placeholder={t("historyPhysicalExam.selectPlaceholder")}
                   value={companionTypeId}
                   onChange={(v) => setCompanionTypeId(v)}
                   options={companionTypeOptions}
@@ -281,8 +294,8 @@ const AnamnesisContent = ({
             </Grid>
 
             <TextareaField
-              label="Motivo"
-              placeholder="Ingrese texto"
+              label={t("historyPhysicalExam.chiefComplaintLabel")}
+              placeholder={t("historyPhysicalExam.textPlaceholder")}
               value={chiefComplaintId}
               onChange={(v) => setChiefComplaintId(v)}
               maxLength={1000}
@@ -294,7 +307,7 @@ const AnamnesisContent = ({
 
       <div className="hce-section">
         <SectionHeader
-          title="Antecedentes"
+          title={t("historyPhysicalExam.sections.backgrounds")}
           expanded={expanded.antecedentes}
           onToggle={() => toggle("antecedentes")}
         />
@@ -310,7 +323,7 @@ const AnamnesisContent = ({
 
       <div className="hce-section">
         <SectionHeader
-          title="Reconciliación medicamentosa"
+          title={t("historyPhysicalExam.sections.reconciliation")}
           expanded={expanded.reconciliacion}
           onToggle={() => toggle("reconciliacion")}
         />
@@ -334,6 +347,7 @@ const PatientBackgroundsContent = ({
   backgrounds: PatientBackgroundApiItem[];
   readOnly: boolean;
 }) => {
+  const { t } = useTranslation("clinical-record");
   const { user } = useUser();
   const { registerTabData, getTabData } = useClinicalRecordForm();
   const [category, setCategory] =
@@ -367,7 +381,7 @@ const PatientBackgroundsContent = ({
         .filter((item) => item.background_category === category)
         .map((item) => ({
           id: String(item.patient_background_id),
-          date: "05/04/2024",
+          date: formatDate(item.date_create),
           backgroundType: item.background_name,
           description: item.description,
         })),
@@ -378,7 +392,7 @@ const PatientBackgroundsContent = ({
     () => [
       {
         key: "date",
-        header: "Fecha",
+        header: t("historyPhysicalExam.backgroundsTable.date"),
         type: "text",
         field: "date",
         width: 100,
@@ -387,7 +401,7 @@ const PatientBackgroundsContent = ({
       },
       {
         key: "backgroundType",
-        header: "Antecedente",
+        header: t("historyPhysicalExam.backgroundsTable.backgroundType"),
         type: "text",
         field: "backgroundType",
         width: 100,
@@ -396,7 +410,7 @@ const PatientBackgroundsContent = ({
       },
       {
         key: "description",
-        header: "Descripción",
+        header: t("historyPhysicalExam.backgroundsTable.description"),
         type: "text",
         field: "description",
         width: 300,
@@ -404,7 +418,7 @@ const PatientBackgroundsContent = ({
         clickable: false,
       },
     ],
-    [],
+    [t],
   );
 
   return (
@@ -416,7 +430,7 @@ const PatientBackgroundsContent = ({
             color={hceColors.primary.green[600]}
             onClick={() => setIsAddModalOpen(true)}
           >
-            Agregar
+            {t("historyPhysicalExam.addButton")}
           </Button>
         </Box>
       )}
@@ -436,23 +450,35 @@ const PatientBackgroundsContent = ({
               is_present: payload.is_present,
               description: payload.description,
               user_create: user?.username ?? "",
+              date_create: new Date().toISOString(),
             },
           ]);
         }}
       />
 
-      <SegmentedToggle
+      <SegmentedToggle<PatientBackgroundCategory>
         options={[
-          { label: "Generales", value: "general" },
-          { label: "Gineco - obstétricos", value: "gyn_obstetric" },
-          { label: "Patológicos", value: "pathological" },
+          {
+            label: t("historyPhysicalExam.backgroundsCategories.general"),
+            value: "general",
+          },
+          {
+            label: t("historyPhysicalExam.backgroundsCategories.gynObstetric"),
+            value: "gyn_obstetric",
+          },
+          {
+            label: t("historyPhysicalExam.backgroundsCategories.pathological"),
+            value: "pathological",
+          },
         ]}
         value={category}
-        onChange={(v) => setCategory(v as PatientBackgroundCategory)}
+        onChange={setCategory}
+        testId="clinical-record-history-physical-exam-backgrounds-category-toggle"
       />
 
       <Box sx={{ pt: 2 }}>
         <GenericTable
+          emptyMessage={t("EmptyMessageDataTable")}
           columns={columnsTable}
           rows={filteredRows}
           getRowId={(row) => row.id}
@@ -469,9 +495,19 @@ const ReconciliationContent = ({
   reconciliations: MedicationReconciliationApiItem[];
   readOnly: boolean;
 }) => {
+  const { t } = useTranslation("clinical-record");
   const { user } = useUser();
   const { registerTabData, getTabData } = useClinicalRecordForm();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  const RECONCILIATION_ACTION_LABELS: Record<string, string> = useMemo(
+    () => ({
+      continue: t("reconciliationActions.continue"),
+      suspend: t("reconciliationActions.suspend"),
+      modify: t("reconciliationActions.modify"),
+    }),
+    [t],
+  );
 
   const [addedReconciliations, setAddedReconciliations] = useState<
     MedicationReconciliationApiItem[]
@@ -498,16 +534,16 @@ const ReconciliationContent = ({
     () =>
       allReconciliations.map((item) => ({
         id: String(item.medication_reconciliation_id),
-        medication: item.medication_display,
+        medication: item.medication_name,
         doseValue: item.dose_value,
         route: item.administration_route_description,
         frequencyValue: item.frequency_value,
         action:
           RECONCILIATION_ACTION_LABELS[item.reconciliation_action] ??
           item.reconciliation_action,
-        dateTime: "24/03/2026 - 13:50", // ⚠️ hardcodeado — el JSON de lectura no trae fecha, ver nota
+        dateTime: formatDateTime(item.last_dose_datetime),
       })),
-    [allReconciliations],
+    [allReconciliations, RECONCILIATION_ACTION_LABELS],
   );
 
   const handleDelete = (row: MedicationReconciliationRow) => {
@@ -516,8 +552,6 @@ const ReconciliationContent = ({
         (item) => String(item.medication_reconciliation_id) !== row.id,
       ),
     );
-    // ⚠️ los que vienen del backend (no agregados en sesión) no se pueden borrar
-    // con este mecanismo — ver nota abajo
   };
 
   const columnsTable = useMemo<
@@ -526,7 +560,7 @@ const ReconciliationContent = ({
     () => [
       {
         key: "medication",
-        header: "Medicamento",
+        header: t("historyPhysicalExam.reconciliationTable.medication"),
         type: "text",
         field: "medication",
         width: 200,
@@ -535,7 +569,7 @@ const ReconciliationContent = ({
       },
       {
         key: "doseValue",
-        header: "Dosis",
+        header: t("historyPhysicalExam.reconciliationTable.dose"),
         type: "text",
         field: "doseValue",
         width: 60,
@@ -544,7 +578,7 @@ const ReconciliationContent = ({
       },
       {
         key: "route",
-        header: "Via",
+        header: t("historyPhysicalExam.reconciliationTable.route"),
         type: "text",
         field: "route",
         width: 80,
@@ -553,7 +587,7 @@ const ReconciliationContent = ({
       },
       {
         key: "frequencyValue",
-        header: "Frecuencia",
+        header: t("historyPhysicalExam.reconciliationTable.frequency"),
         type: "text",
         field: "frequencyValue",
         width: 80,
@@ -562,7 +596,7 @@ const ReconciliationContent = ({
       },
       {
         key: "action",
-        header: "Acción",
+        header: t("historyPhysicalExam.reconciliationTable.action"),
         type: "text",
         field: "action",
         width: 100,
@@ -571,7 +605,7 @@ const ReconciliationContent = ({
       },
       {
         key: "dateTime",
-        header: "Fecha y hora",
+        header: t("historyPhysicalExam.reconciliationTable.dateTime"),
         type: "text",
         field: "dateTime",
         width: 140,
@@ -580,7 +614,7 @@ const ReconciliationContent = ({
       },
       {
         key: "delete",
-        header: "Eliminar",
+        header: t("historyPhysicalExam.reconciliationTable.delete"),
         type: "icon",
         field: "delete",
         icon: UiTrashIcon,
@@ -593,7 +627,7 @@ const ReconciliationContent = ({
         onClick: handleDelete,
       },
     ],
-    [readOnly],
+    [readOnly, t],
   );
 
   return (
@@ -605,7 +639,7 @@ const ReconciliationContent = ({
             color={hceColors.primary.green[600]}
             onClick={() => setIsAddModalOpen(true)}
           >
-            Agregar
+            {t("historyPhysicalExam.addButton")}
           </Button>
         </Box>
       )}
@@ -618,15 +652,15 @@ const ReconciliationContent = ({
             ...prev,
             {
               medication_reconciliation_id: -Date.now(),
-              medication_product_id: payload.medication_product_id,
-              medication_display: payload.medication_display,
+              medication_legacy_code: payload.medication_legacy_code,
+              medication_name: payload.medication_name,
               administration_route_id: payload.administration_route_id,
               administration_route_description:
                 payload.administration_route_description,
               dose_value: payload.dose_value,
               frequency_value: payload.frequency_value,
               reconciliation_action: payload.reconciliation_action,
-              last_dose_datetime: payload.last_dose_datetime, // ⚠️ nuevo — antes se perdía
+              last_dose_datetime: payload.last_dose_datetime,
               user_create: user?.username ?? "",
             },
           ]);
@@ -634,6 +668,7 @@ const ReconciliationContent = ({
       />
 
       <GenericTable
+        emptyMessage={t("EmptyMessageDataTable")}
         columns={columnsTable}
         rows={rows}
         getRowId={(row) => row.id}
@@ -649,10 +684,15 @@ const ExamenFisicoContent = ({
   readOnly: boolean;
   encounterId?: number;
 }) => {
+  const { t, i18n } = useTranslation("clinical-record");
   const { user } = useUser();
-  const { fetchHistoryPhysicalExam } = useMedicalHistory();
-  const { fetchCodeSystemValues } = useCatalog(); // ⚠️ nuevo
+  const { fetchHistoryPhysicalExam, loadingHistoryPhysicalExam } =
+    useMedicalHistory();
+  const { fetchCodeSystemValues, loadingCatalogCodeSystemValues } =
+    useCatalog();
   const { registerTabData, getTabData } = useClinicalRecordForm();
+
+  const formBusy = loadingHistoryPhysicalExam || loadingCatalogCodeSystemValues;
 
   const savedVitals = getTabData("historyPhysicalExam.physicalExamVitals") as
     | PhysicalExamApiItem
@@ -720,42 +760,38 @@ const ExamenFisicoContent = ({
     { value: string; label: string }[]
   >([]);
 
-  // Trae los signos vitales del backend, solo una vez por sesión
   useEffect(() => {
-    if (savedVitals) return;
-    if (encounterId === undefined) return;
+    // if (savedVitals) return;
+    // if (encounterId === undefined) return;
 
-    const validEncounterId = encounterId;
+    // const validEncounterId = encounterId;
 
     const load = async () => {
-      const data = await fetchHistoryPhysicalExam(validEncounterId);
-      if (!data?.physicalExam) return;
-
-      const v = data.physicalExam;
-      setOxygenSaturation(
-        v.oxygen_saturation != null ? String(v.oxygen_saturation) : "",
-      );
-      setWeightKg(v.weight_kg != null ? String(v.weight_kg) : "");
-      setHeightCm(v.height_cm != null ? String(v.height_cm) : "");
-      setHeartRate(v.heart_rate != null ? String(v.heart_rate) : "");
-      setRespiratoryRate(
-        v.respiratory_rate != null ? String(v.respiratory_rate) : "",
-      );
-      setSystolicPressure(
-        v.systolic_pressure != null ? String(v.systolic_pressure) : "",
-      );
-      setDiastolicPressure(
-        v.diastolic_pressure != null ? String(v.diastolic_pressure) : "",
-      );
-      setTemperatureC(v.temperature_c != null ? String(v.temperature_c) : "");
-
-      registerTabData("historyPhysicalExam.physicalExamVitals", v);
+      // const data = await fetchHistoryPhysicalExam(validEncounterId);
+      // if (!data?.physicalExam) return;
+      // const v = data.physicalExam;
+      // setOxygenSaturation(
+      //   v.oxygen_saturation != null ? String(v.oxygen_saturation) : "",
+      // );
+      // setWeightKg(v.weight_kg != null ? String(v.weight_kg) : "");
+      // setHeightCm(v.height_cm != null ? String(v.height_cm) : "");
+      // setHeartRate(v.heart_rate != null ? String(v.heart_rate) : "");
+      // setRespiratoryRate(
+      //   v.respiratory_rate != null ? String(v.respiratory_rate) : "",
+      // );
+      // setSystolicPressure(
+      //   v.systolic_pressure != null ? String(v.systolic_pressure) : "",
+      // );
+      // setDiastolicPressure(
+      //   v.diastolic_pressure != null ? String(v.diastolic_pressure) : "",
+      // );
+      // setTemperatureC(v.temperature_c != null ? String(v.temperature_c) : "");
+      // registerTabData("historyPhysicalExam.physicalExamVitals", v);
     };
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [encounterId]);
 
-  // Registra los signos vitales editables para el guardado (solo si NO es readOnly)
   useEffect(() => {
     if (readOnly) return;
 
@@ -782,37 +818,118 @@ const ExamenFisicoContent = ({
     registerTabData,
   ]);
 
-  // carga el catálogo compartido de Sueño/Apetito, una sola vez
   useEffect(() => {
+    if (savedVitals) return;
+    if (encounterId === undefined) return;
+
+    const validEncounterId = encounterId;
+
     const load = async () => {
-      const data = await fetchCodeSystemValues(SLEEP_APPETITE_CODE_SYSTEM_ID);
-      setSleepAppetiteOptions(
-        (data ?? [])
-          .filter((item) => item.is_active)
-          .sort((a, b) => a.sort_order - b.sort_order)
-          .map((item) => ({ value: item.code, label: item.display })),
-      );
+      const result = await Promise.all([
+        fetchCodeSystemValues(SLEEP_APPETITE_CODE_SYSTEM_ID),
+        fetchCodeSystemValues(URINE_STOOL_WEIGHT_CODE_SYSTEM_ID),
+        fetchHistoryPhysicalExam(validEncounterId),
+      ]);
+      const [
+        biologicalFunctionsSAData,
+        biologicalFunctionsUSWData,
+        historyPhysicalExamData,
+      ] = result;
+
+      if (biologicalFunctionsSAData) {
+        setSleepAppetiteOptions(
+          (biologicalFunctionsSAData ?? [])
+            .filter((item) => item.is_active)
+            .sort((a, b) => a.sort_order - b.sort_order)
+            .map((item) => ({
+              value: item.code,
+              label: getLocalizedCatalogDisplay(
+                {
+                  display_es: item.display_es,
+                  display_en: item.display_en,
+                },
+                i18n.language,
+                item.display,
+              ),
+              // item.display
+            })),
+        );
+      }
+      if (biologicalFunctionsUSWData) {
+        setUrineStoolWeightOptions(
+          (biologicalFunctionsUSWData ?? [])
+            .filter((item) => item.is_active)
+            .sort((a, b) => a.sort_order - b.sort_order)
+            .map((item) => ({ value: item.code, label: item.display })),
+        );
+      }
+      if (historyPhysicalExamData) {
+        if (!historyPhysicalExamData?.physicalExam) return;
+
+        const v = historyPhysicalExamData.physicalExam;
+        setOxygenSaturation(
+          v.oxygen_saturation != null ? String(v.oxygen_saturation) : "",
+        );
+        setWeightKg(v.weight_kg != null ? String(v.weight_kg) : "");
+        setHeightCm(v.height_cm != null ? String(v.height_cm) : "");
+        setHeartRate(v.heart_rate != null ? String(v.heart_rate) : "");
+        setRespiratoryRate(
+          v.respiratory_rate != null ? String(v.respiratory_rate) : "",
+        );
+        setSystolicPressure(
+          v.systolic_pressure != null ? String(v.systolic_pressure) : "",
+        );
+        setDiastolicPressure(
+          v.diastolic_pressure != null ? String(v.diastolic_pressure) : "",
+        );
+        setTemperatureC(v.temperature_c != null ? String(v.temperature_c) : "");
+
+        registerTabData("historyPhysicalExam.physicalExamVitals", v);
+      }
     };
     load();
-  }, [fetchCodeSystemValues]);
+  },[encounterId,i18n.language]);
 
-  // carga el catálogo de Orina/Deposición/Peso, una sola vez
-  useEffect(() => {
-    const load = async () => {
-      const data = await fetchCodeSystemValues(
-        URINE_STOOL_WEIGHT_CODE_SYSTEM_ID,
-      );
-      setUrineStoolWeightOptions(
-        (data ?? [])
-          .filter((item) => item.is_active)
-          .sort((a, b) => a.sort_order - b.sort_order)
-          .map((item) => ({ value: item.code, label: item.display })),
-      );
-    };
-    load();
-  }, [fetchCodeSystemValues]);
+  // useEffect(() => {
+  //   const load = async () => {
+  //     // const data = await fetchCodeSystemValues(SLEEP_APPETITE_CODE_SYSTEM_ID);
+  //     // setSleepAppetiteOptions(
+  //     //   (data ?? [])
+  //     //     .filter((item) => item.is_active)
+  //     //     .sort((a, b) => a.sort_order - b.sort_order)
+  //     //     .map((item) => ({ value: item.code,
+  //     //       label:
+  //     //       getLocalizedCatalogDisplay(
+  //     //               {
+  //     //                 display_es: item.display_es,
+  //     //                 display_en: item.display_en,
+  //     //               },
+  //     //               i18n.language,
+  //     //               item.display,
+  //     //             ),
+  //     //       // item.display
+  //     //     })),
+  //     // );
+  //   };
+  //   load();
+  //   console.log("cargando idioma: ", i18n.language);
+  // }, [fetchCodeSystemValues, i18n.language]);
 
-  // Registra el formulario editable (descripción + funciones biológicas)
+  // useEffect(() => {
+  //   const load = async () => {
+  //     // const data = await fetchCodeSystemValues(
+  //     //   URINE_STOOL_WEIGHT_CODE_SYSTEM_ID,
+  //     // );
+  //     // setUrineStoolWeightOptions(
+  //     //   (data ?? [])
+  //     //     .filter((item) => item.is_active)
+  //     //     .sort((a, b) => a.sort_order - b.sort_order)
+  //     //     .map((item) => ({ value: item.code, label: item.display })),
+  //     // );
+  //   };
+  //   load();
+  // }, [fetchCodeSystemValues]);
+
   useEffect(() => {
     if (readOnly) return;
     if (!user?.username) return;
@@ -839,155 +956,172 @@ const ExamenFisicoContent = ({
   ]);
 
   return (
-    <div className="hce-examen-fisico">
-      <Box sx={{ fontWeight: 600, mb: 2 }}>Examen Físico</Box>
+    <Box>
+      <LoadingOverlay
+        open={formBusy}
+        message={"Cargando información..."}
+      />
+
+          <div className="hce-examen-fisico">
+      <Box sx={{ fontWeight: 600, mb: 2 }}>
+        {t("historyPhysicalExam.physicalExam.title")}
+      </Box>
 
       <TextareaField
-        label="Descripción"
-        placeholder="Ingrese texto"
+        label={t("historyPhysicalExam.physicalExam.descriptionLabel")}
+        placeholder={t("historyPhysicalExam.textPlaceholder")}
         value={examDescription}
         onChange={setExamDescription}
         maxLength={1000}
         disabled={readOnly}
       />
 
-      <Box sx={{ fontWeight: 600, mt: 3, mb: 2 }}>Funciones Vitales</Box>
-      <Grid container spacing={2}>
-        <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <NumericField
-            label="Saturación O2 (%)"
-            value={oxygenSaturation}
-            onChange={setOxygenSaturation}
-            suffix="%"
-            numberType="natural"
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <NumericField
-            label="Peso (kg)"
-            value={weightKg}
-            onChange={setWeightKg}
-            suffix="Kg"
-            numberType="decimal"
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <NumericField
-            label="Talla (cm)"
-            value={heightCm}
-            onChange={setHeightCm}
-            suffix="cm"
-            numberType="natural"
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <NumericField
-            label="F. Cardiaca (lpm)"
-            value={heartRate}
-            onChange={setHeartRate}
-            suffix="lpm"
-            numberType="natural"
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <NumericField
-            label="F.Respiratoria (rpm)"
-            value={respiratoryRate}
-            onChange={setRespiratoryRate}
-            suffix="rpm"
-            numberType="natural"
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <NumericField
-            label="P. Sistólica (mmHg)"
-            value={systolicPressure}
-            onChange={setSystolicPressure}
-            suffix="mmHg"
-            numberType="natural"
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <NumericField
-            label="P. Diastólica (mmHg)"
-            value={diastolicPressure}
-            onChange={setDiastolicPressure}
-            suffix="mmHg"
-            numberType="natural"
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={6} sm={3} md={1.5} zeroMinWidth>
-          <NumericField
-            label="Temperatura (°C)"
-            value={temperatureC}
-            onChange={setTemperatureC}
-            suffix="°C"
-            numberType="decimal"
-            disabled={readOnly}
-          />
-        </Grid>
-      </Grid>
+      <Box sx={{ fontWeight: 600, mt: 3, mb: 2 }}>
+        {t("historyPhysicalExam.physicalExam.vitalsTitle")}
+      </Box>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+          gap: "16px",
+        }}
+      >
+        <NumericField
+          label={t("historyPhysicalExam.physicalExam.vitals.oxygenSaturation")}
+          value={oxygenSaturation}
+          onChange={setOxygenSaturation}
+          suffix="%"
+          unitLabel="% O2"
+          numberType="natural"
+          disabled={readOnly}
+        />
+        <NumericField
+          label={t("historyPhysicalExam.physicalExam.vitals.weight")}
+          value={weightKg}
+          onChange={setWeightKg}
+          suffix="Kg"
+          unitLabel="kg"
+          numberType="decimal"
+          disabled={readOnly}
+        />
+        <NumericField
+          label={t("historyPhysicalExam.physicalExam.vitals.height")}
+          value={heightCm}
+          onChange={setHeightCm}
+          suffix="cm"
+          unitLabel="cm"
+          numberType="natural"
+          disabled={readOnly}
+        />
+        <NumericField
+          label={t("historyPhysicalExam.physicalExam.vitals.heartRate")}
+          value={heartRate}
+          onChange={setHeartRate}
+          suffix="lpm"
+          unitLabel="lpm"
+          numberType="natural"
+          disabled={readOnly}
+        />
+        <NumericField
+          label={t("historyPhysicalExam.physicalExam.vitals.respiratoryRate")}
+          value={respiratoryRate}
+          onChange={setRespiratoryRate}
+          suffix="rpm"
+          unitLabel="rpm"
+          numberType="natural"
+          disabled={readOnly}
+        />
+        <NumericField
+          label={t("historyPhysicalExam.physicalExam.vitals.systolicPressure")}
+          value={systolicPressure}
+          onChange={setSystolicPressure}
+          suffix="mmHg"
+          unitLabel="mmHg"
+          numberType="natural"
+          disabled={readOnly}
+        />
+        <NumericField
+          label={t("historyPhysicalExam.physicalExam.vitals.diastolicPressure")}
+          value={diastolicPressure}
+          onChange={setDiastolicPressure}
+          suffix="mmHg"
+          unitLabel="mmHg"
+          numberType="natural"
+          disabled={readOnly}
+        />
+        <NumericField
+          label={t("historyPhysicalExam.physicalExam.vitals.temperature")}
+          value={temperatureC}
+          onChange={setTemperatureC}
+          suffix="°C"
+          unitLabel="°C"
+          numberType="decimal"
+          disabled={readOnly}
+        />
+      </Box>
 
-      <Box sx={{ fontWeight: 600, mt: 3, mb: 2 }}>Funciones biológicas</Box>
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} md={2.4} zeroMinWidth>
-          <SelectField
-            label="Sueño"
-            placeholder="-Seleccionar opción-"
-            value={sleepFunction}
-            onChange={setSleepFunction}
-            options={sleepAppetiteOptions}
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={2.4} zeroMinWidth>
-          <SelectField
-            label="Apetito"
-            placeholder="-Seleccionar opción-"
-            value={appetiteFunction}
-            onChange={setAppetiteFunction}
-            options={sleepAppetiteOptions}
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={2.4} zeroMinWidth>
-          <SelectField
-            label="Orina"
-            placeholder="-Seleccionar opción-"
-            value={urineFunction}
-            onChange={setUrineFunction}
-            options={urineStoolWeightOptions}
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={2.4} zeroMinWidth>
-          <SelectField
-            label="Deposición"
-            placeholder="-Seleccionar opción-"
-            value={stoolFunction}
-            onChange={setStoolFunction}
-            options={urineStoolWeightOptions}
-            disabled={readOnly}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={2.4} zeroMinWidth>
-          <SelectField
-            label="Peso"
-            placeholder="-Seleccionar opción-"
-            value={weightFunction}
-            onChange={setWeightFunction}
-            options={urineStoolWeightOptions}
-            disabled={readOnly}
-          />
-        </Grid>
-      </Grid>
+      <Box sx={{ fontWeight: 600, mt: 3, mb: 2 }}>
+        {t("historyPhysicalExam.physicalExam.biologicalFunctionsTitle")}
+      </Box>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+          gap: "16px",
+        }}
+      >
+        <SelectField
+          label={t(
+            "historyPhysicalExam.physicalExam.biologicalFunctions.sleep",
+          )}
+          placeholder={t("historyPhysicalExam.selectPlaceholder")}
+          value={sleepFunction}
+          onChange={setSleepFunction}
+          options={sleepAppetiteOptions}
+          disabled={readOnly}
+        />
+        <SelectField
+          label={t(
+            "historyPhysicalExam.physicalExam.biologicalFunctions.appetite",
+          )}
+          placeholder={t("historyPhysicalExam.selectPlaceholder")}
+          value={appetiteFunction}
+          onChange={setAppetiteFunction}
+          options={sleepAppetiteOptions}
+          disabled={readOnly}
+        />
+        <SelectField
+          label={t(
+            "historyPhysicalExam.physicalExam.biologicalFunctions.urine",
+          )}
+          placeholder={t("historyPhysicalExam.selectPlaceholder")}
+          value={urineFunction}
+          onChange={setUrineFunction}
+          options={urineStoolWeightOptions}
+          disabled={readOnly}
+        />
+        <SelectField
+          label={t(
+            "historyPhysicalExam.physicalExam.biologicalFunctions.stool",
+          )}
+          placeholder={t("historyPhysicalExam.selectPlaceholder")}
+          value={stoolFunction}
+          onChange={setStoolFunction}
+          options={urineStoolWeightOptions}
+          disabled={readOnly}
+        />
+        <SelectField
+          label={t(
+            "historyPhysicalExam.physicalExam.biologicalFunctions.weight",
+          )}
+          placeholder={t("historyPhysicalExam.selectPlaceholder")}
+          value={weightFunction}
+          onChange={setWeightFunction}
+          options={urineStoolWeightOptions}
+          disabled={readOnly}
+        />
+      </Box>
     </div>
+    </Box>
   );
 };

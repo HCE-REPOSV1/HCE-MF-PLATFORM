@@ -15,7 +15,7 @@ import {
   DisketteIcon,
   hceColors,
 } from "@hce/design-system";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import type {
   ClinicalRecordPatient,
@@ -30,21 +30,76 @@ import {
 import { ClinicalRecordTabs } from "./components/ClinicalRecordTabs";
 import { mapToSavePayload } from "./mapper/medicalHistory.mapper";
 import { usePatientRecord } from "./hooks/usePatientRecord";
+import { useCatalog } from "./hooks/useCatalog";
+import { useTranslation } from "@hce/i18n-core";
+import { getLocalizedCatalogDisplay } from "./utils/catalogLocalization";
+import { useClinicalRecordNamespaceReady } from "./i18n";
+
+const CSI_GENDER = 3;
 
 export default function ClinicalRecordPage() {
-  // registerClinicalRecordNamespace();
-  // const { t } = useTranslation("clinical-record");
+  const namespaceReady = useClinicalRecordNamespaceReady();
 
-  // Igual que mf-emergency/pages/ClinicalRecordPage: el monitor navega con
-  // navigate("historiacli", { state: { patient: row } }); react-router-dom
-  // es dependencia compartida (singleton) en Module Federation, así que este
-  // remote puede leer el mismo router state aunque lo renderice mf-emergency.
   const { state } = useLocation();
   const navigatedPatient = (state as { patient?: NavigatedPatientState } | null)
     ?.patient;
   const [encounterId] = useState<number | undefined>(
     () => navigatedPatient?.encounter_id ?? undefined,
   );
+
+  const { t, i18n } = useTranslation("clinical-record");
+  const {
+    fetchAgeGroups,
+    fetchIdentifierTypes,
+    fetchCodeSystemValues,
+    dataCatalogCodeSystemValues: codeSystemValues,
+  } = useCatalog();
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const results = await Promise.all([
+          fetchIdentifierTypes("patient"),
+          fetchCodeSystemValues(CSI_GENDER),
+          fetchAgeGroups(),
+        ]);
+        const [identifierTypes, genders, ageGroups] = results;
+
+        if (genders && Array.isArray(genders)) {
+          genders
+            .filter((g) => g.is_active)
+            .sort((a, b) => a.sort_order - b.sort_order)
+            .map((g) => ({
+              value: g.code,
+              label: getLocalizedCatalogDisplay(g, i18n.resolvedLanguage),
+            }));
+        }
+
+        if (ageGroups && Array.isArray(ageGroups)) {
+          ageGroups
+            .filter((g) => g.is_active)
+            .sort((a, b) => a.sort_order - b.sort_order)
+            .map((g) => ({
+              value: g.code,
+              label: getLocalizedCatalogDisplay(g, i18n.resolvedLanguage),
+            }));
+        }
+
+        if (identifierTypes && Array.isArray(identifierTypes)) {
+          identifierTypes
+            .filter((t) => t.is_active)
+            .sort((a, b) => a.sort_order - b.sort_order)
+            .map((t) => ({
+              value: t.code,
+              label: getLocalizedCatalogDisplay(t, i18n.resolvedLanguage),
+            }));
+        }
+      } catch (err) {
+        console.error(t("clinicalRecordPage.errors.loadCatalogs"), err);
+      }
+    };
+    loadData();
+  }, []);
 
   const {
     data: patientRecord,
@@ -56,18 +111,34 @@ export default function ClinicalRecordPage() {
   const patient = useMemo<ClinicalRecordPatient | null>(() => {
     if (!patientRecord) return null;
 
+    const catalogGender = codeSystemValues?.find(
+      ({ code, is_active }) =>
+        is_active && code.toLowerCase() === patientRecord.gender?.toLowerCase(),
+    );
+
     const practitioner = patientRecord.attending_practitioner;
 
     return {
       patientId: String(patientRecord.patient_id),
       fullName: patientRecord.full_name,
-      gender: patientRecord.gender || "-",
+      gender: getLocalizedCatalogDisplay(
+        catalogGender,
+        i18n.language,
+        patientRecord.gender || "-",
+      ),
       ageDisplay: patientRecord.age_display || "-",
       documentType: patientRecord.document_type || "-",
       documentNumber: patientRecord.document_number || "-",
       bloodType: patientRecord.blood_type || "-",
-      specialty:
-        practitioner?.speciality_es || practitioner?.speciality_en || "-",
+      specialty: getLocalizedCatalogDisplay(
+        practitioner
+          ? {
+              display_es: practitioner.speciality_es,
+              display_en: practitioner.speciality_en,
+            }
+          : null,
+        i18n.language,
+      ),
       doctorName: practitioner?.doctor_name ?? "-",
       attentionCode: patientRecord.attention_code ?? "-",
       clinicalHistoryNumber: patientRecord.clinical_history_number ?? "-",
@@ -78,11 +149,8 @@ export default function ClinicalRecordPage() {
       address: patientRecord.address ?? "-",
       hasAllergies: patientRecord.allergy?.declaration?.has_allergies === "S",
     };
-  }, [patientRecord]);
+  }, [patientRecord, codeSystemValues, i18n.resolvedLanguage]);
 
-  // patient_id "real" para historial/alergias: preferir el que trae el propio
-  // patient-summary una vez cargado; si aún no cargó, usar el que venga en el
-  // router state (si el llamador ya lo conocía).
   const patientIdNumber = useMemo<number | undefined>(() => {
     const raw = patientRecord?.patient_id ?? navigatedPatient?.patient_id;
     if (raw === undefined || raw === null) return undefined;
@@ -90,66 +158,63 @@ export default function ClinicalRecordPage() {
     return Number.isNaN(parsed) ? undefined : parsed;
   }, [patientRecord, navigatedPatient]);
 
-  // Distingue "no se pudo determinar qué paciente mostrar" (sin encounter_id
-  // en el router state — refresh del navegador, deep link directo, etc.) de
-  // un paciente real sin datos que mostrar. Sin esto, PatientInfoBar y
-  // MedicalHistoryModal caerían en el mismo camino visual vacío que un
-  // paciente sin alergias/historial, lo cual es un riesgo de lectura clínica.
   const patientNotIdentified = encounterId === undefined;
+
+  const [openMedicalHistory, setOpenMedicalHistory] = useState(false);
 
   const LIST_ACTION_BAR: ExtraAction[] = [
     {
       id: "monitor",
-      labelTooltip: "Monitor",
+      labelTooltip: t("clinicalRecordPage.actionBar.monitor"),
       icon: UiMonitorIcon,
       onClick: () => console.log("Abriendo monitor..."),
       disabled: false,
     },
     {
       id: "laboratorio",
-      labelTooltip: "Laboratorio",
+      labelTooltip: t("clinicalRecordPage.actionBar.laboratory"),
       icon: UiBloodTestIcon,
       onClick: () => console.log("Abriendo laboratorio..."),
       disabled: false,
     },
     {
       id: "imagenes",
-      labelTooltip: "Imagenes",
+      labelTooltip: t("clinicalRecordPage.actionBar.imaging"),
       icon: UiXRaysIcon,
       onClick: () => console.log("Abriendo imagenes..."),
       disabled: false,
     },
     {
       id: "receta_alta",
-      labelTooltip: "Receta de alta",
+      labelTooltip: t("clinicalRecordPage.actionBar.dischargePrescription"),
       icon: UiPrescriptionIcon,
       onClick: () => console.log("Abriendo receta de alta..."),
       disabled: false,
     },
     {
       id: "alta_medica",
-      labelTooltip: "Alta medica",
+      labelTooltip: t("clinicalRecordPage.actionBar.medicalDischarge"),
       icon: AltaMedicaIcon,
       onClick: () => console.log("Abriendo alta medica..."),
       disabled: false,
     },
     {
       id: "imprimir_reporte",
-      labelTooltip: "Imprimir reporte",
+      labelTooltip: t("clinicalRecordPage.actionBar.printReport"),
       icon: UiPrintingIcon,
       onClick: () => console.log("Abriendo imprimir reporte..."),
       disabled: false,
     },
     {
       id: "indicaciones_actuales",
-      labelTooltip: "Indicaciones actuales",
+      labelTooltip: t("clinicalRecordPage.actionBar.currentOrders"),
       icon: UiDrugsIcon,
       onClick: () => console.log("Abriendo indicaciones actuales..."),
       disabled: false,
     },
     {
       id: "historial_atenciones",
-      labelTooltip: "Historial de atenciones",
+      labelTooltip: t("clinicalRecordPage.actionBar.attentionHistory"),
       icon: HceHistoryIcon,
       onClick: () => {
         setOpenMedicalHistory(true);
@@ -158,14 +223,12 @@ export default function ClinicalRecordPage() {
     },
     {
       id: "referencia",
-      labelTooltip: "Referencia",
+      labelTooltip: t("clinicalRecordPage.actionBar.referral"),
       icon: ReferenceIcon,
       onClick: () => console.log("Abriendo referencia..."),
       disabled: false,
     },
   ];
-
-  const [openMedicalHistory, setOpenMedicalHistory] = useState(false);
 
   function SaveButton() {
     const { getAllData } = useClinicalRecordForm();
@@ -173,14 +236,8 @@ export default function ClinicalRecordPage() {
 
     const handleSave = () => {
       const rawData = getAllData();
-      // TODO: enviar el payload mapeado al backend cuando el endpoint de
-      // guardado esté disponible. No loguear el payload: contiene datos
-      // clínicos del paciente (anamnesis, antecedentes, reconciliación).
       mapToSavePayload(rawData);
-      // El guardado real todavía no está conectado a un endpoint — avisar
-      // explícitamente en vez de dejar que el clic no tenga ningún efecto
-      // visible (podría leerse como "ya se guardó").
-      setSaveMessage("Guardado aún no disponible — función en desarrollo");
+      setSaveMessage(t("clinicalRecordPage.saveButton.notAvailable"));
     };
 
     return (
@@ -195,8 +252,16 @@ export default function ClinicalRecordPage() {
           color={hceColors.primary.green[600]}
           onClick={handleSave}
         >
-          Guardar
+          {t("clinicalRecordPage.saveButton.label")}
         </Button>
+      </Box>
+    );
+  }
+
+  if (!namespaceReady) {
+    return (
+      <Box sx={{ p: 4, display: "flex", justifyContent: "center" }}>
+        Cargando...
       </Box>
     );
   }
@@ -229,7 +294,7 @@ export default function ClinicalRecordPage() {
               flexDirection: "row",
               justifyContent: "space-between",
               alignItems: "center",
-              padding: "0px 16px"
+              padding: "0px 16px",
             }}
           >
             <Box>
@@ -244,7 +309,7 @@ export default function ClinicalRecordPage() {
             </Box>
           </Box>
           <Box sx={{ padding: "16px" }}>
-            <ClinicalRecordTabs encounterId={encounterId}/>
+            <ClinicalRecordTabs encounterId={encounterId} />
           </Box>
         </ClinicalRecordFormProvider>
       </Box>

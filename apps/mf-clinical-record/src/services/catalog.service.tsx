@@ -23,10 +23,63 @@ import type {
   CatalogCodeSystemValuesResponse,
   CatalogCompanionTypes,
   CatalogCompanionTypesResponse,
+  CatalogIdentifierType,
+  CatalogIdentifierTypeResponse,
   CatalogMedicationProduct,
   CatalogMedicationProductSearchResponse,
+  CatalogTimeUnit,
+  CatalogTimeUnitResponse,
+  CatalogAgeGroup,
+  CatalogAgeGroupResponse,
 } from "../types/Catalog.type";
 import { ENDPOINTS } from "../config/endpoints";
+
+const USE_MOCK_MEDICATION_SEARCH = true;
+
+const MOCK_MEDICATION_PRODUCTS: CatalogMedicationProduct[] = [
+  {
+    medication_legacy_code: "LOG-000123",
+    medication_product_uuid: "163534BC-359B-F111-95E5-00155D856407",
+    active_principle_id: 1,
+    pharmaceutical_form_id: 1,
+    strength_value: 500,
+    strength_unit: "mg",
+    commercial_name: null,
+    product_display: "Paracetamol 500mg Tableta",
+    product_display_search: "paracetamol acetaminofen 500mg tableta",
+    is_active: true,
+    product_display_es: "Paracetamol 500mg Tableta",
+    product_display_en: "Paracetamol 500mg Tablet",
+  },
+  {
+    medication_legacy_code: "LOG-000456",
+    medication_product_uuid: "273645CD-460C-F222-96F6-00266E967518",
+    active_principle_id: 2,
+    pharmaceutical_form_id: 3,
+    strength_value: 250,
+    strength_unit: "mg",
+    commercial_name: "Amoxil",
+    product_display: "Amoxicilina 250mg Cápsula",
+    product_display_search: "amoxicilina 250mg capsula",
+    is_active: true,
+    product_display_es: "Amoxicilina 250mg Cápsula",
+    product_display_en: "Amoxicillin 250mg Capsule",
+  },
+  {
+    medication_legacy_code: "LOG-000789",
+    medication_product_uuid: "384756DE-571D-F333-97G7-00377F078629",
+    active_principle_id: 3,
+    pharmaceutical_form_id: 2,
+    strength_value: 100,
+    strength_unit: "mg",
+    commercial_name: null,
+    product_display: "Ibuprofeno 100mg Jarabe",
+    product_display_search: "ibuprofeno 100mg jarabe",
+    is_active: true,
+    product_display_es: "Ibuprofeno 100mg Jarabe",
+    product_display_en: "Ibuprofen 100mg Syrup",
+  },
+];
 
 export async function getActivePrinciples(): Promise<
   CatalogActivePrinciples[] | null
@@ -71,7 +124,6 @@ export async function getCompanionTypes(): Promise<
   return json.data;
 }
 
-
 export async function getBackgroundCatalog(): Promise<
   CatalogBackgroundItem[] | null
 > {
@@ -105,6 +157,15 @@ export async function getAdministrationRoutes(): Promise<
 export async function searchMedicationProducts(
   text: string,
 ): Promise<CatalogMedicationProduct[] | null> {
+  if (USE_MOCK_MEDICATION_SEARCH) {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const query = text.trim().toLowerCase();
+    if (!query) return MOCK_MEDICATION_PRODUCTS;
+    return MOCK_MEDICATION_PRODUCTS.filter((item) =>
+      item.product_display_search.includes(query),
+    );
+  }
+
   const res = await apiFetch(ENDPOINTS.catalogs.MedicationProductsSearch(text));
   if (res.status === 404) return null;
   if (!res.ok)
@@ -124,6 +185,47 @@ export async function getCodeSystemValues(
     throw new Error(`Error ${res.status} al obtener valores de code system`);
 
   const json = (await res.json()) as CatalogCodeSystemValuesResponse;
+  if (!json.success) return null;
+  return json.data;
+}
+
+export async function getIdentifierTypes(
+  entityType: string,
+): Promise<CatalogIdentifierType[] | null> {
+  const res = await apiFetch(ENDPOINTS.catalogs.IdentifierTypes(entityType));
+  if (res.status === 404) return null;
+  if (!res.ok)
+    throw new Error(
+      `Error ${res.status} al obtener datos del Catalog Identifier Types`,
+    );
+
+  const json = (await res.json()) as CatalogIdentifierTypeResponse;
+  if (!json.success) return null;
+  return json.data;
+}
+
+export async function getTimeUnits(): Promise<CatalogTimeUnit[] | null> {
+  const res = await apiFetch(ENDPOINTS.catalogs.TimeUnits());
+  if (res.status === 404) return null;
+  if (!res.ok)
+    throw new Error(
+      `Error ${res.status} al obtener datos del Catalog Time Units`,
+    );
+
+  const json = (await res.json()) as CatalogTimeUnitResponse;
+  if (!json.success) return null;
+  return json.data;
+}
+
+export async function getAgeGroups(): Promise<CatalogAgeGroup[] | null> {
+  const res = await apiFetch(ENDPOINTS.catalogs.AgeGroups());
+  if (res.status === 404) return null;
+  if (!res.ok)
+    throw new Error(
+      `Error ${res.status} al obtener datos del Catalog Age Groups`,
+    );
+
+  const json = (await res.json()) as CatalogAgeGroupResponse;
   if (!json.success) return null;
   return json.data;
 }

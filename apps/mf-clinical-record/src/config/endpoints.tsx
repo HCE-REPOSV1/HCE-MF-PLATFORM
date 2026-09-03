@@ -1,6 +1,7 @@
 const AG_WEB_EMERGENCY = import.meta.env.VITE_APIGW_CNL_WEB_EMERGENCY;
 const AG_CLN_CROSS = import.meta.env.VITE_APIGW_CLN_CROSS;
 
+
 if (!AG_WEB_EMERGENCY)
   throw new Error(
     "[mf-clinical-record] VITE_APIGW_CNL_WEB_EMERGENCY no está configurado",
@@ -68,6 +69,11 @@ export const ENDPOINTS = {
       `${AG_CLN_CROSS}/api/v1/catalogs/medication-products/search?text=${encodeURIComponent(text)}`,
     CodeSystemValues: (codeSystemId: number) =>
       `${AG_CLN_CROSS}/api/v1/catalogs/code-system-values?code_system_id=${codeSystemId}`,
+    IdentifierTypes: (entityType: string) =>
+      `${AG_CLN_CROSS}/api/v1/catalogs/identifier-types?entity_type=${encodeURIComponent(entityType)}`,
+    TimeUnits: () => `${AG_CLN_CROSS}/api/v1/catalogs/time-units`,
+    AgeGroups: () => `${AG_CLN_CROSS}/api/v1/catalogs/age-groups`,
+    
   },
   medicalRecords: {
     medicalRecordByPatiente: (patientId: number, page = 1, limit = 10) =>

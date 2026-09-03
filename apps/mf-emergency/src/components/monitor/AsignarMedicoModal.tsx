@@ -20,7 +20,7 @@ import {
   HttpError,
   type AssignmentCandidate,
 } from "../../services/practitionerAssignment.service";
-import { registerEmergencyNamespace } from "../../i18n";
+import { useEmergencyNamespaceReady } from "../../i18n";
 import { useTranslation } from "@hce/i18n-core";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -34,14 +34,12 @@ export interface AsignarMedicoModalProps {
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
-
-
 export function AsignarMedicoModal({
   open,
   onClose,
   onAsignar,
 }: AsignarMedicoModalProps) {
-  registerEmergencyNamespace();
+  const namespaceReady = useEmergencyNamespaceReady();
   const { t } = useTranslation("emergency");
   const { user } = useUser();
   const sedeUuid = useSedeUuid();
@@ -171,12 +169,22 @@ export function AsignarMedicoModal({
 
   const formVisible = !mostrarExito && !sinPermiso;
 
-  const action = modo ? t('AsignarMedicoModal.actionAssigned') : t('AsignarMedicoModal.actionReassigned')
+  const action = modo
+    ? t("AsignarMedicoModal.actionAssigned")
+    : t("AsignarMedicoModal.actionReassigned");
 
   const OPTIONS = [
-  { value: true, label: t('AsignarMedicoModal.assign') },
-  { value: false, label: t('AsignarMedicoModal.reassign') },
-];
+    { value: true, label: t("AsignarMedicoModal.assign") },
+    { value: false, label: t("AsignarMedicoModal.reassign") },
+  ];
+
+  if (!namespaceReady) {
+    return (
+      <Box sx={{ p: 4, display: "flex", justifyContent: "center" }}>
+        Cargando...
+      </Box>
+    );
+  }
 
   return (
     <>
@@ -184,24 +192,24 @@ export function AsignarMedicoModal({
         <HceFormModal
           open={open}
           onClose={onClose}
-          title={t('AsignarMedicoModal.title')}
+          title={t("AsignarMedicoModal.title")}
           borderNone={true}
           iconClose={false}
           maxWidth={400}
           primaryButton={{
             label: enviando
               ? modo
-                ? t('AsignarMedicoModal.assigning')
-                : t('AsignarMedicoModal.reassigning')
+                ? t("AsignarMedicoModal.assigning")
+                : t("AsignarMedicoModal.reassigning")
               : modo
-                ? t('AsignarMedicoModal.assign')
-                : t('AsignarMedicoModal.reassign'),
+                ? t("AsignarMedicoModal.assign")
+                : t("AsignarMedicoModal.reassign"),
             onClick: handleConfirmar,
             color: "var(--ds-color-interactive-button , #0043a5)",
             disabled: !encounterId || cargando || enviando,
           }}
           secondaryButton={{
-            label: t('AsignarMedicoModal.cancel'),
+            label: t("AsignarMedicoModal.cancel"),
             onClick: onClose,
             color: "var(--ds-color-interactive, #0043a5)",
           }}
@@ -219,7 +227,7 @@ export function AsignarMedicoModal({
               }}
             >
               <RadioGroup
-                legend={t('AsignarMedicoModal.assignmentTypeLegend')}
+                legend={t("AsignarMedicoModal.assignmentTypeLegend")}
                 options={OPTIONS}
                 value={modo}
                 onChange={handleModoChange}
@@ -228,16 +236,16 @@ export function AsignarMedicoModal({
               />
 
               <SelectField
-                label={t('AsignarMedicoModal.patientListLabel')}
+                label={t("AsignarMedicoModal.patientListLabel")}
                 value={encounterId}
                 onChange={setEncounterId}
                 options={selectOptions}
                 placeholder={
                   cargando
-                    ? t('AsignarMedicoModal.loadingPatientsPlaceholder')
+                    ? t("AsignarMedicoModal.loadingPatientsPlaceholder")
                     : selectOptions.length === 0
-                      ? t('AsignarMedicoModal.noPatientsPlaceholder')
-                      : t('AsignarMedicoModal.selectPatientPlaceholder')
+                      ? t("AsignarMedicoModal.noPatientsPlaceholder")
+                      : t("AsignarMedicoModal.selectPatientPlaceholder")
                 }
                 disabled={cargando || selectOptions.length === 0}
                 menuMaxHeight={280}
@@ -252,7 +260,7 @@ export function AsignarMedicoModal({
                     color: hceColors.neutro.black[400],
                   }}
                 >
-                  {t('AsignarMedicoModal.currentPhysicianLabel')}{" "}
+                  {t("AsignarMedicoModal.currentPhysicianLabel")}{" "}
                   <strong>{candidatoSeleccionado.practitioner_name}</strong>
                 </Typography>
               )}
@@ -274,14 +282,14 @@ export function AsignarMedicoModal({
       )}
 
       {/* Éxito — un solo botón, cierra todo y recarga la grilla (via onAsignar). */}
-      
+
       <HceModal
         maxWidth={400}
         open={mostrarExito}
-        title={t('AsignarMedicoModal.successTitle',{action: action})}//{`Paciente ${modo ? "asignado" : "reasignado"} correctamente`}
+        title={t("AsignarMedicoModal.successTitle", { action: action })} //{`Paciente ${modo ? "asignado" : "reasignado"} correctamente`}
         icon={<UiCheckedIcon />}
         confirmButton={{
-          label: t('AsignarMedicoModal.accept'),
+          label: t("AsignarMedicoModal.accept"),
           onClick: handleAceptarExito,
         }}
         testId="mf-emergency-assign-doctor-success-modal"
@@ -291,8 +299,8 @@ export function AsignarMedicoModal({
       <HceModal
         maxWidth={400}
         open={sinPermiso}
-        title={t('AsignarMedicoModal.noPermissionTitle')}
-        description={t('AsignarMedicoModal.noPermissionDescription')}
+        title={t("AsignarMedicoModal.noPermissionTitle")}
+        description={t("AsignarMedicoModal.noPermissionDescription")}
         icon={<UiWarningIcon />}
         confirmButton={{
           label: "Aceptar",

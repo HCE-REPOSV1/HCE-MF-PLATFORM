@@ -18,7 +18,7 @@ import type {
 } from "../types/MedicalHistory";
 import { useMedicalHistory } from "../hooks/useMedicalHistory";
 import { mapMedicalHistoryApiItemToTableRow } from "../mapper/medicalHistory.mapper";
-import { registerClinicalRecordNamespace } from "../i18n";
+import { useClinicalRecordNamespaceReady } from "../i18n/index";
 import { ClinicalRecordTabs } from "./ClinicalRecordTabs";
 import { ClinicalRecordFormProvider } from "../context/ClinicalRecordFormContext";
 
@@ -30,18 +30,15 @@ interface MedicalHistoryModalProps {
   /** true si no se pudo identificar al paciente — distingue de "sin historial". */
   notIdentified?: boolean;
 }
-let registered = false;
+
 export default function MedicalHistoryModal({
   open,
   onClose,
   patientId,
   notIdentified = false,
 }: MedicalHistoryModalProps) {
+  const namespaceReady = useClinicalRecordNamespaceReady();
   const { t } = useTranslation("clinical-record");
-  if (!registered) {
-    registerClinicalRecordNamespace();
-    registered = true;
-  }
   const [currentPage, setCurrentPage] = useState(1);
   const { fetchMedicalHistory } = useMedicalHistory();
   const [rows, setRows] = useState<medicalHistoryApiData[]>([]);
@@ -169,6 +166,15 @@ export default function MedicalHistoryModal({
       setCurrentPage(1);
     }
   }, [currentPage, totalPages]);
+
+  if (!namespaceReady) {
+    return (
+      <Box sx={{ p: 4, display: "flex", justifyContent: "center" }}>
+        Cargando...
+      </Box>
+    );
+  }
+
   return (
     <HceFormModal
       open={open}
@@ -232,7 +238,7 @@ export default function MedicalHistoryModal({
             {/* Tabs */}
             <Box sx={{ pt: "15px" }}>
               <ClinicalRecordFormProvider>
-                <ClinicalRecordTabs readOnly/>
+                <ClinicalRecordTabs readOnly />
               </ClinicalRecordFormProvider>
             </Box>
           </>
@@ -247,6 +253,7 @@ export default function MedicalHistoryModal({
           <>
             {" "}
             <GenericTable
+              emptyMessage={t("EmptyMessageDataTable")}
               columns={columnsTable}
               rows={rows}
               getRowId={(row) => row.encounter_id.toString()}

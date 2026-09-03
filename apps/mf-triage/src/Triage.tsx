@@ -530,8 +530,8 @@ export function Triage({
             .sort((a, b) => a.display_order - b.display_order);
           setTimeUnitOptions(nuevasOpcionesTimeUnits);
         }
-      } catch (err) {
-        console.error("Error al cargar información", err);
+      } catch {
+        console.error("[Triage] Error al cargar catálogos");
         setLoadError(t("errors.catalog.loadCatalogs"));
       }
     };

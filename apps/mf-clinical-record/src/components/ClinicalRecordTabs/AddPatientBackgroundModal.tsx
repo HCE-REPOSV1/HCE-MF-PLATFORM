@@ -10,8 +10,10 @@ import {
   hceTypography,
 } from "@hce/design-system";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useCatalog } from "../../hooks/useCatalog";
 import type { CatalogBackgroundItem } from "../../types/Catalog.type";
+import { getLocalizedCatalogDisplay } from "../../utils/catalogLocalization";
 
 type PatientBackgroundCategory = "general" | "gyn_obstetric" | "pathological";
 
@@ -35,7 +37,7 @@ interface DraftItem {
   label: string;
   is_present: boolean;
   description: string;
-  category: PatientBackgroundCategory; // ⚠️ nuevo — cada ítem recuerda su propia pestaña
+  category: PatientBackgroundCategory;
 }
 
 export default function AddPatientBackgroundModal({
@@ -44,6 +46,7 @@ export default function AddPatientBackgroundModal({
   onSave,
   initialCategory = "general",
 }: AddPatientBackgroundModalProps) {
+  const { t, i18n } = useTranslation("clinical-record");
   const { fetchBackgroundCatalog } = useCatalog();
 
   const [category, setCategory] =
@@ -64,8 +67,6 @@ export default function AddPatientBackgroundModal({
     loadCatalog();
   }, [fetchBackgroundCatalog]);
 
-  // Reinicia todo SOLO al abrir el modal (sesión nueva) — ya no se resetea
-  // al cambiar de pestaña, para no perder lo agregado en otras categorías
   useEffect(() => {
     if (!open) return;
     setCategory(initialCategory);
@@ -82,12 +83,18 @@ export default function AddPatientBackgroundModal({
         )
         .map((item) => ({
           value: String(item.background_catalog_id),
-          label: item.background_name,
+          label: getLocalizedCatalogDisplay(
+                    {
+                      background_name_es: item.background_name_es,
+                      background_name_en: item.background_name_en,
+                    },
+                    i18n.language,
+                    item.background_name,
+                  ),//item.background_name,
         })),
-    [backgroundCatalog, category],
+    [backgroundCatalog, category, i18n.language],
   );
 
-  // Solo oculta del dropdown lo ya agregado EN LA MISMA pestaña activa
   const backgroundCatalogOptions = useMemo(
     () =>
       allBackgroundCatalogOptions.filter(
@@ -124,7 +131,7 @@ export default function AddPatientBackgroundModal({
             label: option.label,
             is_present: true,
             description: "",
-            category, // ⚠️ nuevo — guarda a qué pestaña pertenece
+            category,
           },
         ];
       });
@@ -171,8 +178,6 @@ export default function AddPatientBackgroundModal({
     [],
   );
 
-  // Solo se muestran los ítems de la pestaña activa; los demás siguen
-  // guardados en draftItems, listos para guardarse todos juntos
   const visibleDraftItems = useMemo(
     () => draftItems.filter((item) => item.category === category),
     [draftItems, category],
@@ -185,12 +190,11 @@ export default function AddPatientBackgroundModal({
     try {
       setSaving(true);
       setError(null);
-      // Guarda TODOS los ítems agregados, sin importar la pestaña activa ahora
       for (const item of draftItems) {
         await onSave({
           background_catalog_id: item.background_catalog_id,
           background_name: item.label,
-          background_category: item.category, // ⚠️ usa la categoría propia del ítem
+          background_category: item.category,
           is_present: item.is_present,
           description: item.description,
         });
@@ -198,24 +202,22 @@ export default function AddPatientBackgroundModal({
       onClose();
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "No se pudo guardar el antecedente",
+        err instanceof Error ? err.message : t("addPatientBackgroundModal.saveError"),
       );
     } finally {
       setSaving(false);
     }
-  }, [isSaveDisabled, draftItems, onSave, onClose]);
+  }, [isSaveDisabled, draftItems, onSave, onClose, t]);
 
   return (
     <HceFormModal
       open={open}
       onClose={onClose}
-      title="Agregar antecedentes"
+      title={t("addPatientBackgroundModal.title")}
       maxWidth="md"
       buttonAlign="right"
       primaryButton={{
-        label: "Guardar",
+        label: t("addPatientBackgroundModal.saveButton"),
         onClick: handleSave,
         disabled: isSaveDisabled,
         color: hceColors.primary.green[600],
@@ -225,12 +227,13 @@ export default function AddPatientBackgroundModal({
         <SegmentedToggle
           variant="panel"
           options={[
-            { label: "Generales", value: "general" },
-            { label: "Gineco - obstétricos", value: "gyn_obstetric" },
-            { label: "Patológicos", value: "pathological" },
+            { label: t("addPatientBackgroundModal.categories.general"), value: "general" },
+            { label: t("addPatientBackgroundModal.categories.gynObstetric"), value: "gyn_obstetric" },
+            { label: t("addPatientBackgroundModal.categories.pathological"), value: "pathological" },
           ]}
           value={category}
-          onChange={(v) => setCategory(v as PatientBackgroundCategory)}
+          onChange={setCategory}
+          testId="clinical-record-add-patient-background-category-toggle"
         />
 
         <Box
@@ -246,8 +249,8 @@ export default function AddPatientBackgroundModal({
           }}
         >
           <SelectField
-            label="Registro de Antecedentes"
-            placeholder="-Seleccionar opción-"
+            label={t("addPatientBackgroundModal.catalogLabel")}
+            placeholder={t("addPatientBackgroundModal.catalogPlaceholder")}
             value={backgroundCatalogId}
             onChange={handleSelectFromCatalog}
             options={backgroundCatalogOptions}
@@ -277,7 +280,7 @@ export default function AddPatientBackgroundModal({
               <Grid container spacing={2} alignItems="center" wrap="nowrap">
                 <Grid item xs="auto" zeroMinWidth>
                   <Checkbox
-                    label="SI"
+                    label={t("addPatientBackgroundModal.presentCheckbox")}
                     checked={item.is_present}
                     onChange={(v) =>
                       handleTogglePresent(
@@ -290,7 +293,7 @@ export default function AddPatientBackgroundModal({
                 </Grid>
                 <Grid item xs zeroMinWidth>
                   <TextInput
-                    placeholder="Ingresa texto"
+                    placeholder={t("addPatientBackgroundModal.descriptionPlaceholder")}
                     value={item.description}
                     onChange={(v) =>
                       updateDraftItem(

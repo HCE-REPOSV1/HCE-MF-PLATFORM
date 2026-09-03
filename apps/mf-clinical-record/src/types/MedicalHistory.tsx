@@ -32,6 +32,7 @@ export interface PatientBackgroundApiItem {
   is_present: boolean;
   description: string;
   user_create?: string;
+  date_create?: string;
 }
 export interface medicalHistoryApiMeta {
   limit: number;
@@ -92,8 +93,8 @@ export interface PhysicalExamApiItem {
 // types/MedicalHistory.tsx
 export interface MedicationReconciliationApiItem {
   medication_reconciliation_id: number;
-  medication_product_id: number;
-  medication_display: string;
+  medication_legacy_code: string;
+  medication_name: string;
   administration_route_id: number;
   administration_route_description: string;
   dose_value: number;
@@ -130,7 +131,7 @@ export interface MedicationReconciliationRow {
 }
 
 export interface MedicationReconciliationSavePayload {
-  medication_product_id: number;
+  medication_legacy_code: string;
   administration_route_id: number;
   dose_value: number;
   frequency_value: number;

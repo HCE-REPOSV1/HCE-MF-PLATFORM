@@ -19,7 +19,7 @@ import {
 } from "../../services/bedManagement.service";
 import { useUser } from "shell/UserContext";
 import { useTranslation } from "@hce/i18n-core";
-import { registerEmergencyNamespace } from "../../i18n";
+import { useEmergencyNamespaceReady } from "../../i18n";
 
 export interface BoxModalProps {
   open: boolean;
@@ -43,12 +43,8 @@ export function BoxModal({
   const [localPaciente, setLocalPaciente] = useState<MonitorTableRow | null>(
     paciente ?? null,
   );
-
+  const namespaceReady = useEmergencyNamespaceReady();
   const { t } = useTranslation("emergency");
-  useEffect(() => {
-    registerEmergencyNamespace();
-  }, []);
-
   const [bedOptions, setBedOptions] = useState<BedOption[]>([]);
   const [selectedBedId, setSelectedBedId] = useState("");
   const [loadingBeds, setLoadingBeds] = useState(false);
@@ -120,7 +116,9 @@ export function BoxModal({
   const modalTitle = useMemo(() => {
     if (title) return title;
 
-    return type === "assign" ? t("BoxModal.titleAssign") : t("BoxModal.titleChange");
+    return type === "assign"
+      ? t("BoxModal.titleAssign")
+      : t("BoxModal.titleChange");
   }, [title, type]);
 
   const contentTitle = useMemo(() => {
@@ -167,9 +165,7 @@ export function BoxModal({
       await onSaved?.();
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : t("BoxModal.errors.refreshFailed"),
+        err instanceof Error ? err.message : t("BoxModal.errors.refreshFailed"),
       );
     } finally {
       setSaving(false);
@@ -178,6 +174,14 @@ export function BoxModal({
 
   const isSaveDisabled =
     !selectedBedId || loadingBeds || saving || !localPaciente || Boolean(error);
+
+  if (!namespaceReady) {
+    return (
+      <Box sx={{ p: 4, display: "flex", justifyContent: "center" }}>
+        Cargando...
+      </Box>
+    );
+  }
 
   return (
     <>
