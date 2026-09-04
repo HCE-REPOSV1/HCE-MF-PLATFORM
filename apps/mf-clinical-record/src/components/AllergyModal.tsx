@@ -117,7 +117,7 @@ export function AllergyModal({
 
   const [form, setForm] = useState<AllergyForm>(EMPTY_FORM);
 
-  const [allergyEditionOpen, setallergyEditionOpen] = useState(false);
+  const [allergyEditionOpen, setallergyEditionOpen] = useState(true);
   const [saving, setSaving] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -170,6 +170,8 @@ const allergyBoard = useMemo<AllergyTableItem[]>(() => {
     encounter_id: allergyDeclaration.encounter_id,
   });
 
+  
+
   return [
     {
       ...allergyForm,
@@ -186,10 +188,20 @@ const allergyBoard = useMemo<AllergyTableItem[]>(() => {
   ];
 }, [allergyDeclaration, optionsActivePrinciples, t]);
 
-const hasChanges = useMemo(() => {
-  const original = allergyBoard[0];
+useEffect(() => {
+  const declaration = allergyDeclaration?.has_declaration ? allergyDeclaration.declaration : false;
 
-  if (!original) return false;
+  if (declaration==false ) {setallergyEditionOpen(true)};
+
+  if (declaration) {
+   
+
+  setallergyEditionOpen(declaration.has_allergies === "N");}
+}, [allergyDeclaration]);
+
+const hasChanges = useMemo(() => {
+  const original = allergyBoard[0]? allergyBoard[0] : {...EMPTY_FORM , allergy_id: allergyDeclaration?.declaration?.allergy_intolerance_id ?? 1, encounter_id: allergyDeclaration?.encounter_id ?? 1};
+
 
   const sameActivePrinciples =
     original.api.length === form.api.length &&
@@ -280,6 +292,7 @@ const handleSave = useCallback(async () => {
   const handleCancel = useCallback(() => {
     setAllergySelected(undefined);
     setConfirm(false);
+    //console.log(allergyDeclaration);
   }, []);
 
   const handleEdit = useCallback((row: AllergyTableItem) => {
@@ -300,7 +313,7 @@ const handleSave = useCallback(async () => {
     setForm(EMPTY_FORM);
     setValuePrincipioActivo([]);
     setAllergySelected(undefined);
-    setallergyEditionOpen(false);
+ 
     setConfirm(false);
     setError(null);
     onClose();
@@ -422,18 +435,6 @@ const handleSave = useCallback(async () => {
                 }}
               >
                 {t("allergy.loadError")}
-              </Box>
-            ) : allergyBoard.length === 0 ? (
-              <Box
-                sx={{
-                  py: 1.5,
-                  textAlign: "center",
-                  fontFamily: hceTypography.fontFamily,
-                  fontSize: "0.875rem",
-                  color: hceColors.neutro.black[300],
-                }}
-              >
-                {t("allergy.empty")}
               </Box>
             ) : !allergyEditionOpen ? (
               <GenericTable
