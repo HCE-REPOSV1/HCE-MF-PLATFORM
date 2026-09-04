@@ -362,13 +362,12 @@ const handleSave = useCallback(async () => {
           setOptionsActivePrinciples(transformerOptions);
         }
       } catch (err) {
-        console.error("Error al cargar información", err);
         setLoadError(t("allergy.catalogError"));
       }
     };
 
     loadData();
-  }, [fetchCatalogActivePrinciples, t]);
+  }, [fetchCatalogActivePrinciples]);
 
   return (
     <>

@@ -14,6 +14,7 @@ import {
   Button,
   DisketteIcon,
   hceColors,
+  LoadingOverlay,
 } from "@hce/design-system";
 import { useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -199,16 +200,21 @@ export default function ClinicalRecordPage() {
     );
   }
 
-  if (!namespaceReady) {
-    return (
-      <Box sx={{ p: 4, display: "flex", justifyContent: "center" }}>
-        Cargando...
-      </Box>
-    );
-  }
+  // if (!namespaceReady) {
+  //   return (
+  //     // <Box sx={{ p: 4, display: "flex", justifyContent: "center" }}>
+  //     //   Cargando...
+  //     // </Box>
+
+  //   );
+  // }
 
   return (
     <>
+      <LoadingOverlay
+        open={!namespaceReady && patientRecordLoading}
+        message="cargando historia clínica ..."
+      />
       <MedicalHistoryModal
         open={openMedicalHistory}
         onClose={() => setOpenMedicalHistory(false)}
