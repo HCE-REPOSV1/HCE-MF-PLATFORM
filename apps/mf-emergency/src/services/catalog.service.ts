@@ -5,6 +5,7 @@
  * Endpoints:
  * - GET catalogs/cie/search?text=${text}&column=${column}
  * - GET catalogs/code-system-values?code_system_id=${code_system_id}
+ * - GET catalogs/code-system-values?code_system_code=${code_system_code} (preferido, id no es estable entre entornos)
  * - GET catalogs/active-principles
  * - GET catalogs/active-principles/search?text=${text}
  * - GET catalogs/identifier-types?entity_type=${entityType}
@@ -101,9 +102,32 @@ export async function getAgeGroups(): Promise<CatalogAgeGroup[] | null> {
 }
 
 export async function getCodeSystemValues(
-  codeSystemId: string | number,
+  codeSystemId: number,
 ): Promise<CatalogCodeSystemValue[] | null> {
   const res = await apiFetch(ENDPOINTS.catalogs.CodeSystemValues(codeSystemId));
+  if (res.status === 404) return null;
+  if (!res.ok)
+    throw new Error(
+      `Error ${res.status} al obtener datos del Catalog Code System Values`,
+    );
+
+  const json = (await res.json()) as CatalogCodeSystemValueResponse;
+  if (!json.success) return null;
+  return json.data;
+}
+
+/**
+ * Preferido sobre getCodeSystemValues: code_system_id es un IDENTITY
+ * autoincremental de SQL Server, no estable entre entornos/bases de datos
+ * (puede colisionar entre dev/qa/prod). code_system_code (ej. "GENDER") es
+ * el identificador estable — usar esta función para cualquier consumo nuevo.
+ */
+export async function getCodeSystemValuesByCode(
+  codeSystemCode: string,
+): Promise<CatalogCodeSystemValue[] | null> {
+  const res = await apiFetch(
+    ENDPOINTS.catalogs.CodeSystemValuesByCode(codeSystemCode),
+  );
   if (res.status === 404) return null;
   if (!res.ok)
     throw new Error(

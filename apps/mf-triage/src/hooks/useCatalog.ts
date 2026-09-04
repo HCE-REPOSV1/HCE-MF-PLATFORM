@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   getCatalogCieSearch,
   getCodeSystemValues,
+  getCodeSystemValuesByCode,
   getActivePrinciples,
   getActivePrinciplesSearch,
   getIdentifierTypes,
@@ -83,12 +84,36 @@ export function useCatalog() {
   };
 
   const fetchCodeSystemValues = async (
-    codeSystemId: string | number,
+    codeSystemId: number,
   ): Promise<CatalogCodeSystemValue[] | null> => {
     catalogCodeSystemValue.setLoading(true);
     catalogCodeSystemValue.setError(null);
     try {
       const response = await getCodeSystemValues(codeSystemId);
+      catalogCodeSystemValue.setData(response);
+      return response;
+    } catch (err) {
+      catalogCodeSystemValue.setError(
+        err instanceof Error
+          ? err.message
+          : "Error al cargar valores del catálogo",
+      );
+      catalogCodeSystemValue.setData(null);
+      return null;
+    } finally {
+      catalogCodeSystemValue.setLoading(false);
+    }
+  };
+
+  // Preferida sobre fetchCodeSystemValues: recibe code_system_code (string
+  // estable) en vez de code_system_id (IDENTITY no estable entre entornos).
+  const fetchCodeSystemValuesByCode = async (
+    codeSystemCode: string,
+  ): Promise<CatalogCodeSystemValue[] | null> => {
+    catalogCodeSystemValue.setLoading(true);
+    catalogCodeSystemValue.setError(null);
+    try {
+      const response = await getCodeSystemValuesByCode(codeSystemCode);
       catalogCodeSystemValue.setData(response);
       return response;
     } catch (err) {
@@ -212,6 +237,7 @@ export function useCatalog() {
     fetchCatalogCie,
     fetchCatalogCieById,
     fetchCodeSystemValues,
+    fetchCodeSystemValuesByCode,
     fetchCatalogActivePrinciples,
     fetchCatalogActivePrinciplesSearch,
     fetchIdentifierTypes,

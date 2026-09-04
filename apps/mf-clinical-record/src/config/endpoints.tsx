@@ -69,6 +69,12 @@ export const ENDPOINTS = {
       `${AG_CLN_CROSS}/api/v1/catalogs/medication-products/search?text=${encodeURIComponent(text)}`,
     CodeSystemValues: (codeSystemId: number) =>
       `${AG_CLN_CROSS}/api/v1/catalogs/code-system-values?code_system_id=${codeSystemId}`,
+    /** Preferido sobre CodeSystemValues: code_system_id es IDENTITY autoincremental
+     * y NO es estable entre entornos/bases de datos (colisiona entre dev/qa/prod).
+     * code_system_code (ej. "GENDER", "PHYSICAL_EXAM_FUNCTION_LEVEL") es el
+     * identificador estable — usar este para cualquier consumo nuevo. */
+    CodeSystemValuesByCode: (codeSystemCode: string) =>
+      `${AG_CLN_CROSS}/api/v1/catalogs/code-system-values?code_system_code=${encodeURIComponent(codeSystemCode)}`,
     IdentifierTypes: (entityType: string) =>
       `${AG_CLN_CROSS}/api/v1/catalogs/identifier-types?entity_type=${encodeURIComponent(entityType)}`,
     TimeUnits: () => `${AG_CLN_CROSS}/api/v1/catalogs/time-units`,
