@@ -292,7 +292,7 @@ const handleSave = useCallback(async () => {
   const handleCancel = useCallback(() => {
     setAllergySelected(undefined);
     setConfirm(false);
-    console.log(allergyDeclaration);
+    //console.log(allergyDeclaration);
   }, []);
 
   const handleEdit = useCallback((row: AllergyTableItem) => {
