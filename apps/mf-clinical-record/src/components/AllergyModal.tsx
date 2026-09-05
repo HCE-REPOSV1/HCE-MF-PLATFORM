@@ -292,7 +292,7 @@ const handleSave = useCallback(async () => {
   const handleCancel = useCallback(() => {
     setAllergySelected(undefined);
     setConfirm(false);
-    console.log(allergyDeclaration);
+    //console.log(allergyDeclaration);
   }, []);
 
   const handleEdit = useCallback((row: AllergyTableItem) => {
@@ -375,13 +375,12 @@ const handleSave = useCallback(async () => {
           setOptionsActivePrinciples(transformerOptions);
         }
       } catch (err) {
-        console.error("Error al cargar información", err);
         setLoadError(t("allergy.catalogError"));
       }
     };
 
     loadData();
-  }, [fetchCatalogActivePrinciples, t]);
+  }, [fetchCatalogActivePrinciples]);
 
   return (
     <>

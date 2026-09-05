@@ -36,11 +36,17 @@ function useResourceState<T>() {
 // (el mismo bug que ya resolvimos con companionTypesFetcher).
 const companionTypesFetcher = createCachedFetcher(getCompanionTypes);
 const backgroundCatalogFetcher = createCachedFetcher(getBackgroundCatalog);
-const administrationRoutesFetcher = createCachedFetcher(getAdministrationRoutes);
+const administrationRoutesFetcher = createCachedFetcher(
+  getAdministrationRoutes,
+);
+const activePrinciplesFetcher = createCachedFetcher(getActivePrinciples);
 
 // Un fetcher cacheado POR cada code_system_id distinto (Sueño, Apetito, etc.
 // cada uno tiene su propio id, así que no pueden compartir un solo fetcher)
-const codeSystemFetchers = new Map<number, ReturnType<typeof createCachedFetcher>>();
+const codeSystemFetchers = new Map<
+  number,
+  ReturnType<typeof createCachedFetcher>
+>();
 function getCodeSystemFetcher(codeSystemId: number) {
   if (!codeSystemFetchers.has(codeSystemId)) {
     codeSystemFetchers.set(
@@ -55,7 +61,10 @@ function getCodeSystemFetcher(codeSystemId: number) {
 // (string estable, ej. "GENDER") en vez de code_system_id (IDENTITY
 // autoincremental de SQL Server, no estable entre entornos/bases de datos).
 // Preferir esta variante para cualquier consumo nuevo.
-const codeSystemFetchersByCode = new Map<string, ReturnType<typeof createCachedFetcher>>();
+const codeSystemFetchersByCode = new Map<
+  string,
+  ReturnType<typeof createCachedFetcher>
+>();
 function getCodeSystemFetcherByCode(codeSystemCode: string) {
   if (!codeSystemFetchersByCode.has(codeSystemCode)) {
     codeSystemFetchersByCode.set(
@@ -70,12 +79,14 @@ export function useCatalog() {
   const catalogActivePrinciples = useResourceState<CatalogActivePrinciples[]>();
   const catalogCompanionTypes = useResourceState<CatalogCompanionTypes[]>();
   const catalogBackground = useResourceState<CatalogBackgroundItem[]>();
-  const catalogMedicationProducts = useResourceState<CatalogMedicationProduct[]>();
-  const catalogAdministrationRoutes = useResourceState<CatalogAdministrationRoute[]>();
+  const catalogMedicationProducts =
+    useResourceState<CatalogMedicationProduct[]>();
+  const catalogAdministrationRoutes =
+    useResourceState<CatalogAdministrationRoute[]>();
   const catalogCodeSystemValues = useResourceState<CatalogCodeSystemValue[]>();
 
-    const ageGroups = useResourceState<CatalogAgeGroup[]>();
-     const identifierTypes = useResourceState<CatalogIdentifierType[]>();
+  const ageGroups = useResourceState<CatalogAgeGroup[]>();
+  const identifierTypes = useResourceState<CatalogIdentifierType[]>();
 
   const fetchCatalogActivePrinciples = useCallback(async (): Promise<
     CatalogActivePrinciples[] | null
@@ -83,14 +94,14 @@ export function useCatalog() {
     catalogActivePrinciples.setLoading(true);
     catalogActivePrinciples.setError(null);
     try {
-      const response = await getActivePrinciples();
+      const response = await activePrinciplesFetcher.fetch(i18n.language);
       catalogActivePrinciples.setData(response);
       return response;
     } catch (err) {
       catalogActivePrinciples.setError(
         err instanceof Error
           ? err.message
-          : "Error al cargar perfil del catalog cie",
+          : "Error al cargar perfil del catalog de principios activos",
       );
       catalogActivePrinciples.setData(null);
       return null;
@@ -214,7 +225,9 @@ export function useCatalog() {
       catalogCodeSystemValues.setLoading(true);
       catalogCodeSystemValues.setError(null);
       try {
-        const response = await getCodeSystemFetcher(codeSystemId).fetch(i18n.language);
+        const response = await getCodeSystemFetcher(codeSystemId).fetch(
+          i18n.language,
+        );
         catalogCodeSystemValues.setData(response as CatalogCodeSystemValue[]);
         return response as CatalogCodeSystemValue[];
       } catch (err) {
@@ -241,8 +254,9 @@ export function useCatalog() {
       catalogCodeSystemValues.setLoading(true);
       catalogCodeSystemValues.setError(null);
       try {
-        const response =
-          await getCodeSystemFetcherByCode(codeSystemCode).fetch(i18n.language);
+        const response = await getCodeSystemFetcherByCode(codeSystemCode).fetch(
+          i18n.language,
+        );
         catalogCodeSystemValues.setData(response as CatalogCodeSystemValue[]);
         return response as CatalogCodeSystemValue[];
       } catch (err) {
@@ -278,7 +292,7 @@ export function useCatalog() {
     }
   };
 
-   const fetchIdentifierTypes = async (
+  const fetchIdentifierTypes = async (
     entityType: string,
   ): Promise<CatalogIdentifierType[] | null> => {
     identifierTypes.setLoading(true);
@@ -299,7 +313,6 @@ export function useCatalog() {
       identifierTypes.setLoading(false);
     }
   };
-
 
   return {
     fetchCatalogActivePrinciples,

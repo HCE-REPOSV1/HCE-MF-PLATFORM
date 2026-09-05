@@ -115,8 +115,7 @@ const AnamnesisContent = ({
 }) => {
   const { t, i18n } = useTranslation("clinical-record");
   const { fetchCompanionTypes } = useCatalog();
-  const { fetchHistoryPhysicalExam } =
-    useMedicalHistory();
+  const { fetchHistoryPhysicalExam } = useMedicalHistory();
   const { user } = useUser();
   const { registerTabData, getTabData } = useClinicalRecordForm();
   const [expanded, setExpanded] = useState({
@@ -883,7 +882,7 @@ const ExamenFisicoContent = ({
       }
     };
     load();
-  },[encounterId,i18n.language]);
+  }, [encounterId, i18n.language]);
 
   // useEffect(() => {
   //   const load = async () => {
@@ -952,171 +951,198 @@ const ExamenFisicoContent = ({
 
   return (
     <Box>
-      <LoadingOverlay
-        open={formBusy}
-        message={"Cargando información..."}
-      />
+      <LoadingOverlay open={formBusy} message={"Cargando información..."} />
 
-          <div className="hce-examen-fisico">
-      <Box sx={{ fontWeight: 600, mb: 2 }}>
-        {t("historyPhysicalExam.physicalExam.title")}
-      </Box>
+      <div className="hce-examen-fisico">
+        <Box
+          sx={{
+            fontSize: "16px",
+            fontWeight: 600,
+            mb: 2,
+            mt: 2,
+            color: hceColors.primary.blue[600],
+          }}
+        >
+          {t("historyPhysicalExam.physicalExam.title")}
+        </Box>
 
-      <TextareaField
-        label={t("historyPhysicalExam.physicalExam.descriptionLabel")}
-        placeholder={t("historyPhysicalExam.textPlaceholder")}
-        value={examDescription}
-        onChange={setExamDescription}
-        maxLength={1000}
-        disabled={readOnly}
-      />
+        <TextareaField
+          label={t("historyPhysicalExam.physicalExam.descriptionLabel")}
+          placeholder={t("historyPhysicalExam.textPlaceholder")}
+          value={examDescription}
+          onChange={setExamDescription}
+          maxLength={1000}
+          disabled={readOnly}
+        />
 
-      <Box sx={{ fontWeight: 600, mt: 3, mb: 2 }}>
-        {t("historyPhysicalExam.physicalExam.vitalsTitle")}
-      </Box>
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
-          gap: "16px",
-        }}
-      >
-        <NumericField
-          label={t("historyPhysicalExam.physicalExam.vitals.oxygenSaturation")}
-          value={oxygenSaturation}
-          onChange={setOxygenSaturation}
-          suffix="%"
-          unitLabel="% O2"
-          numberType="natural"
-          disabled={readOnly}
-        />
-        <NumericField
-          label={t("historyPhysicalExam.physicalExam.vitals.weight")}
-          value={weightKg}
-          onChange={setWeightKg}
-          suffix="Kg"
-          unitLabel="kg"
-          numberType="decimal"
-          disabled={readOnly}
-        />
-        <NumericField
-          label={t("historyPhysicalExam.physicalExam.vitals.height")}
-          value={heightCm}
-          onChange={setHeightCm}
-          suffix="cm"
-          unitLabel="cm"
-          numberType="natural"
-          disabled={readOnly}
-        />
-        <NumericField
-          label={t("historyPhysicalExam.physicalExam.vitals.heartRate")}
-          value={heartRate}
-          onChange={setHeartRate}
-          suffix="lpm"
-          unitLabel="lpm"
-          numberType="natural"
-          disabled={readOnly}
-        />
-        <NumericField
-          label={t("historyPhysicalExam.physicalExam.vitals.respiratoryRate")}
-          value={respiratoryRate}
-          onChange={setRespiratoryRate}
-          suffix="rpm"
-          unitLabel="rpm"
-          numberType="natural"
-          disabled={readOnly}
-        />
-        <NumericField
-          label={t("historyPhysicalExam.physicalExam.vitals.systolicPressure")}
-          value={systolicPressure}
-          onChange={setSystolicPressure}
-          suffix="mmHg"
-          unitLabel="mmHg"
-          numberType="natural"
-          disabled={readOnly}
-        />
-        <NumericField
-          label={t("historyPhysicalExam.physicalExam.vitals.diastolicPressure")}
-          value={diastolicPressure}
-          onChange={setDiastolicPressure}
-          suffix="mmHg"
-          unitLabel="mmHg"
-          numberType="natural"
-          disabled={readOnly}
-        />
-        <NumericField
-          label={t("historyPhysicalExam.physicalExam.vitals.temperature")}
-          value={temperatureC}
-          onChange={setTemperatureC}
-          suffix="°C"
-          unitLabel="°C"
-          numberType="decimal"
-          disabled={readOnly}
-        />
-      </Box>
+        <Box
+          sx={{
+            fontSize: "16px",
+            fontWeight: 600,
+            mb: 2,
+            mt: 2,
+            color: hceColors.primary.blue[600],
+          }}
+        >
+          {t("historyPhysicalExam.physicalExam.vitalsTitle")}
+        </Box>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+            gap: "16px",
+          }}
+        >
+          <NumericField
+            label={t(
+              "historyPhysicalExam.physicalExam.vitals.oxygenSaturation",
+            )}
+            value={oxygenSaturation}
+            onChange={setOxygenSaturation}
+            suffix="%"
+            unitLabel="% O2"
+            numberType="natural"
+            disabled={readOnly}
+          />
+          <NumericField
+            label={t("historyPhysicalExam.physicalExam.vitals.weight")}
+            value={weightKg}
+            onChange={setWeightKg}
+            suffix="Kg"
+            unitLabel="kg"
+            numberType="decimal"
+            disabled={readOnly}
+          />
+          <NumericField
+            label={t("historyPhysicalExam.physicalExam.vitals.height")}
+            value={heightCm}
+            onChange={setHeightCm}
+            suffix="cm"
+            unitLabel="cm"
+            numberType="natural"
+            disabled={readOnly}
+          />
+          <NumericField
+            label={t("historyPhysicalExam.physicalExam.vitals.heartRate")}
+            value={heartRate}
+            onChange={setHeartRate}
+            suffix="lpm"
+            unitLabel="lpm"
+            numberType="natural"
+            disabled={readOnly}
+          />
+          <NumericField
+            label={t("historyPhysicalExam.physicalExam.vitals.respiratoryRate")}
+            value={respiratoryRate}
+            onChange={setRespiratoryRate}
+            suffix="rpm"
+            unitLabel="rpm"
+            numberType="natural"
+            disabled={readOnly}
+          />
+          <NumericField
+            label={t(
+              "historyPhysicalExam.physicalExam.vitals.systolicPressure",
+            )}
+            value={systolicPressure}
+            onChange={setSystolicPressure}
+            suffix="mmHg"
+            unitLabel="mmHg"
+            numberType="natural"
+            disabled={readOnly}
+          />
+          <NumericField
+            label={t(
+              "historyPhysicalExam.physicalExam.vitals.diastolicPressure",
+            )}
+            value={diastolicPressure}
+            onChange={setDiastolicPressure}
+            suffix="mmHg"
+            unitLabel="mmHg"
+            numberType="natural"
+            disabled={readOnly}
+          />
+          <NumericField
+            label={t("historyPhysicalExam.physicalExam.vitals.temperature")}
+            value={temperatureC}
+            onChange={setTemperatureC}
+            suffix="°C"
+            unitLabel="°C"
+            numberType="decimal"
+            disabled={readOnly}
+          />
+        </Box>
 
-      <Box sx={{ fontWeight: 600, mt: 3, mb: 2 }}>
-        {t("historyPhysicalExam.physicalExam.biologicalFunctionsTitle")}
-      </Box>
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-          gap: "16px",
-        }}
-      >
-        <SelectField
-          label={t(
-            "historyPhysicalExam.physicalExam.biologicalFunctions.sleep",
-          )}
-          placeholder={t("historyPhysicalExam.selectPlaceholder")}
-          value={sleepFunction}
-          onChange={setSleepFunction}
-          options={sleepAppetiteOptions}
-          disabled={readOnly}
-        />
-        <SelectField
-          label={t(
-            "historyPhysicalExam.physicalExam.biologicalFunctions.appetite",
-          )}
-          placeholder={t("historyPhysicalExam.selectPlaceholder")}
-          value={appetiteFunction}
-          onChange={setAppetiteFunction}
-          options={sleepAppetiteOptions}
-          disabled={readOnly}
-        />
-        <SelectField
-          label={t(
-            "historyPhysicalExam.physicalExam.biologicalFunctions.urine",
-          )}
-          placeholder={t("historyPhysicalExam.selectPlaceholder")}
-          value={urineFunction}
-          onChange={setUrineFunction}
-          options={urineStoolWeightOptions}
-          disabled={readOnly}
-        />
-        <SelectField
-          label={t(
-            "historyPhysicalExam.physicalExam.biologicalFunctions.stool",
-          )}
-          placeholder={t("historyPhysicalExam.selectPlaceholder")}
-          value={stoolFunction}
-          onChange={setStoolFunction}
-          options={urineStoolWeightOptions}
-          disabled={readOnly}
-        />
-        <SelectField
-          label={t(
-            "historyPhysicalExam.physicalExam.biologicalFunctions.weight",
-          )}
-          placeholder={t("historyPhysicalExam.selectPlaceholder")}
-          value={weightFunction}
-          onChange={setWeightFunction}
-          options={urineStoolWeightOptions}
-          disabled={readOnly}
-        />
-      </Box>
-    </div>
+        <Box
+          sx={{
+            fontSize: "16px",
+            fontWeight: 600,
+            mb: 2,
+            mt: 2,
+            color: hceColors.primary.blue[600],
+          }}
+        >
+          {t("historyPhysicalExam.physicalExam.biologicalFunctionsTitle")}
+        </Box>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+            gap: "16px",
+          }}
+        >
+          <SelectField
+            label={t(
+              "historyPhysicalExam.physicalExam.biologicalFunctions.sleep",
+            )}
+            placeholder={t("historyPhysicalExam.selectPlaceholder")}
+            value={sleepFunction}
+            onChange={setSleepFunction}
+            options={sleepAppetiteOptions}
+            disabled={readOnly}
+          />
+          <SelectField
+            label={t(
+              "historyPhysicalExam.physicalExam.biologicalFunctions.appetite",
+            )}
+            placeholder={t("historyPhysicalExam.selectPlaceholder")}
+            value={appetiteFunction}
+            onChange={setAppetiteFunction}
+            options={sleepAppetiteOptions}
+            disabled={readOnly}
+          />
+          <SelectField
+            label={t(
+              "historyPhysicalExam.physicalExam.biologicalFunctions.urine",
+            )}
+            placeholder={t("historyPhysicalExam.selectPlaceholder")}
+            value={urineFunction}
+            onChange={setUrineFunction}
+            options={urineStoolWeightOptions}
+            disabled={readOnly}
+          />
+          <SelectField
+            label={t(
+              "historyPhysicalExam.physicalExam.biologicalFunctions.stool",
+            )}
+            placeholder={t("historyPhysicalExam.selectPlaceholder")}
+            value={stoolFunction}
+            onChange={setStoolFunction}
+            options={urineStoolWeightOptions}
+            disabled={readOnly}
+          />
+          <SelectField
+            label={t(
+              "historyPhysicalExam.physicalExam.biologicalFunctions.weight",
+            )}
+            placeholder={t("historyPhysicalExam.selectPlaceholder")}
+            value={weightFunction}
+            onChange={setWeightFunction}
+            options={urineStoolWeightOptions}
+            disabled={readOnly}
+          />
+        </Box>
+      </div>
     </Box>
   );
 };
