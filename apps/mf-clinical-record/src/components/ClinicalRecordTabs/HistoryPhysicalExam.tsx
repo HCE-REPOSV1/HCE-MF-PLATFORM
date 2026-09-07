@@ -762,38 +762,6 @@ const ExamenFisicoContent = ({
   >([]);
 
   useEffect(() => {
-    // if (savedVitals) return;
-    // if (encounterId === undefined) return;
-
-    // const validEncounterId = encounterId;
-
-    const load = async () => {
-      // const data = await fetchHistoryPhysicalExam(validEncounterId);
-      // if (!data?.physicalExam) return;
-      // const v = data.physicalExam;
-      // setOxygenSaturation(
-      //   v.oxygen_saturation != null ? String(v.oxygen_saturation) : "",
-      // );
-      // setWeightKg(v.weight_kg != null ? String(v.weight_kg) : "");
-      // setHeightCm(v.height_cm != null ? String(v.height_cm) : "");
-      // setHeartRate(v.heart_rate != null ? String(v.heart_rate) : "");
-      // setRespiratoryRate(
-      //   v.respiratory_rate != null ? String(v.respiratory_rate) : "",
-      // );
-      // setSystolicPressure(
-      //   v.systolic_pressure != null ? String(v.systolic_pressure) : "",
-      // );
-      // setDiastolicPressure(
-      //   v.diastolic_pressure != null ? String(v.diastolic_pressure) : "",
-      // );
-      // setTemperatureC(v.temperature_c != null ? String(v.temperature_c) : "");
-      // registerTabData("historyPhysicalExam.physicalExamVitals", v);
-    };
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [encounterId]);
-
-  useEffect(() => {
     if (readOnly) return;
 
     registerTabData("historyPhysicalExam.physicalExamVitals", {
@@ -883,46 +851,6 @@ const ExamenFisicoContent = ({
     };
     load();
   }, [encounterId, i18n.language]);
-
-  // useEffect(() => {
-  //   const load = async () => {
-  //     // const data = await fetchCodeSystemValues(SLEEP_APPETITE_CODE_SYSTEM_ID);
-  //     // setSleepAppetiteOptions(
-  //     //   (data ?? [])
-  //     //     .filter((item) => item.is_active)
-  //     //     .sort((a, b) => a.sort_order - b.sort_order)
-  //     //     .map((item) => ({ value: item.code,
-  //     //       label:
-  //     //       getLocalizedCatalogDisplay(
-  //     //               {
-  //     //                 display_es: item.display_es,
-  //     //                 display_en: item.display_en,
-  //     //               },
-  //     //               i18n.language,
-  //     //               item.display,
-  //     //             ),
-  //     //       // item.display
-  //     //     })),
-  //     // );
-  //   };
-  //   load();
-  //   console.log("cargando idioma: ", i18n.language);
-  // }, [fetchCodeSystemValues, i18n.language]);
-
-  // useEffect(() => {
-  //   const load = async () => {
-  //     // const data = await fetchCodeSystemValues(
-  //     //   URINE_STOOL_WEIGHT_CODE_SYSTEM_ID,
-  //     // );
-  //     // setUrineStoolWeightOptions(
-  //     //   (data ?? [])
-  //     //     .filter((item) => item.is_active)
-  //     //     .sort((a, b) => a.sort_order - b.sort_order)
-  //     //     .map((item) => ({ value: item.code, label: item.display })),
-  //     // );
-  //   };
-  //   load();
-  // }, [fetchCodeSystemValues]);
 
   useEffect(() => {
     if (readOnly) return;
