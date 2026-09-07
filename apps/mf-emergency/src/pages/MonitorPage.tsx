@@ -397,8 +397,6 @@ export default function MonitorPage() {
       setSelectedTriageId(row.triage_id);
       setTriajeModo("read");
       setTriajeOpen(true);
-
-      console.info("[MonitorPage] Abrir triaje solo lectura:", row);
     },
     [canReadTriage],
   );

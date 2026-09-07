@@ -1,42 +1,57 @@
+import { useEffect, useState } from "react";
 import { i18n } from "@hce/i18n-core";
 import { apiFetch } from "shell/ApiClient";
 import { ENDPOINTS } from "../config/endpoints";
 
-let registered: Promise<void> | null = null;
+const NAMESPACE = "footer";
 
-/**
- * Trae el namespace "footer" para CADA idioma del manifest (`i18n/locales`,
- * público) y lo registra vía addResourceBundle. El bundle en sí
- * (`i18n/{locale}/footer`) requiere sesión -- por eso usa `apiFetch` de
- * `shell/ApiClient` (cookie + auto-refresh en 401).
- */
-export function registerFooterNamespace(): Promise<void> {
-  if (registered) return registered;
+const registeredByLocale = new Map<string, Promise<void>>();
 
-  registered = (async () => {
-    let locales: Array<{ code: string }>;
+export function registerFooterNamespace(
+  locale: string = i18n.language,
+): Promise<void> {
+  const cached = registeredByLocale.get(locale);
+  if (cached) return cached;
+
+  const promise = (async () => {
     try {
-      const res = await fetch(ENDPOINTS.i18n.locales);
-      if (!res.ok) throw new Error(`i18n/locales respondió ${res.status}`);
-      locales = await res.json();
+      const res = await apiFetch(ENDPOINTS.i18n.namespace(locale, NAMESPACE));
+      if (!res.ok) {
+        throw new Error(`i18n/${locale}/${NAMESPACE} respondió ${res.status}`);
+      }
+      const data = await res.json();
+      i18n.addResourceBundle(locale, NAMESPACE, data);
     } catch (err) {
-      console.error("[mf-footer i18n] no se pudo obtener el manifest de idiomas:", err);
-      return;
+      console.error(
+        `[mf-footer i18n] no se pudo cargar ${NAMESPACE}/${locale}:`,
+        err,
+      );
+      registeredByLocale.delete(locale);
+      throw err;
     }
-
-    await Promise.all(
-      locales.map(async ({ code }) => {
-        try {
-          const res = await apiFetch(ENDPOINTS.i18n.namespace(code, "footer"));
-          if (!res.ok) return;
-          const data = await res.json();
-          i18n.addResourceBundle(code, "footer", data);
-        } catch (err) {
-          console.error(`[mf-footer i18n] no se pudo cargar footer/${code}:`, err);
-        }
-      }),
-    );
   })();
 
-  return registered;
+  registeredByLocale.set(locale, promise);
+  return promise;
+}
+
+export function useFooterNamespaceReady(): boolean {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setReady(false);
+    registerFooterNamespace(i18n.language)
+      .then(() => {
+        if (!cancelled) setReady(true);
+      })
+      .catch(() => {
+        if (!cancelled) setReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [i18n.language]);
+
+  return ready;
 }
