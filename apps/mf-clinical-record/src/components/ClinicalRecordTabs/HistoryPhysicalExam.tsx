@@ -788,69 +788,66 @@ const ExamenFisicoContent = ({
   ]);
 
   useEffect(() => {
+    const loadOptions = async () => {
+      const [biologicalFunctionsSAData, biologicalFunctionsUSWData] =
+        await Promise.all([
+          fetchCodeSystemValuesByCode(SLEEP_APPETITE_CODE_SYSTEM_CODE),
+          fetchCodeSystemValuesByCode(URINE_STOOL_WEIGHT_CODE_SYSTEM_CODE),
+        ]);
+
+      if (biologicalFunctionsSAData) {
+        setSleepAppetiteOptions(
+          biologicalFunctionsSAData
+            .filter((item) => item.is_active)
+            .sort((a, b) => a.sort_order - b.sort_order)
+            .map((item) => ({ value: item.code, label: item.display })),
+        );
+      }
+      if (biologicalFunctionsUSWData) {
+        setUrineStoolWeightOptions(
+          biologicalFunctionsUSWData
+            .filter((item) => item.is_active)
+            .sort((a, b) => a.sort_order - b.sort_order)
+            .map((item) => ({ value: item.code, label: item.display })),
+        );
+      }
+    };
+    loadOptions();
+  }, [i18n.language]);
+
+  useEffect(() => {
     if (savedVitals) return;
     if (encounterId === undefined) return;
 
     const validEncounterId = encounterId;
 
     const load = async () => {
-      const result = await Promise.all([
-        fetchCodeSystemValuesByCode(SLEEP_APPETITE_CODE_SYSTEM_CODE),
-        fetchCodeSystemValuesByCode(URINE_STOOL_WEIGHT_CODE_SYSTEM_CODE),
-        fetchHistoryPhysicalExam(validEncounterId),
-      ]);
-      const [
-        biologicalFunctionsSAData,
-        biologicalFunctionsUSWData,
-        historyPhysicalExamData,
-      ] = result;
+      const historyPhysicalExamData =
+        await fetchHistoryPhysicalExam(validEncounterId);
+      if (!historyPhysicalExamData?.physicalExam) return;
 
-      if (biologicalFunctionsSAData) {
-        // item.display ya viene resuelto según Accept-Language (fallback a es).
-        setSleepAppetiteOptions(
-          (biologicalFunctionsSAData ?? [])
-            .filter((item) => item.is_active)
-            .sort((a, b) => a.sort_order - b.sort_order)
-            .map((item) => ({
-              value: item.code,
-              label: item.display,
-            })),
-        );
-      }
-      if (biologicalFunctionsUSWData) {
-        setUrineStoolWeightOptions(
-          (biologicalFunctionsUSWData ?? [])
-            .filter((item) => item.is_active)
-            .sort((a, b) => a.sort_order - b.sort_order)
-            .map((item) => ({ value: item.code, label: item.display })),
-        );
-      }
-      if (historyPhysicalExamData) {
-        if (!historyPhysicalExamData?.physicalExam) return;
+      const v = historyPhysicalExamData.physicalExam;
+      setOxygenSaturation(
+        v.oxygen_saturation != null ? String(v.oxygen_saturation) : "",
+      );
+      setWeightKg(v.weight_kg != null ? String(v.weight_kg) : "");
+      setHeightCm(v.height_cm != null ? String(v.height_cm) : "");
+      setHeartRate(v.heart_rate != null ? String(v.heart_rate) : "");
+      setRespiratoryRate(
+        v.respiratory_rate != null ? String(v.respiratory_rate) : "",
+      );
+      setSystolicPressure(
+        v.systolic_pressure != null ? String(v.systolic_pressure) : "",
+      );
+      setDiastolicPressure(
+        v.diastolic_pressure != null ? String(v.diastolic_pressure) : "",
+      );
+      setTemperatureC(v.temperature_c != null ? String(v.temperature_c) : "");
 
-        const v = historyPhysicalExamData.physicalExam;
-        setOxygenSaturation(
-          v.oxygen_saturation != null ? String(v.oxygen_saturation) : "",
-        );
-        setWeightKg(v.weight_kg != null ? String(v.weight_kg) : "");
-        setHeightCm(v.height_cm != null ? String(v.height_cm) : "");
-        setHeartRate(v.heart_rate != null ? String(v.heart_rate) : "");
-        setRespiratoryRate(
-          v.respiratory_rate != null ? String(v.respiratory_rate) : "",
-        );
-        setSystolicPressure(
-          v.systolic_pressure != null ? String(v.systolic_pressure) : "",
-        );
-        setDiastolicPressure(
-          v.diastolic_pressure != null ? String(v.diastolic_pressure) : "",
-        );
-        setTemperatureC(v.temperature_c != null ? String(v.temperature_c) : "");
-
-        registerTabData("historyPhysicalExam.physicalExamVitals", v);
-      }
+      registerTabData("historyPhysicalExam.physicalExamVitals", v);
     };
     load();
-  }, [encounterId, i18n.language]);
+  }, [encounterId]);
 
   useEffect(() => {
     if (readOnly) return;
