@@ -28,10 +28,13 @@ export function registerEmergencyNamespace(): Promise<void> {
     await Promise.all(
       locales.map(async ({ code }) => {
         try {
+        
+          // ya está cargado por i18next-core
           const res = await apiFetch(ENDPOINTS.i18n.namespace(code, "emergency"));
           if (!res.ok) return;
           const data = await res.json();
           i18n.addResourceBundle(code, "emergency", data);
+          
         } catch (err) {
           console.error(`[mf-emergency i18n] no se pudo cargar emergency/${code}:`, err);
         }

@@ -257,7 +257,15 @@ export default function AppLayout() {
           />
 
           {/* CONTENIDO */}
-          <main style={{ flex: 1, overflow: "auto", padding: "0 0 0" }}>
+          <main
+            style={{
+              flex: 1,
+              minHeight: 0,
+              overflow: "auto",
+              padding: "0 0 0",
+              height:"100%"
+            }}
+          >
             <Outlet />
           </main>
         </div>
