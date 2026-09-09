@@ -83,10 +83,10 @@ export default function Header({
 
   const location = useLocation();
   const navigate = useNavigate();
-  const isClinicalRecordView :boolean = location.pathname
-    .split("/")
-    .filter(Boolean)
-    .includes("historiacli");
+  // const isClinicalRecordView :boolean = location.pathname
+  //   .split("/")
+  //   .filter(Boolean)
+  //   .includes("historiacli");
 
    
 
@@ -158,7 +158,7 @@ export default function Header({
         sede={sede}
         sucursales={sucursales}
         onSedeCambiada={onSedeCambiada}
-        sedeDisabled={isClinicalRecordView}
+        // sedeDisabled={isClinicalRecordView}
         userName={userName}
         userRole={userRole}
         userPhotoUrl={photoUrl ?? undefined}
