@@ -74,6 +74,10 @@ export default function Header({
     practitionerSubtitle,
   ]);
 
+   const { t } = useTranslation("header");
+  // useEffect(() => {
+  //   registerHeaderNamespace();
+  // }, []);
   const prefix = committed?.prefix;
   const userName = prefix
     ? `${prefix} ${user?.nombreCompleto ?? ""}`
@@ -83,14 +87,14 @@ export default function Header({
 
   const location = useLocation();
   const navigate = useNavigate();
-  // const isClinicalRecordView :boolean = location.pathname
-  //   .split("/")
-  //   .filter(Boolean)
-  //   .includes("historiacli");
+  const isClinicalRecordView :boolean = location.pathname
+    .split("/")
+    .filter(Boolean)
+    .includes("historiacli");
 
-   
-
-  const { t } = useTranslation("header");
+   const disabledTooltip= isClinicalRecordView
+    ? t("labelDisabledSelector")
+    : undefined;
 
   // registerHeaderNamespace() es asíncrono de verdad — sin esperar la
   // promesa, el primer render mostraría las claves crudas (breadcrumb,
@@ -158,7 +162,8 @@ export default function Header({
         sede={sede}
         sucursales={sucursales}
         onSedeCambiada={onSedeCambiada}
-        // sedeDisabled={isClinicalRecordView}
+        sedeDisabled={isClinicalRecordView}
+        sedeDisabledTooltip={disabledTooltip}
         userName={userName}
         userRole={userRole}
         userPhotoUrl={photoUrl ?? undefined}
