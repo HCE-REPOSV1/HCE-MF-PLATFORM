@@ -277,7 +277,16 @@ export default function AppLayout() {
             />
           </Suspense>
 
-          <main style={{ flex: 1, overflow: "auto", padding: "0 0 0" }}>
+          {/* CONTENIDO */}
+          <main
+            style={{
+              flex: 1,
+              minHeight: 0,
+              overflow: "auto",
+              padding: "0 0 0",
+              height:"100%"
+            }}
+          >
             <Outlet />
           </main>
         </div>
