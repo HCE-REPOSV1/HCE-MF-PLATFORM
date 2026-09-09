@@ -38,6 +38,7 @@ export default defineConfig(({ mode }) => {
         },
         exposes: {
           "./Footer": "./src/Footer.tsx",
+          "./i18n": "./src/i18n/index.tsx",
         },
         shared: [
           "react",
