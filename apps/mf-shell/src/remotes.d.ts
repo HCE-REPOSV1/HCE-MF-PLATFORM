@@ -97,6 +97,10 @@ declare module "header/Header" {
 declare module "header/menuConfig" {
   export const menuConfig: MenuConfigItem[]
 }
+declare module "header/i18n" {
+  export function registerHeaderNamespace(): Promise<void>
+  export function useHeaderNamespaceReady(): boolean
+}
 
 //─── Sidebar ──────────────────────────────────────────
 declare module "sidebar/Sidebar" {
@@ -123,4 +127,7 @@ declare module "footer/Footer" {
   const Footer: ComponentType<Record<string, never>>
   export default Footer
 }
-
+declare module "footer/i18n" {
+  export function registerFooterNamespace(): Promise<void>
+  export function useFooterNamespaceReady(): boolean
+}
