@@ -81,6 +81,10 @@ export default function Header({
     practitionerSubtitle,
   ]);
 
+   const { t } = useTranslation("header");
+  useEffect(() => {
+    registerHeaderNamespace();
+  }, []);
   const prefix = committed?.prefix;
   const userName = prefix
     ? `${prefix} ${user?.nombreCompleto ?? ""}`
@@ -95,12 +99,11 @@ export default function Header({
     .filter(Boolean)
     .includes("historiacli");
 
-   
+   const disabledTooltip= isClinicalRecordView
+    ? t("labelDisabledSelector")
+    : undefined;
 
-  const { t } = useTranslation("header");
-  useEffect(() => {
-    registerHeaderNamespace();
-  }, []);
+ 
 
   // Idiomas disponibles para el selector — vienen del manifest del backend
   // (i18n/locales, público), no de una lista hardcodeada.
@@ -160,6 +163,7 @@ export default function Header({
         sucursales={sucursales}
         onSedeCambiada={onSedeCambiada}
         sedeDisabled={isClinicalRecordView}
+        sedeDisabledTooltip={disabledTooltip}
         userName={userName}
         userRole={userRole}
         userPhotoUrl={photoUrl ?? undefined}
