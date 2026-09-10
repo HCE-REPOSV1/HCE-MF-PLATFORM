@@ -1,6 +1,13 @@
-import type { MonitorApiItem, MonitorApiSummary, SemaphoreColor } from "../types/monitor.api.types"
-import type { MonitorSummary, MonitorTableRow } from "../types/monitor.table.types"
-import { i18n } from "@hce/i18n-core"
+import type {
+  MonitorApiItem,
+  MonitorApiSummary,
+  SemaphoreColor,
+} from "../types/monitor.api.types";
+import type {
+  MonitorSummary,
+  MonitorTableRow,
+} from "../types/monitor.table.types";
+import { i18n } from "@hce/i18n-core";
 
 // Mapeo de idioma activo -> locale completo para Intl.DateTimeFormat.
 // Se resuelve dinámicamente en cada llamada (no una vez al importar el
@@ -10,84 +17,84 @@ const INTL_LOCALE_BY_LANG: Record<string, string> = {
   es: "es-PE",
   en: "en-US",
   pt: "pt-BR",
-}
+};
 
 function getIntlLocale(): string {
-  return INTL_LOCALE_BY_LANG[i18n.language] ?? "es-PE"
+  return INTL_LOCALE_BY_LANG[i18n.language] ?? "es-PE";
 }
 
 const mapGender = (gender: MonitorApiItem["gender"]): "F" | "M" | "-" => {
-  if (gender === "female") return "F"
-  if (gender === "male") return "M"
-  return "-"
-}
+  if (gender === "female") return "F";
+  if (gender === "male") return "M";
+  return "-";
+};
 
 const mapClinicalStatus = (
   color: SemaphoreColor,
 ): "ok" | "urgent" | "alert" | "empty" => {
-  if (!color) return "empty"
+  if (!color) return "empty";
 
-  if (color === "green") return "ok"
-  if (color === "yellow") return "alert"
-  if (color === "red") return "urgent"
+  if (color === "green") return "ok";
+  if (color === "yellow") return "alert";
+  if (color === "red") return "urgent";
 
-  return "empty"
-}
+  return "empty";
+};
 
 const formatWaitingTime = (minutes: number | null): string => {
-  if (minutes === null || minutes === undefined) return "-"
+  if (minutes === null || minutes === undefined) return "-";
 
-  const totalSeconds = Math.round(minutes * 60)
-  const hours = Math.floor(totalSeconds / 3600)
-  const mins = Math.floor((totalSeconds % 3600) / 60)
-  const secs = totalSeconds % 60
+  const totalSeconds = Math.round(minutes * 60);
+  const hours = Math.floor(totalSeconds / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
 
-  return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`
-}
+  return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+};
 
 const formatDate = (isoDate: string | null): string => {
-  if (!isoDate) return "-"
+  if (!isoDate) return "-";
 
-  const date = new Date(isoDate)
+  const date = new Date(isoDate);
 
-  if (Number.isNaN(date.getTime())) return "-"
+  if (Number.isNaN(date.getTime())) return "-";
 
   return new Intl.DateTimeFormat(getIntlLocale(), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-  }).format(date)
-}
+  }).format(date);
+};
 
 const formatHour = (isoDate: string | null): string => {
-  if (!isoDate) return "-"
+  if (!isoDate) return "-";
 
-  const date = new Date(isoDate)
+  const date = new Date(isoDate);
 
-  if (Number.isNaN(date.getTime())) return "-"
+  if (Number.isNaN(date.getTime())) return "-";
 
   return new Intl.DateTimeFormat(getIntlLocale(), {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-  }).format(date)
-}
+  }).format(date);
+};
 
-const getBoxLabel = (item: MonitorApiItem): string => {
+const getBoxLabel = (item: MonitorApiItem): string | undefined => {
   if (item.box_code != null) return item.box_code
-  if (item.box_status === "ESPERA") return i18n.t("MonitorPage.box.waiting", { ns: "emergency" })
-  if (item.box_status === "SALA_D") return i18n.t("MonitorPage.box.roomD", { ns: "emergency" })
-
+  if (item.box_status === "ESPERA" || item.box_status === "SALA_D") {
+    return undefined
+  }
   return "-"
 }
 
 const formatAge = (age_display: MonitorApiItem["age_display"]): string => {
-  if (!age_display) return "-"
+  if (!age_display) return "-";
 
-  const [first, second] = age_display.split(" ")
+  const [first, second] = age_display.split(" ");
 
-  return `${first} ${second.charAt(0)}`
-}
+  return `${first} ${second.charAt(0)}`;
+};
 
 export const mapMonitorApiSummaryToSummary = (
   summary: MonitorApiSummary,
@@ -98,15 +105,17 @@ export const mapMonitorApiSummaryToSummary = (
       value: summary.active_patients,
     },
     {
-      label: i18n.t("MonitorPage.summary.dischargedPatients", { ns: "emergency" }),
+      label: i18n.t("MonitorPage.summary.dischargedPatients", {
+        ns: "emergency",
+      }),
       value: summary.discharged_patients,
     },
     {
       label: i18n.t("MonitorPage.summary.totalPatients", { ns: "emergency" }),
       value: summary.total_patients,
     },
-  ]
-}
+  ];
+};
 
 export const mapMonitorApiItemToTableRow = (
   item: MonitorApiItem,
@@ -165,5 +174,5 @@ export const mapMonitorApiItemToTableRow = (
     has_discharge: item.has_discharge,
     row_alert_color: item.row_alert_color,
     is_vip: item.is_vip,
-  }
-}
+  };
+};

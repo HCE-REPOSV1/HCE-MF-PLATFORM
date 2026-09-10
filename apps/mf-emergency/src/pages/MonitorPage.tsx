@@ -287,6 +287,22 @@ export default function MonitorPage() {
       .sort(monitorSortComparator);
   }, [response, namespaceReady]);
 
+  // Traduce los labels de Box que el mapper dejó pendientes (label === undefined),
+  // según box.stage. Separado del useMemo de arriba porque este SÍ depende
+  // de `t` (reactivo al cambio de idioma), sin acoplar esa reactividad al
+  // cálculo/orden de las filas.
+  const translatedRows = useMemo<MonitorTableRow[]>(() => {
+    return rows.map((row) => {
+      if (row.box.label != null) return row; // ya tiene box_code real, o ya es "-"
+
+      let label = "-";
+      if (row.box.stage === "ESPERA") label = t("MonitorPage.box.waiting");
+      if (row.box.stage === "SALA_D") label = t("MonitorPage.box.roomD");
+
+      return { ...row, box: { ...row.box, label } };
+    });
+  }, [rows, t]);
+
   const summary = useMemo<MonitorSummary[]>(() => {
     if (!response?.data?.summary) return [];
 
@@ -327,41 +343,6 @@ export default function MonitorPage() {
     setDisponibilidadOpen(true);
   }, []);
 
-  // MonitoActionBar ya no trae Triaje/Reportes/Disponibilidad hardcodeados
-  // (ver MonitoActionBarProps en @hce/design-system) -- cada consumidor arma
-  // su propia lista de `actions`. Iconos/tooltips iguales a los que el
-  // componente traia fijos antes del refactor (UiStethoscopeIcon/
-  // UiPrintingIcon/UiMedicalRoomIcon), para no cambiar nada visualmente.
-  //
-  // El tipo `MonitoAction` existe en el componente fuente pero el paquete
-  // publicado de @hce/design-system no lo reexporta (solo MonitoActionBar),
-  // asi que se deriva localmente desde las props del propio componente en
-  // vez de importarlo por nombre.
-  // type MonitorActionsProp = ComponentProps<typeof MonitoActionBar>["actions"]
-
-  // const monitorActions = useMemo<MonitorActionsProp>(() => [
-  //   {
-  //     key: "triaje",
-  //     icon: <UiStethoscopeIcon size={17} color="currentColor" />,
-  //     tooltip: "Triaje",
-  //     onClick: handleOpenTriageWrite,
-  //     disabled: !canWriteTriage,
-  //   },
-  //   {
-  //     key: "reportes",
-  //     icon: <UiPrintingIcon size={17} color="currentColor" />,
-  //     tooltip: "Reportes",
-  //     onClick: handleReportes,
-  //   },
-  //   {
-  //     key: "disponibilidad",
-  //     icon: <UiMedicalRoomIcon size={17} color="currentColor" />,
-  //     tooltip: "Disponibilidad de camas",
-  //     onClick: handleDisponibilidad,
-  //     disabled: !canReadBeds,
-  //   },
-  // ], [handleOpenTriageWrite, canWriteTriage, handleReportes, handleDisponibilidad, canReadBeds])
-
   const handlePatientClick = useCallback(
     (row: MonitorTableRow) => {
       navigate("historiacli", {
@@ -397,8 +378,6 @@ export default function MonitorPage() {
       setSelectedTriageId(row.triage_id);
       setTriajeModo("read");
       setTriajeOpen(true);
-
-      console.info("[MonitorPage] Abrir triaje solo lectura:", row);
     },
     [canReadTriage],
   );
@@ -552,7 +531,7 @@ export default function MonitorPage() {
             ) : (
               <Box sx={{ flex: 1, minHeight: 0, overflowX: "auto" }}>
                 <GenericTable
-                  rows={rows}
+                  rows={translatedRows}
                   columns={columns}
                   getRowId={(row) => row.id}
                   getRowTestId={(row) => `mf-emergency-monitor-row-${row.id}`}

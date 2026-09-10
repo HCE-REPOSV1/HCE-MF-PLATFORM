@@ -1,30 +1,70 @@
 import "./layout.css";
-import { useState, useEffect, lazy } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
   HceModal,
   UiWarningIcon,
   hceColors,
   useMediaQuery,
+  LoadingOverlay,
 } from "@hce/design-system";
 import { useUser } from "./context/UserContext";
 import { useSidebarOpciones } from "./config/sidebarConfig";
 import { useTranslation } from "@hce/i18n-core";
-import { registerShellNamespace } from "./i18n";
+import { useShellNamespaceReady } from "./i18n";
 
-const SIDEBAR_LEFT = 12; // padding izquierdo de la fila central (desktop)
-const SIDEBAR_TOP = 12; // padding superior de la fila central
-const CONTENT_GAP = 8; // gap entre sidebar y columna de contenido (desktop)
+const SIDEBAR_LEFT = 12;
+const SIDEBAR_TOP = 12;
+const CONTENT_GAP = 8;
 
 const Header = lazy(() => import("header/Header"));
 const Sidebar = lazy(() => import("sidebar/Sidebar"));
 const Footer = lazy(() => import("footer/Footer"));
-// ─────────────────────────────────────────────────────────
+
+function useRemoteNamespaceReady<T extends Record<string, unknown>>(
+  importRemoteI18n: () => Promise<T>,
+  registerFnName: keyof T,
+): boolean {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    importRemoteI18n()
+      .then((mod) => {
+        console.log("módulo remoto recibido:", mod);
+        // Algunos remotes devuelven { default: { ...exports } } por el
+        // interop ESM/CJS de Module Federation, otros exponen directo
+        // { ...exports } — se contempla ambos casos.
+        const resolvedMod = (mod as { default?: T }).default ?? mod;
+        const registerFn = resolvedMod[registerFnName] as
+          | (() => Promise<void>)
+          | undefined;
+
+        if (typeof registerFn !== "function") {
+          throw new Error(
+            `${String(registerFnName)} no es una función en el módulo remoto`,
+          );
+        }
+        return registerFn();
+      })
+      .then(() => {
+        if (!cancelled) setReady(true);
+      })
+      .catch((err) => {
+        console.error("[AppLayout] error esperando namespace remoto:", err);
+        if (!cancelled) setReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return ready;
+}
+
 export default function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-
-  // En pantallas < 900px el sidebar se oculta y abre como overlay
   const isMobile = useMediaQuery("(max-width: 899px)");
 
   const [collapsed, setCollapsed] = useState(false);
@@ -32,7 +72,6 @@ export default function AppLayout() {
   const [sinSedesModal, setSinSedesModal] = useState(false);
   const [sinPermisosModal, setSinPermisosModal] = useState(false);
 
-  // Al pasar a desktop, cierra el overlay móvil
   useEffect(() => {
     if (!isMobile) setMobileOpen(false);
   }, [isMobile]);
@@ -47,23 +86,15 @@ export default function AppLayout() {
     sucursalesDisponibles,
   } = useUser();
 
-  // Construye los items del sidebar desde el sidebarConfig + hasPermission (vía macMapping).
-
   const sidebarOpciones = useSidebarOpciones(hasPermission);
-
-  // sucursalesDisponibles viene ya procesado desde UserContext (MAC → sedeMapping → org locations)
   const sucursales = sucursalesDisponibles;
 
   useEffect(() => {
     if (!user || loading) return;
-
-    // Sin sedes asignadas en MAC → modal + logout
     if (user.sucursales.length === 0) {
       setSinSedesModal(true);
       return;
     }
-
-    // Sin módulos habilitados (todos con indicador "O" en MAC) → modal + logout
     if (sidebarOpciones.length === 0) {
       setSinPermisosModal(true);
       return;
@@ -92,31 +123,30 @@ export default function AppLayout() {
 
   const { t } = useTranslation("shell");
 
-  useEffect(() => {
-    registerShellNamespace();
-  }, []);
+  // Namespace propio del shell (labels de sidebar que arma AppLayout)
+  const shellReady = useShellNamespaceReady();
+
+  // Namespaces de los remotes montados directamente por el layout —
+  // se esperan acá para que Header/Footer no aparezcan salteados/después
+  // del resto, sino todos juntos cuando TODO esté listo.
+  const headerReady = useRemoteNamespaceReady(
+    () => import("header/i18n"),
+    "registerHeaderNamespace",
+  );
+  const footerReady = useRemoteNamespaceReady(
+    () => import("footer/i18n"),
+    "registerFooterNamespace",
+  );
+
+  const allReady = shellReady && headerReady && footerReady;
+
+  // Todos los hooks ya corrieron arriba (Rules of Hooks respetado) — recién
+  // acá se decide qué renderizar según si TODO terminó de cargar.
+  if (!allReady) {
+    return <LoadingOverlay open message="Cargando..." />;
+  }
 
   return (
-    /*
-     * Desktop (≥ 900px):
-     *  ┌────────────────────────────────────────────────┐
-     *  │ [sidebar flotante] │ [header flotante]          │
-     *  │                    │────────────────────────────│
-     *  │                    │ contenido (Outlet)          │
-     *  ├─────────────────────────────────────────────────┤
-     *  │ Footer — ancho completo                         │
-     *  └─────────────────────────────────────────────────┘
-     *
-     * Mobile (< 900px):
-     *  ┌────────────────────────────────────────────────┐
-     *  │ [☰] [header flotante]                          │
-     *  │────────────────────────────────────────────────│
-     *  │ contenido (Outlet)                              │
-     *  ├─────────────────────────────────────────────────┤
-     *  │ Footer — ancho completo                         │
-     *  └─────────────────────────────────────────────────┘
-     *  Al tocar ☰ → sidebar flota sobre el contenido con backdrop
-     */
     <div
       style={{
         height: "100vh",
@@ -126,38 +156,28 @@ export default function AppLayout() {
         backgroundColor: hceColors.neutro.white[50],
       }}
     >
-      {/* ── Modal: usuario sin sedes asignadas ──────────────────────── */}
       <HceModal
         open={sinSedesModal}
         title="Sin sedes asignadas"
         description="Tu usuario no tiene sedes asignadas en el sistema. Por favor contacta con el administrador para que te asignen acceso a una sede."
         icon={<UiWarningIcon size={28} />}
         iconBgColor="#b91c1c"
-        confirmButton={{
-          label: "Aceptar",
-          onClick: handleSinSedesAceptar,
-        }}
+        confirmButton={{ label: "Aceptar", onClick: handleSinSedesAceptar }}
         testId="mf-shell-no-sedes-modal"
       />
 
-      {/* ── Modal: usuario sin permisos de acceso ────────────────────── */}
       <HceModal
         open={sinPermisosModal}
         title="Sin permisos de acceso"
         description="Tu usuario no tiene módulos habilitados en el sistema. Por favor contacta con el administrador para que te asignen los permisos correspondientes."
         icon={<UiWarningIcon size={28} />}
         iconBgColor="#b91c1c"
-        confirmButton={{
-          label: "Aceptar",
-          onClick: handleSinPermisosAceptar,
-        }}
+        confirmButton={{ label: "Aceptar", onClick: handleSinPermisosAceptar }}
         testId="mf-shell-no-permisos-modal"
       />
 
-      {/* ── SIDEBAR MÓVIL: backdrop + overlay ───────────────────────── */}
       {isMobile && mobileOpen && (
         <>
-          {/* Backdrop — click cierra el sidebar */}
           <div
             onClick={closeMobileSidebar}
             data-testid="mf-shell-mobile-sidebar-backdrop"
@@ -168,7 +188,6 @@ export default function AppLayout() {
               zIndex: 1299,
             }}
           />
-          {/* Sidebar flotante sobre el contenido */}
           <div
             style={{
               position: "fixed",
@@ -179,28 +198,29 @@ export default function AppLayout() {
               display: "flex",
             }}
           >
-            <Sidebar
-              multiLevel={false}
-              collapsed={false}
-              onToggle={closeMobileSidebar}
-              opciones={sidebarOpciones}
-              currentPath={location.pathname}
-              onNavigate={(vista) => {
-                closeMobileSidebar();
-                if (vista) navigate(vista);
-              }}
-              onHome={() => {
-                closeMobileSidebar();
-                navigate("/home");
-              }}
-              labelHome={t("optHome")}
-              titleOptions={t("titleOptions")}
-            ></Sidebar>
+            <Suspense fallback={null}>
+              <Sidebar
+                multiLevel={false}
+                collapsed={false}
+                onToggle={closeMobileSidebar}
+                opciones={sidebarOpciones}
+                currentPath={location.pathname}
+                onNavigate={(vista) => {
+                  closeMobileSidebar();
+                  if (vista) navigate(vista);
+                }}
+                onHome={() => {
+                  closeMobileSidebar();
+                  navigate("/home");
+                }}
+                labelHome={t("optHome")}
+                titleOptions={t("titleOptions")}
+              />
+            </Suspense>
           </div>
         </>
       )}
 
-      {/* ── FILA CENTRAL: sidebar (desktop) + columna derecha ───────── */}
       <div
         style={{
           flex: 1,
@@ -213,28 +233,28 @@ export default function AppLayout() {
           gap: isMobile ? 0 : CONTENT_GAP,
         }}
       >
-        {/* SIDEBAR DESKTOP — en flujo normal, oculto en mobile */}
         {!isMobile && (
-          <Sidebar
-            multiLevel={false}
-            collapsed={collapsed}
-            onToggle={() => setCollapsed((prev) => !prev)}
-            opciones={sidebarOpciones}
-            currentPath={location.pathname}
-            onNavigate={(vista) => {
-              closeMobileSidebar();
-              if (vista) navigate(vista);
-            }}
-            onHome={() => {
-              closeMobileSidebar();
-              navigate("/home");
-            }}
-            labelHome={t("optHome")}
-            titleOptions={t("titleOptions")}
-          ></Sidebar>
+          <Suspense fallback={null}>
+            <Sidebar
+              multiLevel={false}
+              collapsed={collapsed}
+              onToggle={() => setCollapsed((prev) => !prev)}
+              opciones={sidebarOpciones}
+              currentPath={location.pathname}
+              onNavigate={(vista) => {
+                closeMobileSidebar();
+                if (vista) navigate(vista);
+              }}
+              onHome={() => {
+                closeMobileSidebar();
+                navigate("/home");
+              }}
+              labelHome={t("optHome")}
+              titleOptions={t("titleOptions")}
+            />
+          </Suspense>
         )}
 
-        {/* COLUMNA DERECHA: header + contenido */}
         <div
           style={{
             flex: 1,
@@ -244,27 +264,37 @@ export default function AppLayout() {
             minWidth: 0,
           }}
         >
-          {/* HEADER (mf-header) — flotante visual: borderRadius + sombra */}
-          <Header
-            floating
-            sede={sede}
-            sucursales={sucursales}
-            onSedeCambiada={(id) => setSede(String(id))}
-            onLogout={handleLogout}
-            onMenuClick={
-              isMobile ? () => setMobileOpen((prev) => !prev) : undefined
-            }
-          />
+          <Suspense fallback={null}>
+            <Header
+              floating
+              sede={sede}
+              sucursales={sucursales}
+              onSedeCambiada={(id) => setSede(String(id))}
+              onLogout={handleLogout}
+              onMenuClick={
+                isMobile ? () => setMobileOpen((prev) => !prev) : undefined
+              }
+            />
+          </Suspense>
 
           {/* CONTENIDO */}
-          <main style={{ flex: 1, overflow: "auto", padding: "0 0 0" }}>
+          <main
+            style={{
+              flex: 1,
+              minHeight: 0,
+              overflow: "auto",
+              padding: "0 0 0",
+              height:"100%"
+            }}
+          >
             <Outlet />
           </main>
         </div>
       </div>
 
-      {/* ── FOOTER — ancho completo fuera de la fila ────────────────── */}
-      <Footer />
+      <Suspense fallback={null}>
+        <Footer />
+      </Suspense>
     </div>
   );
 }

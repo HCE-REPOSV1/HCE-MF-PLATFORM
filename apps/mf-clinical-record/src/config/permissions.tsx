@@ -32,4 +32,9 @@ export const PERMISSIONS_CLINICAL_RECORD = {
       diagnosisNotes: "emergency:clinical_record:diagnosis:campos:notas",
     },
   },
+  medicalOrders: {
+    base:  "emergency:clinical_record:medical_orders",
+    read:  "emergency:clinical_record:medical_orders:read",
+    write: "emergency:clinical_record:medical_orders:write",
+  },
 } as const;

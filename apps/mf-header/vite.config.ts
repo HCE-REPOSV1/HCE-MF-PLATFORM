@@ -43,6 +43,7 @@ export default defineConfig(({ mode }) => {
         exposes: {
           "./Header": "./src/Header.tsx",
           "./menuConfig": "./src/menuConfig.ts",
+          "./i18n": "./src/i18n/index.tsx",
         },
         shared: [
           "react",

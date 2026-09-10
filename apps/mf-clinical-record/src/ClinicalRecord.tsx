@@ -222,8 +222,16 @@ export default function ClinicalRecordPage() {
         notIdentified={patientNotIdentified}
       />
 
-      <Box sx={{ width: "100%" }}>
-        <Box sx={{ width: "100%", p: 2 }}>
+      <Box
+        sx={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        <Box sx={{ width: "100%", p: 2, flexShrink: 0 }}>
           <PatientInfoBar
             patient={patient}
             loading={patientRecordLoading}
@@ -237,26 +245,36 @@ export default function ClinicalRecordPage() {
         <ClinicalRecordFormProvider>
           <Box
             sx={{
+              flex: 1,
+              minHeight: 0,
               display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "0px 16px",
+              flexDirection: "column",
             }}
           >
-            <Box>
-              <ActionBar
-                orientation="horizontal"
-                actions={LIST_ACTION_BAR}
-                closeAction={true}
-              />
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "0px 16px",
+                flexShrink: 0,
+              }}
+            >
+              <Box>
+                <ActionBar
+                  orientation="horizontal"
+                  actions={LIST_ACTION_BAR}
+                  closeAction={true}
+                />
+              </Box>
+              <Box>
+                <SaveButton />
+              </Box>
             </Box>
-            <Box>
-              <SaveButton />
+            <Box sx={{ padding: "16px", minHeight: 0, flex: 1 }}>
+              <ClinicalRecordTabs encounterId={encounterId} />
             </Box>
-          </Box>
-          <Box sx={{ padding: "16px" }}>
-            <ClinicalRecordTabs encounterId={encounterId} />
           </Box>
         </ClinicalRecordFormProvider>
       </Box>

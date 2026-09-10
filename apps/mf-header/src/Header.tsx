@@ -6,7 +6,7 @@ import { usePractitioner } from "./hooks/usePractitioner";
 
 import { useLocation, useNavigate } from "react-router-dom";
 import { i18n, useTranslation, useLocaleSwitch, isValidLocale } from "@hce/i18n-core";
-import { registerHeaderNamespace } from "./i18n";
+import { useHeaderNamespaceReady } from "./i18n";
 import { ENDPOINTS } from "./config/endpoints";
 
 interface Sucursal {
@@ -23,14 +23,10 @@ interface HeaderProps {
   floating?: boolean;
 }
 
-// Datos comprometidos para el header — asignados UNA SOLA VEZ por usuario.
-// Reglas:
-//   - practitioner encontrado Y role_code="doctor" → prefix + especialidad
-//   - practitioner no encontrado O role_code≠"doctor" → user.nombrePerfil (auth/me)
 type CommittedData =
   | {
-      role: string | null; // subtítulo a mostrar (null = ocultar)
-      prefix: string | null; // prefijo del nombre (Dr., Dra., etc.) o null
+      role: string | null;
+      prefix: string | null;
     }
   | undefined;
 
@@ -51,13 +47,10 @@ export default function Header({
 
   const [committed, setCommitted] = useState<CommittedData>(undefined);
 
-  // Resetear al cambiar de usuario (logout / cambio de cuenta)
   useEffect(() => {
     setCommitted(undefined);
   }, [user?.username]);
 
-  // Commit único cuando el practitioner termina de cargar.
-  // Doctor → prefix + especialidad | Otro / no encontrado → user.nombrePerfil (auth/me)
   useEffect(() => {
     if (committed !== undefined) return;
     if (practitionerLoading || !user) return;
@@ -81,6 +74,10 @@ export default function Header({
     practitionerSubtitle,
   ]);
 
+   const { t } = useTranslation("header");
+  // useEffect(() => {
+  //   registerHeaderNamespace();
+  // }, []);
   const prefix = committed?.prefix;
   const userName = prefix
     ? `${prefix} ${user?.nombreCompleto ?? ""}`
@@ -95,15 +92,15 @@ export default function Header({
     .filter(Boolean)
     .includes("historiacli");
 
-   
+   const disabledTooltip= isClinicalRecordView
+    ? t("labelDisabledSelector")
+    : undefined;
 
-  const { t } = useTranslation("header");
-  useEffect(() => {
-    registerHeaderNamespace();
-  }, []);
+  // registerHeaderNamespace() es asíncrono de verdad — sin esperar la
+  // promesa, el primer render mostraría las claves crudas (breadcrumb,
+  // título, etc.) hasta que addResourceBundle() termine.
+  const namespaceReady = useHeaderNamespaceReady();
 
-  // Idiomas disponibles para el selector — vienen del manifest del backend
-  // (i18n/locales, público), no de una lista hardcodeada.
   const [locales, setLocales] = useState<HceLocaleOption[]>([]);
   useEffect(() => {
     fetch(ENDPOINTS.i18n.locales)
@@ -145,6 +142,12 @@ export default function Header({
 
   const showBreadcrumb = breadcrumbItems.length > 0;
 
+  // Todos los hooks ya corrieron arriba — recién acá se decide qué
+  // renderizar según si el namespace terminó de cargar.
+  if (!namespaceReady) {
+    return null;
+  }
+
   return (
     <div
       style={{
@@ -160,6 +163,7 @@ export default function Header({
         sucursales={sucursales}
         onSedeCambiada={onSedeCambiada}
         sedeDisabled={isClinicalRecordView}
+        sedeDisabledTooltip={disabledTooltip}
         userName={userName}
         userRole={userRole}
         userPhotoUrl={photoUrl ?? undefined}
