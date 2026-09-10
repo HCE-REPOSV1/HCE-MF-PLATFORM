@@ -410,7 +410,7 @@ export default function MonitorPage() {
   const handleSaveAdditionalInfo = useCallback(
     async (updatedPaciente: MonitorTableRow) => {
       console.info("Guardar cambios al cerrar modal:", updatedPaciente);
-      refetchMonitor();
+  
     },    
     [],
   );
