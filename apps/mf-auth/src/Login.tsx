@@ -17,7 +17,6 @@ import {
   useCompanyBranding,
   type HceLocaleOption,
 } from "@hce/design-system";
-import { login } from "shell/AuthService";
 import { i18n as i18nInstance, useLocaleSwitch, isValidLocale } from "@hce/i18n-core";
 import { ENDPOINTS } from "./config/endpoints";
 
@@ -30,6 +29,7 @@ import wallpaperRaw from "./assets/patron-fondo.svg?raw";
 import { useTranslation } from "@hce/i18n-core";
 import { registerAuthNamespace } from "./i18n";
 import { AUTH_ERROR_CODES, resolveStatusError } from "./i18n/errorCodes";
+import { login } from "./services/auth.service";
 const wallpaper = `data:image/svg+xml;utf8,${encodeURIComponent(wallpaperRaw)}`;
 
 // ─── Empresa fija ─────────────────────────────────────────

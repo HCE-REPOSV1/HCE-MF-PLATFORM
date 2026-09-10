@@ -13,21 +13,22 @@
  * de "necesito llamar al gateway antes de que exista sesión".
  * ---------------------------------------------------------
  */
-import { ENDPOINTS } from "../config/endpoints"
+// import { ENDPOINTS } from "../config/endpoints"
 
-export interface LoginResult {
-  ok:     boolean
-  status: number
-  data:   any
-}
+// export interface LoginResult {
+//   ok:     boolean
+//   status: number
+//   data:   any
+// }
 
-export async function login(usuario: string, password: string): Promise<LoginResult> {
-  const res  = await fetch(ENDPOINTS.auth.login, {
-    method:      "POST",
-    headers:     { "Content-Type": "application/json" },
-    credentials: "include",
-    body:        JSON.stringify({ username: usuario, password }),
-  })
-  const data = await res.json()
-  return { ok: res.ok, status: res.status, data }
-}
+// export async function login(usuario: string, password: string): Promise<LoginResult> {
+//   console.log("consumuendo auth service de shell");
+//   const res  = await fetch(ENDPOINTS.auth.login, {
+//     method:      "POST",
+//     headers:     { "Content-Type": "application/json" },
+//     credentials: "include",
+//     body:        JSON.stringify({ username: usuario, password }),
+//   })
+//   const data = await res.json()
+//   return { ok: res.ok, status: res.status, data }
+// }
