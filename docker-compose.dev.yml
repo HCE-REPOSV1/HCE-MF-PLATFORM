@@ -6,32 +6,43 @@
 #
 # Para el flujo normal con Vault, usar docker-compose.yml via
 # kv-hce-platform-dev/scripts/deploy-mf.sh (lee los build-args desde Vault).
+#
+# Variante feature/Sanna: puertos desplazados +50 (10550/20550 en adelante) para
+# convivir en el mismo servidor de pruebas de desarrollo con el despliegue base
+# (10500/20500), como una segunda versión con diseño distinto (VITE_COMPANY_THEME=sanna).
+#
+# "name" fija el nombre de proyecto de Compose (prefijo de contenedores y de la
+# red default). Sin esto, Compose lo saca del nombre de la carpeta — como ambos
+# despliegues corren desde una carpeta llamada igual (HCE-MF-PLATFORM), sus
+# contenedores y su red default colisionarían aunque los puertos ya no choquen.
+name: hce-mf-platform-sanna
+
 services:
   mf-shell:
     build:
       context: .
       dockerfile: apps/mf-shell/Dockerfile
       args:
-        VITE_COMPANY_THEME: csf
+        VITE_COMPANY_THEME: sanna
         VERDACCIO_URL: http://192.168.42.44:10100
         # URLs de producción — se hornean en el bundle al compilar
         VITE_APIGW_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
-        VITE_REMOTE_AUTH:        https://servicios.dev.sanfelipe.com:20501/assets/remoteEntry.js
-        VITE_REMOTE_HOME:        https://servicios.dev.sanfelipe.com:20502/assets/remoteEntry.js
-        VITE_REMOTE_EMERGENCY:   https://servicios.dev.sanfelipe.com:20503/assets/remoteEntry.js
-        VITE_REMOTE_HOSPITAL:    https://servicios.dev.sanfelipe.com:20504/assets/remoteEntry.js
-        VITE_REMOTE_AMBULATORIO: https://servicios.dev.sanfelipe.com:20505/assets/remoteEntry.js
-        VITE_REMOTE_AUDITORIA:   https://servicios.dev.sanfelipe.com:20506/assets/remoteEntry.js
-        VITE_REMOTE_HEADER:      https://servicios.dev.sanfelipe.com:20507/assets/remoteEntry.js
-        VITE_REMOTE_SIDEBAR:     https://servicios.dev.sanfelipe.com:20508/assets/remoteEntry.js
-        VITE_REMOTE_FOOTER:      https://servicios.dev.sanfelipe.com:20509/assets/remoteEntry.js
-        VITE_REMOTE_TRIAGE:      https://servicios.dev.sanfelipe.com:20510/assets/remoteEntry.js
-        VITE_REMOTE_CLINICAL_RECORD: https://servicios.dev.sanfelipe.com:20511/assets/remoteEntry.js
+        VITE_REMOTE_AUTH:        https://servicios.dev.sanfelipe.com:20551/assets/remoteEntry.js
+        VITE_REMOTE_HOME:        https://servicios.dev.sanfelipe.com:20552/assets/remoteEntry.js
+        VITE_REMOTE_EMERGENCY:   https://servicios.dev.sanfelipe.com:20553/assets/remoteEntry.js
+        VITE_REMOTE_HOSPITAL:    https://servicios.dev.sanfelipe.com:20554/assets/remoteEntry.js
+        VITE_REMOTE_AMBULATORIO: https://servicios.dev.sanfelipe.com:20555/assets/remoteEntry.js
+        VITE_REMOTE_AUDITORIA:   https://servicios.dev.sanfelipe.com:20556/assets/remoteEntry.js
+        VITE_REMOTE_HEADER:      https://servicios.dev.sanfelipe.com:20557/assets/remoteEntry.js
+        VITE_REMOTE_SIDEBAR:     https://servicios.dev.sanfelipe.com:20558/assets/remoteEntry.js
+        VITE_REMOTE_FOOTER:      https://servicios.dev.sanfelipe.com:20559/assets/remoteEntry.js
+        VITE_REMOTE_TRIAGE:      https://servicios.dev.sanfelipe.com:20560/assets/remoteEntry.js
+        VITE_REMOTE_CLINICAL_RECORD: https://servicios.dev.sanfelipe.com:20561/assets/remoteEntry.js
         VITE_DEFAULT_LOCALE: es
     restart: unless-stopped
     ports:
-      - "10500:80"
-      - "20500:443"
+      - "10550:80"
+      - "20550:443"
     environment:
       PORT: "80"
       SSL_PORT: "443"
@@ -47,13 +58,13 @@ services:
       dockerfile: apps/mf-auth/Dockerfile
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20550/assets/remoteEntry.js
         VITE_APIGW_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
         VITE_DEFAULT_LOCALE: es
     restart: unless-stopped
     ports:
-      - "10501:80"
-      - "20501:443"
+      - "10551:80"
+      - "20551:443"
     environment:
       PORT: "80"
       SSL_PORT: "443"
@@ -69,13 +80,13 @@ services:
       dockerfile: apps/mf-home/Dockerfile
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_BASE_URL: https://servicios.dev.sanfelipe.com:20502
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_BASE_URL: https://servicios.dev.sanfelipe.com:20552
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20550/assets/remoteEntry.js
         VITE_APIGW_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
     restart: unless-stopped
     ports:
-      - "10502:80"
-      - "20502:443"
+      - "10552:80"
+      - "20552:443"
     environment:
       PORT: "80"
       SSL_PORT: "443"
@@ -91,16 +102,16 @@ services:
       dockerfile: apps/mf-emergency/Dockerfile
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
-        VITE_REMOTE_TRIAGE: https://servicios.dev.sanfelipe.com:20510/assets/remoteEntry.js
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20550/assets/remoteEntry.js
+        VITE_REMOTE_TRIAGE: https://servicios.dev.sanfelipe.com:20560/assets/remoteEntry.js
         VITE_APIGW_CNL_WEB_EMERGENCY: https://servicios.dev.sanfelipe.com:20602
         VITE_APIGW_CLN_CROSS: https://servicios.dev.sanfelipe.com:20601
         VITE_EMERGENCY_DECRYPT_KEY: 98fd5dd5c3584001b1b3e225aa10e04c9032a0dbc81936599b2f52a2a166c356
-        VITE_REMOTE_CLINICAL_RECORD: https://servicios.dev.sanfelipe.com:20511/assets/remoteEntry.js
+        VITE_REMOTE_CLINICAL_RECORD: https://servicios.dev.sanfelipe.com:20561/assets/remoteEntry.js
     restart: unless-stopped
     ports:
-      - "10503:80"
-      - "20503:443"
+      - "10553:80"
+      - "20553:443"
     environment:
       PORT: "80"
       SSL_PORT: "443"
@@ -116,13 +127,13 @@ services:
       dockerfile: apps/mf-clinical-record/Dockerfile
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20550/assets/remoteEntry.js
         VITE_APIGW_CNL_WEB_EMERGENCY: https://servicios.dev.sanfelipe.com:20602
         VITE_APIGW_CLN_CROSS: https://servicios.dev.sanfelipe.com:20601
     restart: unless-stopped
     ports:
-      - "10511:80"
-      - "20511:443"
+      - "10561:80"
+      - "20561:443"
     environment:
       PORT: "80"
       SSL_PORT: "443"
@@ -138,11 +149,11 @@ services:
       dockerfile: apps/mf-hospital/Dockerfile
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20550/assets/remoteEntry.js
     restart: unless-stopped
     ports:
-      - "10504:80"
-      - "20504:443"
+      - "10554:80"
+      - "20554:443"
     environment:
       PORT: "80"
       SSL_PORT: "443"
@@ -158,11 +169,11 @@ services:
       dockerfile: apps/mf-ambulatorio/Dockerfile
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20550/assets/remoteEntry.js
     restart: unless-stopped
     ports:
-      - "10505:80"
-      - "20505:443"
+      - "10555:80"
+      - "20555:443"
     environment:
       PORT: "80"
       SSL_PORT: "443"
@@ -178,13 +189,13 @@ services:
       dockerfile: apps/mf-header/Dockerfile
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20550/assets/remoteEntry.js
         VITE_APIGW_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
         VITE_APIGW_CNL_WEB_EMERGENCY: https://servicios.dev.sanfelipe.com:20602
     restart: unless-stopped
     ports:
-      - "10507:80"
-      - "20507:443"
+      - "10557:80"
+      - "20557:443"
     environment:
       PORT: "80"
       SSL_PORT: "443"
@@ -200,11 +211,11 @@ services:
       dockerfile: apps/mf-sidebar/Dockerfile
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20550/assets/remoteEntry.js
     restart: unless-stopped
     ports:
-      - "10508:80"
-      - "20508:443"
+      - "10558:80"
+      - "20558:443"
     environment:
       PORT: "80"
       SSL_PORT: "443"
@@ -220,12 +231,12 @@ services:
       dockerfile: apps/mf-footer/Dockerfile
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20550/assets/remoteEntry.js
         VITE_APIGW_CNL_CROSS: https://servicios.dev.sanfelipe.com:20601
     restart: unless-stopped
     ports:
-      - "10509:80"
-      - "20509:443"
+      - "10559:80"
+      - "20559:443"
     environment:
       PORT: "80"
       SSL_PORT: "443"
@@ -241,14 +252,14 @@ services:
       dockerfile: apps/mf-triage/Dockerfile
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20550/assets/remoteEntry.js
         VITE_APIGW_WEB_EMERGENCY: https://servicios.dev.sanfelipe.com:20602
         VITE_APIGW_CLN_CROSS : https://servicios.dev.sanfelipe.com:20601
 
     restart: unless-stopped
     ports:
-      - "10510:80"
-      - "20510:443"
+      - "10560:80"
+      - "20560:443"
     environment:
       PORT: "80"
       SSL_PORT: "443"
@@ -264,11 +275,11 @@ services:
       dockerfile: apps/mf-auditoria/Dockerfile
       args:
         VERDACCIO_URL: http://192.168.42.44:10100
-        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20500/assets/remoteEntry.js
+        VITE_REMOTE_SHELL: https://servicios.dev.sanfelipe.com:20550/assets/remoteEntry.js
     restart: unless-stopped
     ports:
-      - "10506:80"
-      - "20506:443"
+      - "10556:80"
+      - "20556:443"
     environment:
       PORT: "80"
       SSL_PORT: "443"
