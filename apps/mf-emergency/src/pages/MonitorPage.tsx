@@ -410,7 +410,8 @@ export default function MonitorPage() {
   const handleSaveAdditionalInfo = useCallback(
     async (updatedPaciente: MonitorTableRow) => {
       console.info("Guardar cambios al cerrar modal:", updatedPaciente);
-    },
+      refetchMonitor();
+    },    
     [],
   );
 
@@ -610,8 +611,7 @@ export default function MonitorPage() {
             encounterId,
             username,
           });
-          // TODO: llamar a POST /api/pacientes/medico con { encounter_id: encounterId, username }
-          // y luego refetchMonitor() para reflejar el nuevo physician_name_display.
+          refetchMonitor();
         }}
       />
       {/* Modal de Información Adicional */}
