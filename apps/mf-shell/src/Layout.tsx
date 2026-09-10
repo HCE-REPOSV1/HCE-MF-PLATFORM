@@ -31,7 +31,6 @@ function useRemoteNamespaceReady<T extends Record<string, unknown>>(
     let cancelled = false;
     importRemoteI18n()
       .then((mod) => {
-        console.log("módulo remoto recibido:", mod);
         // Algunos remotes devuelven { default: { ...exports } } por el
         // interop ESM/CJS de Module Federation, otros exponen directo
         // { ...exports } — se contempla ambos casos.
