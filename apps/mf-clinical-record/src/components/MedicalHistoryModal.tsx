@@ -140,7 +140,10 @@ export default function MedicalHistoryModal({
         width: 100,
         align: "center",
         clickable: true,
-        onClick: () => setViewDetailMedicalHistory((prev) => !prev),
+        onClick: (row) => {
+          setSelectedEncounter(row);
+          setViewDetailMedicalHistory(true);
+        },
       },
     ],
     [t],
@@ -156,6 +159,9 @@ export default function MedicalHistoryModal({
     setTotalData(response.meta);
   }, [fetchMedicalHistory, currentPage, patientId]);
 
+  const [selectedEncounter, setSelectedEncounter] =
+    useState<medicalHistoryApiData | null>(null);
+
   useEffect(() => {
     if (!open || !patientId) return;
     loadData();
@@ -166,6 +172,11 @@ export default function MedicalHistoryModal({
       setCurrentPage(1);
     }
   }, [currentPage, totalPages]);
+
+  const handleVolver = () => {
+    setViewDetailMedicalHistory(false);
+    setSelectedEncounter(null);
+  };
 
   if (!namespaceReady) {
     return (
@@ -185,7 +196,7 @@ export default function MedicalHistoryModal({
         viewDetailMedicalHistory
           ? {
               label: "Volver",
-              onClick: () => setViewDetailMedicalHistory((prev) => !prev),
+              onClick: handleVolver,
             }
           : undefined
       }
@@ -226,19 +237,49 @@ export default function MedicalHistoryModal({
                   <User size={24} />
                 </Avatar>
 
-                <PatientField label="Especialidad:" value="Ginecología" />
                 <PatientField
-                  label="Fecha y hora de la atención:"
-                  value="01/12/2024 - 15:00"
+                  label={t("patient.specialty")}
+                  value={selectedEncounter?.speciality_name ?? "-"}
                 />
-                <PatientField label="Lugar:" value="Emergencia" />
-                <PatientField label="Tipo de historia:" value="Electrónica" />
+                <PatientField
+                  label={t("patient.dateAndTimeAttention")}
+                  value={
+                    selectedEncounter
+                      ? (() => {
+                          const d = new Date(
+                            selectedEncounter.admission_datetime,
+                          );
+                          const date = d.toLocaleDateString("es-PE", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          });
+                          const time = d.toLocaleTimeString("es-PE", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          });
+                          return `${date} - ${time}`;
+                        })()
+                      : "-"
+                  }
+                />
+                <PatientField
+                  label={t("patient.place")}
+                  value={selectedEncounter?.encounter_class_display ?? "-"}
+                />
+                <PatientField
+                  label={t("patient.typeHistory")}
+                  value={selectedEncounter?.record_type ?? "-"}
+                />
               </Box>
             </DataCard>
             {/* Tabs */}
             <Box sx={{ pt: "15px" }}>
               <ClinicalRecordFormProvider>
-                <ClinicalRecordTabs readOnly />
+                <ClinicalRecordTabs
+                  readOnly
+                  encounterId={selectedEncounter?.encounter_id}
+                />
               </ClinicalRecordFormProvider>
             </Box>
           </>

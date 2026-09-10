@@ -10,12 +10,15 @@
  * ---------------------------------------------------------
  */
 
-const AG_CROSS = import.meta.env.VITE_APIGW_CNL_CROSS
+const AG_CROSS = import.meta.env.VITE_APIGW_CNL_CROSS;
 
-if (!AG_CROSS) throw new Error("[mf-auth] VITE_APIGW_CNL_CROSS no está configurado")
+if (!AG_CROSS)
+  throw new Error("[mf-auth] VITE_APIGW_CNL_CROSS no está configurado");
 
 export const ENDPOINTS = {
-
+  auth: {
+    login: `${AG_CROSS}/api/v1/auth/login`,
+  },
   i18n: {
     /** Manifest de idiomas disponibles — público */
     locales: `${AG_CROSS}/api/v1/i18n/locales`,
@@ -23,5 +26,4 @@ export const ENDPOINTS = {
     publicNamespace: (locale: string, namespace: string) =>
       `${AG_CROSS}/api/v1/i18n/public/${locale}/${namespace}`,
   },
-
-} as const
+} as const;
