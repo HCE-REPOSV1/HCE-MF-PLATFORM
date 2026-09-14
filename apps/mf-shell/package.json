@@ -14,7 +14,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@hce/design-system": "^1.10.0",
-    "@hce/i18n-core": "^1.1.2",
+    "@hce/i18n-core": "^1.2.0",
     "@originjs/vite-plugin-federation": "^1.4.1",
     "i18next": "^23.11.0",
     "react": "^19.2.6",
