@@ -433,18 +433,33 @@ export function Triage({
     [valuePrincipioActivo],
   );
 
-  // Se dispara desde MultiSelect (onSearch, ver JSX de Principio Activo) a
-  // partir del 3er carácter tecleado, con el debounce que ya trae el
-  // componente — cada texto es una consulta distinta contra
-  // /catalogs/active-principles/search?text=.
+  // Se dispara desde MultiSelect (onSearch, ver JSX de Principio Activo) en
+  // cada cambio de texto: con 3+ caracteres, con debounce; por debajo del
+  // umbral (incluido "" al reabrir el dropdown o al borrar) MultiSelect lo
+  // avisa de inmediato, sin debounce.
   const handleActivePrincipleSearch = useCallback(
     async (query: string) => {
+      if (query.trim().length < 3) {
+        // Sin texto (o insuficiente) no hay búsqueda activa — no se vuelve
+        // a traer el catálogo completo (eso ya no debe pasar) y se descarta
+        // el resultado de la búsqueda anterior, dejando visibles solo los
+        // que ya están seleccionados.
+        const selected = valuePrincipioActivo
+          .map((id) => knownActivePrincipleOptionsRef.current.get(id))
+          .filter((o): o is { value: string; label: string } => Boolean(o));
+        setOptionsActivePrinciples(selected);
+        return;
+      }
       const results = await fetchCatalogActivePrinciplesSearch(query);
       if (results && Array.isArray(results)) {
         applyActivePrincipleOptions(results);
       }
     },
-    [fetchCatalogActivePrinciplesSearch, applyActivePrincipleOptions],
+    [
+      fetchCatalogActivePrinciplesSearch,
+      applyActivePrincipleOptions,
+      valuePrincipioActivo,
+    ],
   );
 
   //Registro de Triaje
