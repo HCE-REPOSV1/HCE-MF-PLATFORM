@@ -20,14 +20,195 @@
     "timeout": "The server took too long to respond. Try again.",
     "generic": "An unexpected error occurred."
   },
+  "EmptyMessageDataTable": "No available data was found.",
+  "dataDatableMedicalHistory": {
+    "colRecordType": "Record type",
+    "colPractitionerName": "Doctor",
+    "colSpeciality_name": "Specialty",
+    "colAdmission_datetime": "Date and Time",
+    "colSicAttentionId": "C. of attention",
+    "colEncounterClassDisplay": "Place",
+    "colViewDetail": "View"
+  },
+  "tabs": {
+    "historyPhysicalExam": "History & Physical Exam",
+    "diagnosis": "Diagnosis",
+    "medicalOrders": "Medical Orders",
+    "nursingKardex": "Nursing Kardex",
+    "laboratory": "Laboratory",
+    "imaging": "Imaging",
+    "referral": "Referral",
+    "medicalProcedures": "Medical Procedures",
+    "progressNotes": "Progress Notes",
+    "nursingNote": "Nursing Note"
+  },
+  "addPatientBackgroundModal": {
+    "title": "Add background",
+    "saveButton": "Save",
+    "categories": {
+      "general": "General",
+      "gynObstetric": "Gynecological - Obstetric",
+      "pathological": "Pathological"
+    },
+    "catalogLabel": "Background Record",
+    "catalogPlaceholder": "-Select option-",
+    "presentCheckbox": "YES",
+    "descriptionPlaceholder": "Enter text",
+    "saveError": "The background could not be saved"
+  },
+  "reconciliationActions": {
+    "continue": "Continue",
+    "suspend": "Suspend",
+    "modify": "Modify"
+  },
+  "addMedicationReconciliationModal": {
+    "title": "Medication reconciliation record",
+    "medicationSearchLabel": "Medication search",
+    "medicationSearchPlaceholder": "Enter text",
+    "doseLabel": "Dose",
+    "dosePlaceholder": "e.g. 1",
+    "frequencyLabel": "Frequency",
+    "frequencyPlaceholder": "e.g. 1",
+    "routeLabel": "Route",
+    "routePlaceholder": "-Select option-",
+    "lastDoseDateLabel": "Last dose date",
+    "lastDoseTimeLabel": "Last dose time",
+    "addButton": "Add"
+  },
+  "historyPhysicalExam": {
+    "viewToggle": {
+      "anamnesis": "Anamnesis",
+      "physicalExam": "Physical Exam"
+    },
+    "sections": {
+      "chiefComplaint": "Chief complaint",
+      "backgrounds": "Background",
+      "reconciliation": "Medication reconciliation"
+    },
+    "anamnesisType": {
+      "direct": "Direct",
+      "indirect": "Indirect"
+    },
+    "companionLabel": "Companion",
+    "selectPlaceholder": "-Select option-",
+    "chiefComplaintLabel": "Reason",
+    "textPlaceholder": "Enter text",
+    "addButton": "Add",
+    "backgroundsCategories": {
+      "general": "General",
+      "gynObstetric": "Gynecological - Obstetric",
+      "pathological": "Pathological"
+    },
+    "backgroundsTable": {
+      "date": "Date",
+      "backgroundType": "Background",
+      "description": "Description"
+    },
+    "reconciliationTable": {
+      "medication": "Medication",
+      "dose": "Dose",
+      "route": "Route",
+      "frequency": "Frequency",
+      "action": "Action",
+      "dateTime": "Date and time",
+      "delete": "Delete"
+    },
+    "physicalExam": {
+      "title": "Physical Exam",
+      "descriptionLabel": "Description",
+      "vitalsTitle": "Vital Signs",
+      "vitals": {
+        "oxygenSaturation": "O2 Saturation",
+        "weight": "Weight",
+        "height": "Height",
+        "heartRate": "Heart Rate",
+        "respiratoryRate": "Respiratory Rate",
+        "systolicPressure": "Systolic BP",
+        "diastolicPressure": "Diastolic BP",
+        "temperature": "Temperature"
+      },
+      "biologicalFunctionsTitle": "Biological Functions",
+      "biologicalFunctions": {
+        "sleep": "Sleep",
+        "appetite": "Appetite",
+        "urine": "Urine",
+        "stool": "Stool",
+        "weight": "Weight"
+      }
+    }
+  },
   "clinicalRecordPage": {
+    "actionBar": {
+      "monitor": "Monitor",
+      "laboratory": "Laboratory",
+      "imaging": "Imaging",
+      "dischargePrescription": "Discharge prescription",
+      "medicalDischarge": "Medical discharge",
+      "printReport": "Print report",
+      "currentOrders": "Current orders",
+      "attentionHistory": "Attendance history",
+      "referral": "Referral"
+    },
     "saveButton": {
+      "label": "Save",
+      "notAvailable": "Saving not available yet — feature in development",
       "saving": "Saving...",
       "success": "Saved successfully",
       "partialError": "Could not save: {{tabs}}",
       "nothingToSave": "Nothing to save",
       "missingEncounter": "Could not identify the encounter"
+    },
+    "errors": {
+      "loadCatalogs": "Error loading information"
     }
+  },
+  "patient": {
+    "patient": "Patient:",
+    "gender": "Gender:",
+    "age": "Age:",
+    "document": "Document type and number:",
+    "bloodType": "Blood type:",
+    "doctor": "Doctor:",
+    "specialty": "Specialty:",
+    "attentionCode": "Attention code:",
+    "clinicalHistoryNumber": "Clinical record number:",
+    "insurance": "Insurance provider:",
+    "product": "Product:",
+    "email": "Email:",
+    "phone": "Phone:",
+    "address": "Address:",
+    "allergies": "Allergies:",
+    "hasAllergies": "Has allergies",
+    "noAllergies": "No known allergies",
+    "dateAndTimeAttention": "Date and time of the visit:",
+    "place": "Place:",
+    "typeHistory": "Type of story:"
+  },
+  "actions": {
+    "info": "Additional information of the pacient",
+    "loadingPatient": "Loading patient information...",
+    "patientLoadError": "Error loading patient information"
+  },
+  "allergy": {
+    "title": "Allergy declaration",
+    "activeIngredient": "Active ingredient",
+    "activeIngredientWithId": "Active ingredient #{{id}}",
+    "food": "Food",
+    "other": "Other",
+    "edit": "Edit",
+    "yes": "Yes",
+    "deniesAllergies": "Denies allergies",
+    "foodPlaceholder": "Describe food allergies",
+    "otherPlaceholder": "Other types of allergy",
+    "confirmEdit": "Do you want to continue editing the declared allergies?",
+    "accept": "Accept",
+    "cancel": "Cancel",
+    "loading": "Loading patient information",
+    "loadError": "The allergy declaration could not be loaded.",
+    "empty": "The patient does not have a registered allergy declaration.",
+    "editError": "The allergy could not be edited",
+    "refreshError": "The information could not be refreshed",
+    "catalogError": "Catalog information could not be loaded. Reload the form."
   },
   "diagnosis": {
     "searchTitle": "Diagnosis search",
