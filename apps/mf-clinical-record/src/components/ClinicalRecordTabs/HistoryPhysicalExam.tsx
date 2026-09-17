@@ -114,8 +114,10 @@ const AnamnesisContent = ({
   encounterId?: number;
 }) => {
   const { t, i18n } = useTranslation("clinical-record");
-  const { fetchCompanionTypes } = useCatalog();
-  const { fetchHistoryPhysicalExam } = useMedicalHistory();
+  const { fetchCompanionTypes, loadingCatalogCompanionTypes } = useCatalog();
+  const { fetchHistoryPhysicalExam, loadingHistoryPhysicalExam } =
+    useMedicalHistory();
+  const formBusy = loadingHistoryPhysicalExam || loadingCatalogCompanionTypes;
   const { user } = useUser();
   const { registerTabData, hydrateTabData, getTabData } =
     useClinicalRecordForm();
@@ -292,6 +294,8 @@ const AnamnesisContent = ({
 
   return (
     <>
+      <LoadingOverlay open={formBusy} message={"Cargando información..."} />
+
       <div className="hce-section">
         <SectionHeader
           title={t("historyPhysicalExam.sections.chiefComplaint")}
