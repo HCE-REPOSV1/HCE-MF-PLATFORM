@@ -14,7 +14,7 @@ import {
   Grid,
   Button,
 } from "@hce/design-system";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { mapAllergyApiToForm, type AllergyForm, type AllergyTableItem } from "../mapper/allergy.mapper";
 import { useTranslation } from "@hce/i18n-core";
 import { usePermission } from "../hooks/usePermission";
@@ -124,6 +124,16 @@ export function AllergyModal({
   const [optionsActivePrinciples, setOptionsActivePrinciples] = useState<
     { value: string; label: string }[]
   >([]);
+
+  // Acumula el label de todo principio activo visto en una búsqueda durante
+  // esta sesión de edición — al reabrir el dropdown, optionsActivePrinciples
+  // se vacía (para no dejar la búsqueda anterior "colgada"), pero un
+  // principio recién buscado y seleccionado ahora mismo (antes de guardar)
+  // todavía no existe en la declaratoria guardada, así que sin este caché
+  // se perdería su nombre y se mostraría su código en vez del nombre real.
+  const knownActivePrincipleOptionsRef = useRef(
+    new Map<string, { value: string; label: string }>(),
+  );
   const canAlergiasTriage = usePermission(PERMISSIONS_CLINICAL_RECORD.allergy.base);
 
   const [allergySelected, setAllergySelected] = useState<AllergyForm>();
@@ -160,12 +170,14 @@ export function AllergyModal({
       }
       const results = await fetchCatalogActivePrinciplesSearch(query);
       if (results && Array.isArray(results)) {
-        setOptionsActivePrinciples(
-          results.map(({ legacyActivePrincipleId, name }) => ({
-            value: legacyActivePrincipleId,
-            label: name,
-          })),
-        );
+        const fresh = results.map(({ legacyActivePrincipleId, name }) => ({
+          value: legacyActivePrincipleId,
+          label: name,
+        }));
+        for (const opt of fresh) {
+          knownActivePrincipleOptionsRef.current.set(opt.value, opt);
+        }
+        setOptionsActivePrinciples(fresh);
       }
     },
     [fetchCatalogActivePrinciplesSearch],
@@ -372,6 +384,17 @@ const handleSave = useCallback(async () => {
     const labelByValue = new Map(
       optionsActivePrinciples.map(({ value, label }) => [value, label]),
     );
+
+    // Principios buscados en esta sesión pero fuera del resultado actual
+    // (ver knownActivePrincipleOptionsRef) — cubre justo el caso de
+    // seleccionar algo, reabrir el dropdown (que limpia
+    // optionsActivePrinciples) y no haber guardado todavía, así que la
+    // declaratoria tampoco lo conoce aún.
+    for (const [value, opt] of knownActivePrincipleOptionsRef.current) {
+      if (!labelByValue.has(value)) {
+        labelByValue.set(value, opt.label);
+      }
+    }
 
     // La declaratoria guardada ya trae el nombre de cada sustancia
     // (active_principle_name) — sin esto, un principio ya seleccionado que
