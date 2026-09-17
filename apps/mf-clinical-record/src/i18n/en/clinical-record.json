@@ -19,5 +19,14 @@
     "serviceUnavailable": "Authentication service unavailable. Please try again in a few moments.",
     "timeout": "The server took too long to respond. Try again.",
     "generic": "An unexpected error occurred."
+  },
+  "clinicalRecordPage": {
+    "saveButton": {
+      "saving": "Saving...",
+      "success": "Saved successfully",
+      "partialError": "Could not save: {{tabs}}",
+      "nothingToSave": "Nothing to save",
+      "missingEncounter": "Could not identify the encounter"
+    }
   }
 }

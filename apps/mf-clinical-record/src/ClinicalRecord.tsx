@@ -30,6 +30,7 @@ import {
 } from "./context/ClinicalRecordFormContext";
 import { ClinicalRecordTabs } from "./components/ClinicalRecordTabs";
 import { mapToSavePayload } from "./mapper/medicalHistory.mapper";
+import { saveHistoryPhysicalExam } from "./services/medicalHistory.service";
 import { formatAddress } from "./utils/formatAddress";
 import { usePatientRecord } from "./hooks/usePatientRecord";
 import { useTranslation } from "@hce/i18n-core";
@@ -173,28 +174,119 @@ export default function ClinicalRecordPage() {
   ];
 
   function SaveButton() {
-    const { getAllData } = useClinicalRecordForm();
-    const [saveMessage, setSaveMessage] = useState<string | null>(null);
+    const { getAllData, dirtyTabs, clearDirtyTabs } = useClinicalRecordForm();
+    const [saving, setSaving] = useState(false);
+    const [saveMessage, setSaveMessage] = useState<{
+      text: string;
+      isError: boolean;
+    } | null>(null);
 
-    const handleSave = () => {
-      const rawData = getAllData();
-      mapToSavePayload(rawData);
-      setSaveMessage(t("clinicalRecordPage.saveButton.notAvailable"));
+    // Guardado disparado ESTRICTAMENTE por este click — nada de auto-guardado
+    // por cambio de tab ni por inactividad. Un "saver" por grupo de tabs que
+    // ya tiene endpoint real; se corren todos en paralelo con
+    // Promise.allSettled (nunca Promise.all: que falle uno no debe tumbar a
+    // los demás), y solo se limpia dirty de los que efectivamente guardaron.
+    //
+    // Hoy solo hay un saver real conectado: Anamnesis/EF (POST
+    // /encounter/:id/clinical, ver HU09). Diagnóstico e Indicaciones Médicas
+    // todavía no tienen endpoint de guardado — sus tabs nunca quedan en
+    // dirtyTabs (no llaman registerTabData), así que quedan afuera de este
+    // array hasta que se conecten.
+    const handleSave = async () => {
+      setSaving(true);
+      setSaveMessage(null);
+
+      const payload = mapToSavePayload(getAllData());
+      const hasHistoryPhysicalExamPayload =
+        Boolean(payload.anamnesis) ||
+        Boolean(payload.physicalExam) ||
+        Boolean(payload.patientBackgrounds?.length) ||
+        Boolean(payload.medicationReconciliations?.length);
+      const isHistoryPhysicalExamDirty = Array.from(dirtyTabs).some((tabId) =>
+        tabId.startsWith("historyPhysicalExam."),
+      );
+
+      const savers: { tabPrefix: string; run: () => Promise<void> }[] = [];
+
+      if (isHistoryPhysicalExamDirty && hasHistoryPhysicalExamPayload) {
+        if (encounterId === undefined) {
+          setSaveMessage({
+            text: t("clinicalRecordPage.saveButton.missingEncounter"),
+            isError: true,
+          });
+          setSaving(false);
+          return;
+        }
+        savers.push({
+          tabPrefix: "historyPhysicalExam",
+          run: () => saveHistoryPhysicalExam(encounterId, payload),
+        });
+      }
+
+      if (savers.length === 0) {
+        setSaveMessage({
+          text: t("clinicalRecordPage.saveButton.nothingToSave"),
+          isError: false,
+        });
+        setSaving(false);
+        return;
+      }
+
+      const results = await Promise.allSettled(
+        savers.map((saver) => saver.run()),
+      );
+
+      const succeeded: string[] = [];
+      const failed: string[] = [];
+
+      results.forEach((result, index) => {
+        const { tabPrefix } = savers[index];
+        if (result.status === "fulfilled") {
+          succeeded.push(tabPrefix);
+        } else {
+          failed.push(tabPrefix);
+          console.error(`[SaveButton] Error guardando ${tabPrefix}:`, result.reason);
+        }
+      });
+
+      if (succeeded.length > 0) clearDirtyTabs(succeeded);
+
+      setSaveMessage(
+        failed.length === 0
+          ? { text: t("clinicalRecordPage.saveButton.success"), isError: false }
+          : {
+              text: t("clinicalRecordPage.saveButton.partialError", {
+                tabs: failed.join(", "),
+              }),
+              isError: true,
+            },
+      );
+      setSaving(false);
     };
 
     return (
       <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
         {saveMessage && (
-          <Box sx={{ fontSize: "13px", color: hceColors.alert.warning[600] }}>
-            {saveMessage}
+          <Box
+            sx={{
+              fontSize: "13px",
+              color: saveMessage.isError
+                ? hceColors.alert.error[600]
+                : hceColors.primary.green[600],
+            }}
+          >
+            {saveMessage.text}
           </Box>
         )}
         <Button
           startIcon={<DisketteIcon />}
           color={hceColors.primary.green[600]}
           onClick={handleSave}
+          disabled={saving}
         >
-          {t("clinicalRecordPage.saveButton.label")}
+          {saving
+            ? t("clinicalRecordPage.saveButton.saving")
+            : t("clinicalRecordPage.saveButton.label")}
         </Button>
       </Box>
     );

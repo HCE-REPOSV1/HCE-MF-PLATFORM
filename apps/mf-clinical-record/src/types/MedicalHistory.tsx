@@ -48,12 +48,6 @@ export interface PatientBackgroundSavePayload {
   user_create: string;
 }
 
-export interface MedicalHistorySavePayload {
-  anamnesis?: AnamnesisPayload;
-  physicalExam?: PhysicalExamPayload;
-  patientBackgrounds?: PatientBackgroundSavePayload[];
-}
-
 export interface AnamnesisPayload {
   anamnesis_type: "direct" | "indirect" | null;
   companion_type_id: number | null;
@@ -69,6 +63,15 @@ export interface PhysicalExamPayload {
   stool_function: string;
   weight_function: string;
   user_create: string;
+}
+
+/** Shape real de POST /encounter/:id/clinical → physicalExam (ver HU09):
+ * combina PhysicalExamPayload (funciones biológicas, de
+ * "historyPhysicalExam.physicalExam") con oxygen_saturation/weight_kg (de
+ * "historyPhysicalExam.physicalExamVitals") — el mapper hace ese merge. */
+export interface PhysicalExamSavePayload extends PhysicalExamPayload {
+  oxygen_saturation: number | null;
+  weight_kg: number | null;
 }
 
 export interface PhysicalExamApiItem {
@@ -131,10 +134,13 @@ export interface MedicationReconciliationRow {
 }
 
 export interface MedicationReconciliationSavePayload {
+  medication_name: string;
   medication_legacy_code: string;
   administration_route_id: number;
   dose_value: number;
+  dose_unit?: string;
   frequency_value: number;
+  frequency_unit?: string;
   reconciliation_action: string;
   last_dose_datetime: string;
   user_create: string;
@@ -142,7 +148,7 @@ export interface MedicationReconciliationSavePayload {
 
 export interface MedicalHistorySavePayload {
   anamnesis?: AnamnesisPayload;
-  physicalExam?: PhysicalExamPayload;
+  physicalExam?: PhysicalExamSavePayload;
   patientBackgrounds?: PatientBackgroundSavePayload[];
   medicationReconciliations?: MedicationReconciliationSavePayload[];
 }
