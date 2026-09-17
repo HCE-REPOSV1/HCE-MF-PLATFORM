@@ -54,18 +54,22 @@ export async function saveHistoryPhysicalExam(
   encounter_id: number,
   payload: MedicalHistorySavePayload,
 ): Promise<void> {
-  const res = await apiFetch(
-    ENDPOINTS.medicalRecords.getHistoryPhysicalExam(encounter_id),
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    },
-  );
+  const url = ENDPOINTS.medicalRecords.getHistoryPhysicalExam(encounter_id);
+  // eslint-disable-next-line no-console -- temporal, para verificar en QA que el payload sale como se espera
+  console.log("[saveHistoryPhysicalExam] POST", url, payload);
+
+  const res = await apiFetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
 
   const json = (await res.json().catch(() => null)) as
     | { success?: boolean; message?: string }
     | null;
+
+  // eslint-disable-next-line no-console -- temporal, ver arriba
+  console.log("[saveHistoryPhysicalExam] response", res.status, json);
 
   if (!res.ok || !json?.success) {
     throw new Error(
