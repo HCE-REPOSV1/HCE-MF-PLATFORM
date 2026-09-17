@@ -228,6 +228,16 @@ const AnamnesisContent = ({
             : "",
         );
         setChiefComplaintId(data.anamnesis.chief_complaint);
+
+        // Guardarlo acá explícitamente — el efecto de sincronización de más
+        // abajo ahora SALTEA su propio registerTabData mientras
+        // isHydratingAnamnesisRef está en true (correcto, para no marcar
+        // dirty), pero eso significa que ya no queda ningún otro lugar que
+        // escriba este dato en el contexto. Sin esto, savedAnamnesis vuelve
+        // a ser undefined en el próximo mount y el guard de arriba
+        // (`if (savedAnamnesis) return`) nunca se cumple: se refetchea el
+        // endpoint cada vez que se cambia de pestaña y se vuelve.
+        hydrateTabData("historyPhysicalExam.anamnesis", data.anamnesis);
       }
 
       setPatientBackgrounds(data.patientBackgrounds);
