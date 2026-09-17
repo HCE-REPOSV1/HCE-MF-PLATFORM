@@ -190,12 +190,21 @@ const allergyBoard = useMemo<AllergyTableItem[]>(() => {
     ]),
   );
 
+  // La propia declaratoria ya trae active_principle_name por sustancia —
+  // preferirlo sobre optionsActivePrinciples (que ya no precarga el
+  // catálogo completo) evita mostrar el placeholder "Principio activo #id"
+  // para algo que el usuario nunca buscó en esta sesión.
+  for (const substance of declaration.substances) {
+    const value = String(substance.active_principle_id);
+    if (!activePrincipleNames.has(value) && substance.active_principle_name) {
+      activePrincipleNames.set(value, substance.active_principle_name);
+    }
+  }
+
   const allergyForm = mapAllergyApiToForm({
     ...declaration,
     encounter_id: allergyDeclaration.encounter_id,
   });
-
-  
 
   return [
     {
@@ -360,15 +369,39 @@ const handleSave = useCallback(async () => {
   );
 
   const activePrincipleOptions = useMemo(() => {
-    const catalogValues = new Set(
-      optionsActivePrinciples.map(({ value }) => value),
+    const labelByValue = new Map(
+      optionsActivePrinciples.map(({ value, label }) => [value, label]),
     );
-    const rawOptions = valuePrincipioActivo
-      .filter((value) => !catalogValues.has(value))
+
+    // La declaratoria guardada ya trae el nombre de cada sustancia
+    // (active_principle_name) — sin esto, un principio ya seleccionado que
+    // el usuario no volvió a buscar en esta sesión (ya no se precarga el
+    // catálogo completo) se mostraría con su ID crudo como label en vez del
+    // nombre real.
+    for (const substance of allergyDeclaration?.declaration?.substances ??
+      []) {
+      const value = String(substance.active_principle_id);
+      if (!labelByValue.has(value) && substance.active_principle_name) {
+        labelByValue.set(value, substance.active_principle_name);
+      }
+    }
+
+    const missingOptions = valuePrincipioActivo
+      .filter((value) => !labelByValue.has(value))
       .map((value) => ({ value, label: value }));
 
-    return [...optionsActivePrinciples, ...rawOptions];
-  }, [optionsActivePrinciples, valuePrincipioActivo]);
+    return [
+      ...optionsActivePrinciples,
+      ...valuePrincipioActivo
+        .filter(
+          (value) =>
+            labelByValue.has(value) &&
+            !optionsActivePrinciples.some((o) => o.value === value),
+        )
+        .map((value) => ({ value, label: labelByValue.get(value)! })),
+      ...missingOptions,
+    ];
+  }, [optionsActivePrinciples, valuePrincipioActivo, allergyDeclaration]);
 
   const isSaveDisabled =
   saving ||
