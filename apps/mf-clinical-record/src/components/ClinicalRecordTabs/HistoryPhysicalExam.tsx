@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AddCircleIcon,
   Box,
@@ -117,7 +117,15 @@ const AnamnesisContent = ({
   const { fetchCompanionTypes } = useCatalog();
   const { fetchHistoryPhysicalExam } = useMedicalHistory();
   const { user } = useUser();
-  const { registerTabData, getTabData } = useClinicalRecordForm();
+  const { registerTabData, hydrateTabData, getTabData } =
+    useClinicalRecordForm();
+  // didMount: el primer render de este efecto solo refleja el estado
+  // inicial (default o ya hidratado), no una edición — no debe marcar
+  // dirty. isHydrating: se activa justo antes de los setState del fetch
+  // inicial (más abajo) para que el re-render que dispara TAMBIÉN se
+  // ignore, en vez de marcarse como si el usuario hubiera editado.
+  const didMountAnamnesisRef = useRef(false);
+  const isHydratingAnamnesisRef = useRef(false);
   const [expanded, setExpanded] = useState({
     motivo: true,
     antecedentes: false,
@@ -207,6 +215,11 @@ const AnamnesisContent = ({
       const data = await fetchHistoryPhysicalExam(validEncounterId);
       if (!data) return;
 
+      // Se activa ANTES de los setState de abajo: el re-render que disparan
+      // corre el efecto de sincronización de anamnesis (más abajo), que debe
+      // ver esto en true para no marcarse dirty por una carga, no una edición.
+      isHydratingAnamnesisRef.current = true;
+
       if (data.anamnesis) {
         setAnamnesisType(data.anamnesis.anamnesis_type);
         setCompanionTypeId(
@@ -218,13 +231,13 @@ const AnamnesisContent = ({
       }
 
       setPatientBackgrounds(data.patientBackgrounds);
-      registerTabData(
+      hydrateTabData(
         "historyPhysicalExam.patientBackgrounds",
         data.patientBackgrounds,
       );
 
       setMedicationReconciliations(data.medicationReconciliations);
-      registerTabData(
+      hydrateTabData(
         "historyPhysicalExam.medicationReconciliations",
         data.medicationReconciliations,
       );
@@ -234,6 +247,14 @@ const AnamnesisContent = ({
   }, [encounterId]);
 
   useEffect(() => {
+    if (!didMountAnamnesisRef.current) {
+      didMountAnamnesisRef.current = true;
+      return;
+    }
+    if (isHydratingAnamnesisRef.current) {
+      isHydratingAnamnesisRef.current = false;
+      return;
+    }
     if (readOnly) return;
     if (!user?.username) return;
 
@@ -364,7 +385,14 @@ const PatientBackgroundsContent = ({
         | undefined) ?? [],
   );
 
+  // El primer render solo refleja lo que ya había en el contexto (vacío o
+  // de una visita previa a este tab), no un agregado nuevo del usuario.
+  const didMountAddedBackgroundsRef = useRef(false);
   useEffect(() => {
+    if (!didMountAddedBackgroundsRef.current) {
+      didMountAddedBackgroundsRef.current = true;
+      return;
+    }
     registerTabData(
       "historyPhysicalExam.addedPatientBackgrounds",
       addedBackgrounds,
@@ -519,7 +547,14 @@ const ReconciliationContent = ({
         | undefined) ?? [],
   );
 
+  // Mismo motivo que en PatientBackgroundsContent: el primer render no es
+  // un agregado nuevo del usuario.
+  const didMountAddedReconciliationsRef = useRef(false);
   useEffect(() => {
+    if (!didMountAddedReconciliationsRef.current) {
+      didMountAddedReconciliationsRef.current = true;
+      return;
+    }
     registerTabData(
       "historyPhysicalExam.addedMedicationReconciliations",
       addedReconciliations,
@@ -691,9 +726,17 @@ const ExamenFisicoContent = ({
     useMedicalHistory();
   const { fetchCodeSystemValuesByCode, loadingCatalogCodeSystemValues } =
     useCatalog();
-  const { registerTabData, getTabData } = useClinicalRecordForm();
+  const { registerTabData, hydrateTabData, getTabData } =
+    useClinicalRecordForm();
 
   const formBusy = loadingHistoryPhysicalExam || loadingCatalogCodeSystemValues;
+
+  // Mismo patrón que en AnamnesisContent: didMount evita marcar dirty en el
+  // primer render (estado inicial, no edición); isHydrating evita marcar
+  // dirty en el re-render que dispara la carga async de vitals más abajo.
+  const didMountVitalsRef = useRef(false);
+  const isHydratingVitalsRef = useRef(false);
+  const didMountPhysicalExamRef = useRef(false);
 
   const savedVitals = getTabData("historyPhysicalExam.physicalExamVitals") as
     | PhysicalExamApiItem
@@ -762,6 +805,14 @@ const ExamenFisicoContent = ({
   >([]);
 
   useEffect(() => {
+    if (!didMountVitalsRef.current) {
+      didMountVitalsRef.current = true;
+      return;
+    }
+    if (isHydratingVitalsRef.current) {
+      isHydratingVitalsRef.current = false;
+      return;
+    }
     if (readOnly) return;
 
     registerTabData("historyPhysicalExam.physicalExamVitals", {
@@ -827,6 +878,10 @@ const ExamenFisicoContent = ({
       if (!historyPhysicalExamData?.physicalExam) return;
 
       const v = historyPhysicalExamData.physicalExam;
+      // Activar ANTES de los setState: el re-render que disparan corre el
+      // efecto de sincronización de vitals (más arriba), que debe ver esto
+      // en true para no marcarse dirty por una carga, no una edición.
+      isHydratingVitalsRef.current = true;
       setOxygenSaturation(
         v.oxygen_saturation != null ? String(v.oxygen_saturation) : "",
       );
@@ -844,12 +899,16 @@ const ExamenFisicoContent = ({
       );
       setTemperatureC(v.temperature_c != null ? String(v.temperature_c) : "");
 
-      registerTabData("historyPhysicalExam.physicalExamVitals", v);
+      hydrateTabData("historyPhysicalExam.physicalExamVitals", v);
     };
     load();
   }, [encounterId]);
 
   useEffect(() => {
+    if (!didMountPhysicalExamRef.current) {
+      didMountPhysicalExamRef.current = true;
+      return;
+    }
     if (readOnly) return;
     if (!user?.username) return;
 

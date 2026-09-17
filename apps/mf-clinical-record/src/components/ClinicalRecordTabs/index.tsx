@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { EditModeProvider } from "../../context/EditModeContext";
+import { useClinicalRecordForm } from "../../context/ClinicalRecordFormContext";
 import { PERMISSIONS_CLINICAL_RECORD } from "../../config/permissions";
 import { Box, NavTab } from "@hce/design-system";
 import { HistoryPhysicalExam } from "./HistoryPhysicalExam";
@@ -17,7 +17,10 @@ export const ClinicalRecordTabs = ({
   encounterId,
 }: ClinicalRecordTabsProps) => {
   const { t } = useTranslation("clinical-record");
-  const [activeTab, setActiveTab] = useState("history-physical-exam");
+  // activeTab vive en ClinicalRecordFormContext (no local a este componente)
+  // para que SaveButton, hermano de ClinicalRecordTabs en ClinicalRecord.tsx,
+  // sepa cuál tab está activo.
+  const { activeTab, setActiveTab } = useClinicalRecordForm();
 
   const TABS = [
     { label: t("tabs.historyPhysicalExam"), value: "history-physical-exam" },

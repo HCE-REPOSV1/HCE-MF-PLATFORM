@@ -31,6 +31,15 @@
     "medicalProcedures": "Procedimientos Médicos",
     "progressNotes": "Evolución",
     "nursingNote": "Nota de enfermería"
+  },
+  "clinicalRecordPage": {
+    "saveButton": {
+      "saving": "Guardando...",
+      "success": "Guardado correctamente",
+      "partialError": "No se pudo guardar: {{tabs}}",
+      "nothingToSave": "No hay cambios para guardar",
+      "missingEncounter": "No se pudo identificar la atención"
+    }
   }
 }
 
