@@ -20,6 +20,16 @@
     "timeout": "El servidor tardó demasiado en responder. Intenta nuevamente.",
     "generic": "Ocurrió un error inesperado."
   },
+  "EmptyMessageDataTable": "No se encontraron datos disponibles.",
+  "dataDatableMedicalHistory": {
+    "colRecordType": "Tipo de historia",
+    "colPractitionerName": "Medico",
+    "colSpeciality_name": "Especialidad",
+    "colAdmission_datetime": "Fecha y Hora",
+    "colSicAttentionId": "C. Atención",
+    "colEncounterClassDisplay": "Lugar",
+    "colViewDetail": "Ver"
+  },
   "tabs": {
     "historyPhysicalExam": "Anamnesis y EF",
     "diagnosis": "Diagnóstico",
@@ -32,14 +42,173 @@
     "progressNotes": "Evolución",
     "nursingNote": "Nota de enfermería"
   },
+  "addPatientBackgroundModal": {
+    "title": "Agregar antecedentes",
+    "saveButton": "Guardar",
+    "categories": {
+      "general": "Generales",
+      "gynObstetric": "Gineco - obstétricos",
+      "pathological": "Patológicos"
+    },
+    "catalogLabel": "Registro de Antecedentes",
+    "catalogPlaceholder": "-Seleccionar opción-",
+    "presentCheckbox": "SI",
+    "descriptionPlaceholder": "Ingresa texto",
+    "saveError": "No se pudo guardar el antecedente"
+  },
+  "reconciliationActions": {
+    "continue": "Continúa",
+    "suspend": "Suspende",
+    "modify": "Modifica"
+  },
+  "addMedicationReconciliationModal": {
+    "title": "Registro de medicamento de reconciliación medicamentosa",
+    "medicationSearchLabel": "Búsqueda de medicamento",
+    "medicationSearchPlaceholder": "Ingrese texto",
+    "doseLabel": "Dosis",
+    "dosePlaceholder": "ej. 1",
+    "frequencyLabel": "Frecuencia",
+    "frequencyPlaceholder": "ej. 1",
+    "routeLabel": "Via",
+    "routePlaceholder": "-Seleccionar opción-",
+    "lastDoseDateLabel": "Fecha ultima",
+    "lastDoseTimeLabel": "Hora ultima",
+    "addButton": "Agregar"
+  },
+  "historyPhysicalExam": {
+    "viewToggle": {
+      "anamnesis": "Anamnesis",
+      "physicalExam": "Examen Físico"
+    },
+    "sections": {
+      "chiefComplaint": "Motivo de consulta",
+      "backgrounds": "Antecedentes",
+      "reconciliation": "Reconciliación medicamentosa"
+    },
+    "anamnesisType": {
+      "direct": "Directo",
+      "indirect": "Indirecto"
+    },
+    "companionLabel": "Acompañante",
+    "selectPlaceholder": "-Seleccionar opción-",
+    "chiefComplaintLabel": "Motivo",
+    "textPlaceholder": "Ingrese texto",
+    "addButton": "Agregar",
+    "backgroundsCategories": {
+      "general": "Generales",
+      "gynObstetric": "Gineco - obstétricos",
+      "pathological": "Patológicos"
+    },
+    "backgroundsTable": {
+      "date": "Fecha",
+      "backgroundType": "Antecedente",
+      "description": "Descripción"
+    },
+    "reconciliationTable": {
+      "medication": "Medicamento",
+      "dose": "Dosis",
+      "route": "Via",
+      "frequency": "Frecuencia",
+      "action": "Acción",
+      "dateTime": "Fecha y hora",
+      "delete": "Eliminar"
+    },
+    "physicalExam": {
+      "title": "Examen Físico",
+      "descriptionLabel": "Descripción",
+      "vitalsTitle": "Funciones Vitales",
+      "vitals": {
+        "oxygenSaturation": "Saturación O2",
+        "weight": "Peso",
+        "height": "Talla",
+        "heartRate": "F. Cardiaca",
+        "respiratoryRate": "F.Respiratoria",
+        "systolicPressure": "P. Sistólica",
+        "diastolicPressure": "P. Diastólica",
+        "temperature": "Temperatura"
+      },
+      "biologicalFunctionsTitle": "Funciones biológicas",
+      "biologicalFunctions": {
+        "sleep": "Sueño",
+        "appetite": "Apetito",
+        "urine": "Orina",
+        "stool": "Deposición",
+        "weight": "Peso"
+      }
+    }
+  },
   "clinicalRecordPage": {
+    "actionBar": {
+      "monitor": "Monitor",
+      "laboratory": "Laboratorio",
+      "imaging": "Imagenes",
+      "dischargePrescription": "Receta de alta",
+      "medicalDischarge": "Alta medica",
+      "printReport": "Imprimir reporte",
+      "currentOrders": "Indicaciones actuales",
+      "attentionHistory": "Historial de atenciones",
+      "referral": "Referencia"
+    },
     "saveButton": {
+      "label": "Guardar",
+      "notAvailable": "Guardado aún no disponible — función en desarrollo",
       "saving": "Guardando...",
       "success": "Guardado correctamente",
       "partialError": "No se pudo guardar: {{tabs}}",
       "nothingToSave": "No hay cambios para guardar",
       "missingEncounter": "No se pudo identificar la atención"
+    },
+    "errors": {
+      "loadCatalogs": "Error al cargar información"
     }
+  },
+  "patient": {
+    "patient": "Paciente:",
+    "gender": "Género:",
+    "age": "Edad:",
+    "document": "Tipo y N.° de documento:",
+    "bloodType": "Grupo sanguíneo:",
+    "doctor": "Médico:",
+    "specialty": "Especialidad:",
+    "attentionCode": "Código de atención:",
+    "clinicalHistoryNumber": "N.° de historia clínica:",
+    "insurance": "Aseguradora:",
+    "product": "Producto:",
+    "email": "Correo:",
+    "phone": "Celular:",
+    "address": "Dirección:",
+    "allergies": "Alergias:",
+    "hasAllergies": "Presenta alergias",
+    "noAllergies": "No presenta alergias",
+    "dateAndTimeAttention": "Fecha y hora de la atención:",
+    "place": "Lugar:",
+    "typeHistory": "Tipo de historia:"
+  },
+  "actions": {
+    "info": "Informacion adicional del paciente",
+    "loadingPatient": "Cargando información del paciente...",
+    "patientLoadError": "Error al cargar la información del paciente"
+  },
+  "allergy": {
+    "title": "Declaratoria de alergias",
+    "activeIngredient": "Principio activo",
+    "activeIngredientWithId": "Principio activo #{{id}}",
+    "food": "Alimentos",
+    "other": "Otros",
+    "edit": "Editar",
+    "yes": "Sí",
+    "deniesAllergies": "Niega alergias",
+    "foodPlaceholder": "Describa alergias alimentarias",
+    "otherPlaceholder": "Otros tipos de alergia",
+    "confirmEdit": "¿Desea continuar con la edición de las alergias declaradas?",
+    "accept": "Aceptar",
+    "cancel": "Cancelar",
+    "loading": "Cargando información del paciente",
+    "loadError": "No se pudo cargar la declaratoria de alergias.",
+    "empty": "El paciente no tiene una declaratoria de alergias registrada.",
+    "editError": "No se pudo editar la alergia",
+    "refreshError": "No se pudo refrescar la información",
+    "catalogError": "No se pudo cargar la información de catálogos. Recargue el formulario."
   },
   "diagnosis": {
     "searchTitle": "Búsqueda de diagnóstico",
