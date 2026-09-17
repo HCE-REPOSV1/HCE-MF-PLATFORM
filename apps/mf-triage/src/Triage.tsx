@@ -508,19 +508,12 @@ export function Triage({
     const loadData = async () => {
       try {
         const results = await Promise.all([
-          fetchCatalogActivePrinciplesSearch(""),
           fetchIdentifierTypes("patient"),
           fetchTimeUnits(),
           fetchCodeSystemValuesByCode("GENDER"),
           fetchAgeGroups(),
         ]);
-        const [
-          activePrinciples,
-          identifierTypes,
-          timeUnits,
-          genders,
-          ageGroups,
-        ] = results;
+        const [identifierTypes, timeUnits, genders, ageGroups] = results;
 
         // g.display / t.display ya vienen resueltos según Accept-Language
         // (fallback a es) -- reemplazan a los antiguos display_es/display_en,
@@ -541,10 +534,6 @@ export function Triage({
               .sort((a, b) => a.sort_order - b.sort_order)
               .map((g) => ({ value: g.code, label: g.display })),
           );
-        }
-
-        if (activePrinciples && Array.isArray(activePrinciples)) {
-          applyActivePrincipleOptions(activePrinciples);
         }
 
         if (identifierTypes && Array.isArray(identifierTypes)) {
