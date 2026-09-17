@@ -387,7 +387,7 @@ export function Triage({
     fetchCodeSystemValuesByCode,
     fetchCatalogCie,
     fetchCatalogCieById,
-    fetchCatalogActivePrinciples,
+    fetchCatalogActivePrinciplesSearch,
     fetchIdentifierTypes,
     fetchTimeUnits,
     fetchAgeGroups,
@@ -453,7 +453,7 @@ export function Triage({
     const loadData = async () => {
       try {
         const results = await Promise.all([
-          fetchCatalogActivePrinciples(),
+          fetchCatalogActivePrinciplesSearch(""),
           fetchIdentifierTypes("patient"),
           fetchTimeUnits(),
           fetchCodeSystemValuesByCode("GENDER"),
@@ -489,12 +489,12 @@ export function Triage({
         }
 
         if (activePrinciples && Array.isArray(activePrinciples)) {
-          const transformerOptions = activePrinciples
-            .filter((p) => p.is_active)
-            .map(({ active_principle_id, substance_name }) => ({
-              value: String(active_principle_id),
-              label: substance_name,
-            }));
+          const transformerOptions = activePrinciples.map(
+            ({ legacyActivePrincipleId, name }) => ({
+              value: legacyActivePrincipleId,
+              label: name,
+            }),
+          );
           setOptionsActivePrinciples(transformerOptions);
         }
 

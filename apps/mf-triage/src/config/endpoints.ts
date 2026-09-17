@@ -45,7 +45,9 @@ export const ENDPOINTS = {
      * para cualquier consumo nuevo. */
     CodeSystemValuesByCode: (codeSystemCode: string) =>
       `${AG_CLN_CROSS}/api/v1/catalogs/code-system-values?code_system_code=${encodeURIComponent(codeSystemCode)}`,
-    ActivePrinciples: () => `${AG_CLN_CROSS}/api/v1/catalogs/active-principles`,
+    /** Única ruta vigente para principios activos: sin `text` trae el listado
+     * completo, con `text` filtra por nombre (case-insensitive). El endpoint
+     * bare `/catalogs/active-principles` (sin `/search`) ya no existe. */
     ActivePrinciplesSearch: (text: string) =>
       `${AG_CLN_CROSS}/api/v1/catalogs/active-principles/search?text=${encodeURIComponent(text)}`,
     IdentifierTypes: (entityType: string) =>

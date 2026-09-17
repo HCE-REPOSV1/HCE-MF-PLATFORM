@@ -4,7 +4,6 @@ import {
   getCatalogCieSearch,
   getCodeSystemValues,
   getCodeSystemValuesByCode,
-  getActivePrinciples,
   getActivePrinciplesSearch,
   getIdentifierTypes,
   getTimeUnits,
@@ -35,7 +34,6 @@ function useResourceState<T>() {
 // o se recrean en cada render y se pierde el cache.
 
 // Sin parámetros / catálogo completo: un solo fetcher fijo alcanza.
-const activePrinciplesFetcher = createCachedFetcher(getActivePrinciples);
 const timeUnitsFetcher = createCachedFetcher(getTimeUnits);
 const ageGroupsFetcher = createCachedFetcher(getAgeGroups);
 
@@ -221,33 +219,9 @@ export function useCatalog() {
     ],
   );
 
-  const fetchCatalogActivePrinciples = useCallback(async (): Promise<
-    CatalogActivePrinciples[] | null
-  > => {
-    catalogActivePrinciples.setLoading(true);
-    catalogActivePrinciples.setError(null);
-    try {
-      const response = await activePrinciplesFetcher.fetch(i18n.language);
-      catalogActivePrinciples.setData(response);
-      return response;
-    } catch (err) {
-      catalogActivePrinciples.setError(
-        err instanceof Error
-          ? err.message
-          : "Error al cargar perfil del catalog cie",
-      );
-      catalogActivePrinciples.setData(null);
-      return null;
-    } finally {
-      catalogActivePrinciples.setLoading(false);
-    }
-  }, [
-    catalogActivePrinciples.setData,
-    catalogActivePrinciples.setError,
-    catalogActivePrinciples.setLoading,
-  ]);
-
-  // Búsqueda por texto: NO se cachea
+  // Única función para principios activos: NO se cachea (cada texto es una
+  // consulta distinta). Llamar con text="" trae el listado completo — es la
+  // única ruta vigente, ya no existe un endpoint bare separado para eso.
   const fetchCatalogActivePrinciplesSearch = useCallback(
     async (text: string): Promise<CatalogActivePrinciples[] | null> => {
       catalogActivePrinciples.setLoading(true);
@@ -351,7 +325,6 @@ export function useCatalog() {
     fetchCatalogCieById,
     fetchCodeSystemValues,
     fetchCodeSystemValuesByCode,
-    fetchCatalogActivePrinciples,
     fetchCatalogActivePrinciplesSearch,
     fetchIdentifierTypes,
     fetchTimeUnits,

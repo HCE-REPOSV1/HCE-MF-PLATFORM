@@ -6,8 +6,7 @@
  * - GET catalogs/cie/search?text=${text}&column=${column}
  * - GET catalogs/code-system-values?code_system_id=${code_system_id}
  * - GET catalogs/code-system-values?code_system_code=${code_system_code} (preferido, id no es estable entre entornos)
- * - GET catalogs/active-principles
- * - GET catalogs/active-principles/search?text=${text}
+ * - GET catalogs/active-principles/search?text=${text} (única ruta vigente; sin text trae el listado completo)
  * - GET catalogs/identifier-types?entity_type=${entityType}
  * - GET catalogs/time-units
  * ---------------------------------------------------------
@@ -93,19 +92,6 @@ export async function getCodeSystemValuesByCode(
     );
 
   const json = (await res.json()) as CatalogCodeSystemValueResponse;
-  if (!json.success) return null;
-  return json.data;
-}
-
-export async function getActivePrinciples(): Promise<
-  CatalogActivePrinciples[] | null
-> {
-  const res = await apiFetch(ENDPOINTS.catalogs.ActivePrinciples());
-  if (res.status === 404) return null;
-  if (!res.ok)
-    throw new Error(`Error ${res.status} al obtener datos del Catalog Cie`);
-
-  const json = (await res.json()) as CatalogActivePrinciplesResponse;
   if (!json.success) return null;
   return json.data;
 }
