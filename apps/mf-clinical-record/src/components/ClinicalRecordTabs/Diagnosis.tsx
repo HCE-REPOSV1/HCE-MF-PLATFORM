@@ -26,8 +26,14 @@ export const DiagnosisContent = ({
   encounterId,
 }: DiagnosisProps) => {
   console.log(encounterId);
+  // const [optDiagnosticRadio, setOptDiagnosticRadio] = useState("");
   return (
     <Box>
+      <Box>
+        {/* <RadioGroup legend="" onChange={()=>{} }>
+
+        </RadioGroup> */}
+      </Box>
       <div>Encounter: {encounterId}</div>
       <div>Readonly: {readOnly}</div>
     </Box>
