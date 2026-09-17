@@ -181,3 +181,15 @@ export interface CatalogAgeGroupResponse {
   message: string;
   data: CatalogAgeGroup[];
 }
+
+export interface CatalogCie {
+  cie_id: number;
+  cie_code: string;
+  cie_description: string;
+}
+
+export interface CatalogCieResponse {
+  success: boolean;
+  message: string;
+  data: CatalogCie[];
+}

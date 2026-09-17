@@ -1,0 +1,112 @@
+/* components/ClinicalRecordTabs/Diagnosis.css */
+
+.hce-diagnosis {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 16px 0;
+}
+
+.hce-diagnosis__heading {
+  margin: 0 0 12px 0;
+  font-family: var(--ds-font-family, "Poppins", sans-serif);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ds-color-interactive, #003d96);
+}
+
+.hce-diagnosis__search-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.hce-diagnosis__search-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.hce-diagnosis__search-field-label {
+  display: block;
+  margin-bottom: 4px;
+  font-family: var(--ds-font-family, "Poppins", sans-serif);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ds-color-interactive, #003d96);
+}
+
+.hce-diagnosis__table-wrap {
+  border: 1px solid var(--ds-color-interactive, #003d96);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.hce-diagnosis-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.hce-diagnosis-table thead th {
+  background-color: var(--ds-color-interactive, #003d96);
+  color: #ffffff;
+  font-family: var(--ds-font-family, "Poppins", sans-serif);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 10px 12px;
+  border-left: 1px solid #ffffff;
+}
+
+.hce-diagnosis-table thead th:first-child {
+  border-left: none;
+}
+
+.hce-diagnosis-table tbody td {
+  padding: 10px 12px;
+  text-align: center;
+  font-family: var(--ds-font-family, "Poppins", sans-serif);
+  font-size: 0.875rem;
+  color: #374151;
+  border-bottom: 1px solid #e6ecf6;
+}
+
+.hce-diagnosis-table tbody tr:nth-child(even) {
+  background-color: #e6ecf6;
+}
+
+.hce-diagnosis-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.hce-diagnosis-table__empty {
+  padding: 24px 12px;
+  color: #545454;
+}
+
+.hce-diagnosis__status-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.hce-diagnosis__delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.hce-diagnosis__delete-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

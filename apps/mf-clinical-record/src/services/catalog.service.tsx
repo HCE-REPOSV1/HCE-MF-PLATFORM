@@ -19,6 +19,8 @@ import type {
   CatalogAdministrationRoutesResponse,
   CatalogBackgroundItem,
   CatalogBackgroundResponse,
+  CatalogCie,
+  CatalogCieResponse,
   CatalogCodeSystemValue,
   CatalogCodeSystemValuesResponse,
   CatalogCompanionTypes,
@@ -97,7 +99,6 @@ export async function getAdministrationRoutes(): Promise<
 export async function searchMedicationProducts(
   text: string,
 ): Promise<CatalogMedicationProduct[] | null> {
-
   const res = await apiFetch(ENDPOINTS.catalogs.MedicationProductsSearch(text));
   if (res.status === 404) return null;
   if (!res.ok)
@@ -166,6 +167,20 @@ export async function getTimeUnits(): Promise<CatalogTimeUnit[] | null> {
     );
 
   const json = (await res.json()) as CatalogTimeUnitResponse;
+  if (!json.success) return null;
+  return json.data;
+}
+
+export async function getCatalogCieSearch(
+  text: string,
+  column: "cie_description" | "cie_code",
+): Promise<CatalogCie[] | null> {
+  const res = await apiFetch(ENDPOINTS.catalogs.CieSearch(text, column));
+  if (res.status === 404) return null;
+  if (!res.ok)
+    throw new Error(`Error ${res.status} al buscar en el catálogo CIE-10`);
+
+  const json = (await res.json()) as CatalogCieResponse;
   if (!json.success) return null;
   return json.data;
 }

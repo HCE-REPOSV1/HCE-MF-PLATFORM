@@ -40,7 +40,40 @@
       "nothingToSave": "No hay cambios para guardar",
       "missingEncounter": "No se pudo identificar la atención"
     }
+  },
+  "diagnosis": {
+    "searchTitle": "Búsqueda de diagnóstico",
+    "currentTitle": "Diagnóstico actuales",
+    "direction": {
+      "admission": "Entrada",
+      "discharge": "Salida"
+    },
+    "searchLabel": "Diagnostico",
+    "searchModes": {
+      "byName": "Por nombre",
+      "byCode": "Por código"
+    },
+    "searchPlaceholder": "Ingrese texto para buscar...",
+    "classification": {
+      "presumptive": "P",
+      "repetitive": "R",
+      "definitive": "D"
+    },
+    "addButtonAriaLabel": "Agregar diagnóstico",
+    "table": {
+      "cieCode": "CIE-10",
+      "description": "Diagnóstico",
+      "presumptive": "Presuntivo",
+      "repetitive": "Repetitivo",
+      "definitive": "Definitivo",
+      "delete": "Eliminar"
+    },
+    "emptyMessage": "No hay diagnósticos registrados",
+    "errors": {
+      "missingSelection": "Selecciona un diagnóstico de la lista antes de agregarlo",
+      "createFailed": "No se pudo registrar el diagnóstico",
+      "deleteFailed": "No se pudo eliminar el diagnóstico",
+      "missingEncounter": "No se pudo identificar la atención"
+    }
   }
 }
-
-

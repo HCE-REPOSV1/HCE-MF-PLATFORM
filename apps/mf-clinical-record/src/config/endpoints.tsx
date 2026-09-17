@@ -1,7 +1,6 @@
 const AG_WEB_EMERGENCY = import.meta.env.VITE_APIGW_CNL_WEB_EMERGENCY;
 const AG_CLN_CROSS = import.meta.env.VITE_APIGW_CLN_CROSS;
 
-
 if (!AG_WEB_EMERGENCY)
   throw new Error(
     "[mf-clinical-record] VITE_APIGW_CNL_WEB_EMERGENCY no está configurado",
@@ -81,13 +80,24 @@ export const ENDPOINTS = {
       `${AG_CLN_CROSS}/api/v1/catalogs/identifier-types?entity_type=${encodeURIComponent(entityType)}`,
     TimeUnits: () => `${AG_CLN_CROSS}/api/v1/catalogs/time-units`,
     AgeGroups: () => `${AG_CLN_CROSS}/api/v1/catalogs/age-groups`,
-    
+    /** Buscador CIE-10 ya existente ("catalog.cie") — column: "cie_description" (por nombre) o "cie_code" (por código). */
+    CieSearch: (text: string, column: string) =>
+      `${AG_CLN_CROSS}/api/v1/catalogs/cie/search?text=${encodeURIComponent(text)}&column=${column}`,
   },
   medicalRecords: {
     medicalRecordByPatiente: (patientId: number, page = 1, limit = 10) =>
       `${AG_WEB_EMERGENCY}/api/v1/encounter/patient/${patientId}/history?page=${page}&limit=${limit}`,
     getHistoryPhysicalExam: (encounter_id: number) =>
       `${AG_WEB_EMERGENCY}/api/v1/encounter/${encounter_id}/clinical`,
+  },
+  /** HU10 · Diagnósticos de la atención. */
+  encounterDiagnoses: {
+    byEncounter: (encounterId: number) =>
+      `${AG_WEB_EMERGENCY}/api/v1/encounter/diagnoses/by-encounter/${encounterId}`,
+    create: () => `${AG_WEB_EMERGENCY}/api/v1/encounter/diagnoses`,
+    /** Activa/desactiva el diagnóstico — nunca se elimina físicamente. */
+    updateStatus: (diagnosisId: number) =>
+      `${AG_WEB_EMERGENCY}/api/v1/encounter/diagnoses/${diagnosisId}/estado`,
   },
   /** i18n — manifest público; namespace "emergency" protegido (requiere sesión) */
   i18n: {

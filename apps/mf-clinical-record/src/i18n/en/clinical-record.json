@@ -28,5 +28,40 @@
       "nothingToSave": "Nothing to save",
       "missingEncounter": "Could not identify the encounter"
     }
+  },
+  "diagnosis": {
+    "searchTitle": "Diagnosis search",
+    "currentTitle": "Current diagnoses",
+    "direction": {
+      "admission": "Admission",
+      "discharge": "Discharge"
+    },
+    "searchLabel": "Diagnosis",
+    "searchModes": {
+      "byName": "By name",
+      "byCode": "By code"
+    },
+    "searchPlaceholder": "Enter text to search...",
+    "classification": {
+      "presumptive": "P",
+      "repetitive": "R",
+      "definitive": "D"
+    },
+    "addButtonAriaLabel": "Add diagnosis",
+    "table": {
+      "cieCode": "ICD-10",
+      "description": "Diagnosis",
+      "presumptive": "Presumptive",
+      "repetitive": "Repeated",
+      "definitive": "Definitive",
+      "delete": "Delete"
+    },
+    "emptyMessage": "No diagnoses registered",
+    "errors": {
+      "missingSelection": "Select a diagnosis from the list before adding it",
+      "createFailed": "Could not register the diagnosis",
+      "deleteFailed": "Could not delete the diagnosis",
+      "missingEncounter": "Could not identify the encounter"
+    }
   }
 }

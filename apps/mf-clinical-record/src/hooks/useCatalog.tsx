@@ -5,6 +5,7 @@ import {
   getAdministrationRoutes,
   getAgeGroups,
   getBackgroundCatalog,
+  getCatalogCieSearch,
   getCodeSystemValues,
   getCodeSystemValuesByCode,
   getCompanionTypes,
@@ -16,6 +17,7 @@ import type {
   CatalogAdministrationRoute,
   CatalogAgeGroup,
   CatalogBackgroundItem,
+  CatalogCie,
   CatalogCodeSystemValue,
   CatalogCompanionTypes,
   CatalogIdentifierType,
@@ -82,6 +84,7 @@ export function useCatalog() {
   const catalogAdministrationRoutes =
     useResourceState<CatalogAdministrationRoute[]>();
   const catalogCodeSystemValues = useResourceState<CatalogCodeSystemValue[]>();
+  const catalogCie = useResourceState<CatalogCie[]>();
 
   const ageGroups = useResourceState<CatalogAgeGroup[]>();
   const identifierTypes = useResourceState<CatalogIdentifierType[]>();
@@ -250,6 +253,32 @@ export function useCatalog() {
     [],
   );
 
+  const fetchCatalogCieSearch = useCallback(
+    async (
+      text: string,
+      column: "cie_description" | "cie_code",
+    ): Promise<CatalogCie[] | null> => {
+      catalogCie.setLoading(true);
+      catalogCie.setError(null);
+      try {
+        const response = await getCatalogCieSearch(text, column);
+        catalogCie.setData(response);
+        return response;
+      } catch (err) {
+        catalogCie.setError(
+          err instanceof Error
+            ? err.message
+            : "Error al buscar en el catálogo CIE-10",
+        );
+        catalogCie.setData(null);
+        return null;
+      } finally {
+        catalogCie.setLoading(false);
+      }
+    },
+    [],
+  );
+
   const fetchAgeGroups = async (): Promise<CatalogAgeGroup[] | null> => {
     ageGroups.setLoading(true);
     ageGroups.setError(null);
@@ -298,6 +327,7 @@ export function useCatalog() {
     fetchMedicationProductsSearch,
     fetchCodeSystemValues,
     fetchCodeSystemValuesByCode,
+    fetchCatalogCieSearch,
     fetchAgeGroups,
     fetchIdentifierTypes,
     dataCatalogActivePrinciples: catalogActivePrinciples.data,
@@ -315,6 +345,9 @@ export function useCatalog() {
     dataCatalogCodeSystemValues: catalogCodeSystemValues.data,
     loadingCatalogCodeSystemValues: catalogCodeSystemValues.loading,
     errorCatalogCodeSystemValues: catalogCodeSystemValues.error,
+    dataCatalogCie: catalogCie.data,
+    loadingCatalogCie: catalogCie.loading,
+    errorCatalogCie: catalogCie.error,
     dataAgeGroups: ageGroups.data,
     loadingAgeGroups: ageGroups.loading,
     errorAgeGroups: ageGroups.error,
