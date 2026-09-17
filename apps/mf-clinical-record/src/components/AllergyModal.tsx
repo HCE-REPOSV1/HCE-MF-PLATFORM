@@ -501,6 +501,7 @@ const handleSave = useCallback(async () => {
                           onSearch={handleActivePrincipleSearch}
                           minSearchLength={3}
                           loading={loadingCatalogActivePrinciples}
+                          showSelectAll={false}
                           testId="mf-clinical-record-allergy-modal-active-principle"
                         />
                       </Grid>

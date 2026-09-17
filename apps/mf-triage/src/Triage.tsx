@@ -1835,6 +1835,7 @@ export function Triage({
                       onSearch={handleActivePrincipleSearch}
                       minSearchLength={3}
                       loading={loadingCatalogActivePrinciples}
+                      showSelectAll={false}
                       testId="mf-triage-active-principle"
                     />
                   </Grid>
