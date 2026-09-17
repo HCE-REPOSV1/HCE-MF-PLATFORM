@@ -68,7 +68,7 @@ export const ENDPOINTS = {
     AdministrationRoutes: () =>
       `${AG_CLN_CROSS}/api/v1/catalogs/administration-routes`,
     MedicationProductsSearch: (text: string) =>
-      `${AG_CLN_CROSS}/api/v1/catalogs/medication-products/search?text=${encodeURIComponent(text)}`,
+      `${AG_CLN_CROSS}/api/v1/catalogs/medication-products/search?text=${encodeURIComponent(text)}&warehouseCode=00000004&searchBy=dci`,
     CodeSystemValues: (codeSystemId: number) =>
       `${AG_CLN_CROSS}/api/v1/catalogs/code-system-values?code_system_id=${codeSystemId}`,
     /** Preferido sobre CodeSystemValues: code_system_id es IDENTITY autoincremental

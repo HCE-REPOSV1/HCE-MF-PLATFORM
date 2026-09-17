@@ -73,16 +73,16 @@ export interface CatalogAdministrationRoute {
 }
 
 export interface CatalogMedicationProduct {
-  medication_legacy_code: string;
-  medication_product_uuid: string;
-  active_principle_id: number;
-  pharmaceutical_form_id: number;
-  strength_value: number;
-  strength_unit: string;
-  commercial_name: string | null;
-  product_display: string;
-  product_display_search: string;
-  is_active: boolean;
+  legacyProductCode: string;
+  productName: string;
+  warehouseStock: number;
+  warehouseStockAlt: number;
+  stockFraction: number;
+  laboratoryName: string;
+  productTypeCode: string;
+  vatRate: number;
+  activePrincipleLegacyCode: string;
+  colorDisplay: string;
 }
 
 export interface CatalogMedicationProductSearchResponse {
@@ -115,70 +115,69 @@ export interface CatalogCodeSystemValuesResponse {
   data: CatalogCodeSystemValue[];
 }
 
-
 export interface CatalogIdentifierType {
-  identifier_type_id:       number;
-  identifier_type_uuid:     string;
-  code:                     string;
+  identifier_type_id: number;
+  identifier_type_uuid: string;
+  code: string;
   /** Resuelto según Accept-Language (fallback a es). Reemplaza a los antiguos display_es/display_en. */
-  display:                  string;
-  entity_type:              string;
-  requires_expiry:          boolean;
-  is_reniec_verifiable:     boolean;
-  is_unknown_patient_only:  boolean;
-  sort_order:               number;
-  user_create:              string;
-  user_modify:              string | null;
-  date_create:              string;
-  date_modify:              string | null;
-  is_active:                boolean;
+  display: string;
+  entity_type: string;
+  requires_expiry: boolean;
+  is_reniec_verifiable: boolean;
+  is_unknown_patient_only: boolean;
+  sort_order: number;
+  user_create: string;
+  user_modify: string | null;
+  date_create: string;
+  date_modify: string | null;
+  is_active: boolean;
 }
 
 export interface CatalogIdentifierTypeResponse {
-  success:  boolean;
-  message:  string;
-  data:     CatalogIdentifierType[];
+  success: boolean;
+  message: string;
+  data: CatalogIdentifierType[];
 }
 
 export interface CatalogTimeUnit {
-  time_unit_id:    number;
-  time_unit_uuid:  string;
-  time_unit_code:  string;
-  time_unit_name:  string;
-  description:     string | null;
-  display_order:   number;
-  user_create:     string;
-  user_modify:     string | null;
-  date_create:     string;
-  date_modify:     string | null;
-  is_active:       boolean;
+  time_unit_id: number;
+  time_unit_uuid: string;
+  time_unit_code: string;
+  time_unit_name: string;
+  description: string | null;
+  display_order: number;
+  user_create: string;
+  user_modify: string | null;
+  date_create: string;
+  date_modify: string | null;
+  is_active: boolean;
 }
 
 export interface CatalogTimeUnitResponse {
-  success:  boolean;
-  message:  string;
-  data:     CatalogTimeUnit[];
+  success: boolean;
+  message: string;
+  data: CatalogTimeUnit[];
 }
 
 export interface CatalogAgeGroup {
-  age_group_id:    number;
-  age_group_uuid:  string;
-  code:            string;
+  age_group_id: number;
+  age_group_uuid: string;
+  code: string;
   /** Resuelto según Accept-Language (fallback a es). Reemplaza al antiguo display_es (nunca hubo display_en real). */
-  display:         string;
-  description:     string | null;
-  age_min_days:    number;
-  age_max_days:    number | null;
-  sort_order:      number;
-  user_create:     string;
-  user_modify:     string | null;
-  date_create:     string;
-  date_modify:     string | null;
-  is_active:       boolean;
+  display: string;
+  description: string | null;
+  age_min_days: number;
+  age_max_days: number | null;
+  sort_order: number;
+  user_create: string;
+  user_modify: string | null;
+  date_create: string;
+  date_modify: string | null;
+  is_active: boolean;
 }
 
 export interface CatalogAgeGroupResponse {
-  success:  boolean;
-  message:  string;
-  data:     CatalogAgeGroup[];
+  success: boolean;
+  message: string;
+  data: CatalogAgeGroup[];
 }

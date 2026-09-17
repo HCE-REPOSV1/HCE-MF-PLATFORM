@@ -37,8 +37,8 @@ export interface AddMedicationReconciliationModalProps {
 // hook para no depender de que Catalog.type.tsx tenga (o no) un campo
 // medication_legacy_code declarado explícitamente.
 interface MedicationSearchResultItem {
-  medication_legacy_code: string;
-  product_display: string;
+  legacyProductCode: string;
+  productName: string;
 }
 
 export default function AddMedicationReconciliationModal({
@@ -83,7 +83,7 @@ export default function AddMedicationReconciliationModal({
       setMedicationOptions(
         (results ?? []).map((item, index) => ({
           value: index,
-          label: item.product_display,
+          label: item.productName,
         })),
       );
       setMedicationSearchLoading(false);
@@ -96,7 +96,7 @@ export default function AddMedicationReconciliationModal({
       const selected = medicationSearchResults[opt.value as number];
       if (!selected) return;
 
-      setSelectedMedicationId(selected.medication_legacy_code);
+      setSelectedMedicationId(selected.legacyProductCode);
       setMedicationSearchText(opt.label);
       setMedicationOptions([]);
     },

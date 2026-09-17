@@ -261,8 +261,8 @@ useEffect(() => {
         setMedicationOptions(
           results.map((medication, index) => ({
             value: index,
-            label: medication.product_display,
-            secondary: medication.medication_legacy_code,
+            label: medication.productName,
+            secondary: medication.legacyProductCode,
           })),
         );
       } finally {
@@ -281,7 +281,7 @@ useEffect(() => {
 
       set("medicationSelected", option);
       set("medicationQuery", option.label);
-      set("medicine", [medication.medication_legacy_code]);
+      set("medicine", [medication.legacyProductCode]);
       clearMedicationSearch();
     },
     [clearMedicationSearch, medicationResults, set],
