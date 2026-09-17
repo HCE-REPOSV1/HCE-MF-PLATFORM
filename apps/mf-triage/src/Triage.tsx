@@ -1,4 +1,4 @@
-﻿import { useState, useCallback, useEffect } from "react";
+﻿import { useState, useCallback, useEffect, useRef } from "react";
 import {
   Box,
   Typography,
@@ -42,7 +42,7 @@ import { useCatalog } from "./hooks/useCatalog";
 import { useTriage } from "./hooks/useTriage";
 import { useTriageFull } from "./hooks/useTriageFull";
 import { useUser } from "shell/UserContext";
-import type { CatalogTimeUnit } from "./types/catalog.types";
+import type { CatalogActivePrinciples, CatalogTimeUnit } from "./types/catalog.types";
 import type {
   TriageFormRequest,
   Gender,
@@ -333,6 +333,15 @@ export function Triage({
     { value: string; label: string }[]
   >([]);
 
+  // Acumula el label de todo principio activo visto (carga inicial +
+  // resultados de búsqueda) — el endpoint de búsqueda solo devuelve lo que
+  // matchea el texto, no el catálogo completo, así que sin esto un
+  // principio ya seleccionado desaparecería de `options` (y por lo tanto
+  // del MultiSelect) en cuanto una búsqueda nueva no lo vuelva a traer.
+  const knownActivePrincipleOptionsRef = useRef(
+    new Map<string, { value: string; label: string }>(),
+  );
+
   // Opciones de autocomplete
   const [motivoOpts, setMotivoOpts] = useState<SearchOption[]>([]);
 
@@ -398,19 +407,65 @@ export function Triage({
     loadingTimeUnits,
     loadingAgeGroups,
   } = useCatalog();
+
+  // Combina el resultado de una búsqueda/carga con lo ya seleccionado que
+  // conocemos de antes (ver knownActivePrincipleOptionsRef) — así un
+  // principio ya marcado no desaparece del MultiSelect si una búsqueda
+  // nueva no lo vuelve a traer.
+  const applyActivePrincipleOptions = useCallback(
+    (items: CatalogActivePrinciples[]) => {
+      const fresh = items.map(({ legacyActivePrincipleId, name }) => ({
+        value: legacyActivePrincipleId,
+        label: name,
+      }));
+      for (const opt of fresh) {
+        knownActivePrincipleOptionsRef.current.set(opt.value, opt);
+      }
+      const merged = new Map(fresh.map((o) => [o.value, o]));
+      for (const id of valuePrincipioActivo) {
+        if (!merged.has(id)) {
+          const known = knownActivePrincipleOptionsRef.current.get(id);
+          if (known) merged.set(id, known);
+        }
+      }
+      setOptionsActivePrinciples(Array.from(merged.values()));
+    },
+    [valuePrincipioActivo],
+  );
+
+  // Se dispara desde MultiSelect (onSearch, ver JSX de Principio Activo) a
+  // partir del 3er carácter tecleado, con el debounce que ya trae el
+  // componente — cada texto es una consulta distinta contra
+  // /catalogs/active-principles/search?text=.
+  const handleActivePrincipleSearch = useCallback(
+    async (query: string) => {
+      const results = await fetchCatalogActivePrinciplesSearch(query);
+      if (results && Array.isArray(results)) {
+        applyActivePrincipleOptions(results);
+      }
+    },
+    [fetchCatalogActivePrinciplesSearch, applyActivePrincipleOptions],
+  );
+
   //Registro de Triaje
   const { createTriage, loading: guardandoTriaje } = useTriage();
   //Precarga del triaje completo (modo lectura)
   const { fetchTriageFull, loading: loadingTriageFull } = useTriageFull();
   // Overlay unificado: cualquier llamada en curso del formulario (catálogos, búsqueda de
   // paciente, guardado) bloquea la pantalla con el mismo spinner de marca.
+  // loadingCatalogActivePrinciples queda afuera a propósito: se reutiliza
+  // (ver fetchCatalogActivePrinciplesSearch) tanto para la carga inicial
+  // como para cada búsqueda mientras el usuario escribe en el MultiSelect
+  // de Principio Activo — si contara para formBusy, cada tecla bloquearía
+  // toda la pantalla con el overlay en vez de mostrar solo el spinner
+  // inline del MultiSelect. La carga inicial sigue cubierta por los demás
+  // catálogos del mismo Promise.all (loadingIdentifierTypes, etc.).
   const formBusy =
     guardandoTriaje ||
     buscandoPaciente ||
     loadingTriageFull ||
     loadingCatalogCie ||
     loadingCodeSystemValues ||
-    loadingCatalogActivePrinciples ||
     loadingIdentifierTypes ||
     loadingTimeUnits ||
     loadingAgeGroups;
@@ -489,13 +544,7 @@ export function Triage({
         }
 
         if (activePrinciples && Array.isArray(activePrinciples)) {
-          const transformerOptions = activePrinciples.map(
-            ({ legacyActivePrincipleId, name }) => ({
-              value: legacyActivePrincipleId,
-              label: name,
-            }),
-          );
-          setOptionsActivePrinciples(transformerOptions);
+          applyActivePrincipleOptions(activePrinciples);
         }
 
         if (identifierTypes && Array.isArray(identifierTypes)) {
@@ -1779,6 +1828,9 @@ export function Triage({
                       label={t("triage.allergies.activePrinciple")}
                       value={valuePrincipioActivo}
                       onChange={setValuePrincipioActivo}
+                      onSearch={handleActivePrincipleSearch}
+                      minSearchLength={3}
+                      loading={loadingCatalogActivePrinciples}
                       testId="mf-triage-active-principle"
                     />
                   </Grid>
