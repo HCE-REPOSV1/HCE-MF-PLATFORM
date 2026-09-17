@@ -119,8 +119,13 @@ const AnamnesisContent = ({
     useMedicalHistory();
   const formBusy = loadingHistoryPhysicalExam || loadingCatalogCompanionTypes;
   const { user } = useUser();
-  const { registerTabData, hydrateTabData, getTabData } =
-    useClinicalRecordForm();
+  const {
+    registerTabData,
+    hydrateTabData,
+    getTabData,
+    hasFetched,
+    markFetched,
+  } = useClinicalRecordForm();
   // didMount: el primer render de este efecto solo refleja el estado
   // inicial (default o ya hidratado), no una edición — no debe marcar
   // dirty. isHydrating: se activa justo antes de los setState del fetch
@@ -210,11 +215,19 @@ const AnamnesisContent = ({
   );
 
   useEffect(() => {
-    if (savedAnamnesis) return;
+    // hasFetched (no "¿hay dato?") es el guard correcto acá: un encounter
+    // sin anamnesis registrada todavía responde vacío/null LEGÍTIMAMENTE —
+    // si el guard fuera "if (savedAnamnesis) return", nunca se cumple en
+    // ese caso y el efecto reintenta el fetch cada vez que se remonta este
+    // componente (cada vez que se entra a la sección). markFetched se
+    // llama apenas resuelve el fetch, tenga dato o no, así que "ya lo
+    // intentamos" queda registrado de cualquier forma.
+    if (hasFetched("historyPhysicalExam.anamnesisBundle")) return;
     if (encounterId === undefined) return;
     const validEncounterId = encounterId;
     const loadHistoryData = async () => {
       const data = await fetchHistoryPhysicalExam(validEncounterId);
+      markFetched("historyPhysicalExam.anamnesisBundle");
       if (!data) return;
 
       // Se activa ANTES de los setState de abajo: el re-render que disparan
@@ -234,11 +247,8 @@ const AnamnesisContent = ({
         // Guardarlo acá explícitamente — el efecto de sincronización de más
         // abajo ahora SALTEA su propio registerTabData mientras
         // isHydratingAnamnesisRef está en true (correcto, para no marcar
-        // dirty), pero eso significa que ya no queda ningún otro lugar que
-        // escriba este dato en el contexto. Sin esto, savedAnamnesis vuelve
-        // a ser undefined en el próximo mount y el guard de arriba
-        // (`if (savedAnamnesis) return`) nunca se cumple: se refetchea el
-        // endpoint cada vez que se cambia de pestaña y se vuelve.
+        // dirty), y sin esto sería el único lugar que escribe este dato en
+        // el contexto.
         hydrateTabData("historyPhysicalExam.anamnesis", data.anamnesis);
       }
 
@@ -740,8 +750,13 @@ const ExamenFisicoContent = ({
     useMedicalHistory();
   const { fetchCodeSystemValuesByCode, loadingCatalogCodeSystemValues } =
     useCatalog();
-  const { registerTabData, hydrateTabData, getTabData } =
-    useClinicalRecordForm();
+  const {
+    registerTabData,
+    hydrateTabData,
+    getTabData,
+    hasFetched,
+    markFetched,
+  } = useClinicalRecordForm();
 
   const formBusy = loadingHistoryPhysicalExam || loadingCatalogCodeSystemValues;
 
@@ -881,7 +896,13 @@ const ExamenFisicoContent = ({
   }, [i18n.language]);
 
   useEffect(() => {
-    if (savedVitals) return;
+    // hasFetched (no "¿hay dato?") es el guard correcto acá: un encounter
+    // sin examen físico registrado todavía responde vacío/null
+    // LEGÍTIMAMENTE — si el guard fuera "if (savedVitals) return", nunca se
+    // cumple en ese caso y el efecto reintenta el fetch cada vez que se
+    // remonta este componente (cada vez que se entra a la sección).
+    // markFetched se llama apenas resuelve el fetch, tenga dato o no.
+    if (hasFetched("historyPhysicalExam.physicalExamVitals")) return;
     if (encounterId === undefined) return;
 
     const validEncounterId = encounterId;
@@ -889,6 +910,7 @@ const ExamenFisicoContent = ({
     const load = async () => {
       const historyPhysicalExamData =
         await fetchHistoryPhysicalExam(validEncounterId);
+      markFetched("historyPhysicalExam.physicalExamVitals");
       if (!historyPhysicalExamData?.physicalExam) return;
 
       const v = historyPhysicalExamData.physicalExam;
