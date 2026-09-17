@@ -1,7 +1,6 @@
 import { useCallback, useState } from "react";
 import { i18n } from "@hce/i18n-core";
 import {
-  getActivePrinciples,
   getActivePrinciplesSearch,
   getAdministrationRoutes,
   getAgeGroups,
@@ -39,7 +38,6 @@ const backgroundCatalogFetcher = createCachedFetcher(getBackgroundCatalog);
 const administrationRoutesFetcher = createCachedFetcher(
   getAdministrationRoutes,
 );
-const activePrinciplesFetcher = createCachedFetcher(getActivePrinciples);
 
 // Un fetcher cacheado POR cada code_system_id distinto (Sueño, Apetito, etc.
 // cada uno tiene su propio id, así que no pueden compartir un solo fetcher)
@@ -87,28 +85,6 @@ export function useCatalog() {
 
   const ageGroups = useResourceState<CatalogAgeGroup[]>();
   const identifierTypes = useResourceState<CatalogIdentifierType[]>();
-
-  const fetchCatalogActivePrinciples = useCallback(async (): Promise<
-    CatalogActivePrinciples[] | null
-  > => {
-    catalogActivePrinciples.setLoading(true);
-    catalogActivePrinciples.setError(null);
-    try {
-      const response = await activePrinciplesFetcher.fetch(i18n.language);
-      catalogActivePrinciples.setData(response);
-      return response;
-    } catch (err) {
-      catalogActivePrinciples.setError(
-        err instanceof Error
-          ? err.message
-          : "Error al cargar perfil del catalog de principios activos",
-      );
-      catalogActivePrinciples.setData(null);
-      return null;
-    } finally {
-      catalogActivePrinciples.setLoading(false);
-    }
-  }, []);
 
   const fetchCatalogActivePrinciplesSearch = useCallback(
     async (text: string): Promise<CatalogActivePrinciples[] | null> => {
@@ -315,7 +291,6 @@ export function useCatalog() {
   };
 
   return {
-    fetchCatalogActivePrinciples,
     fetchCatalogActivePrinciplesSearch,
     fetchCompanionTypes,
     fetchBackgroundCatalog,

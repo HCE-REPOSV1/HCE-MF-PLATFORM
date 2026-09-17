@@ -129,7 +129,6 @@ export function AllergyModal({
   const [allergySelected, setAllergySelected] = useState<AllergyForm>();
 
   const enabledAlergiasTriage = !readOnly;
-  const [loadError, setLoadError] = useState<string | null>(null);
 
   const [valuePrincipioActivo, setValuePrincipioActivo] = useState<string[]>(
     [],
@@ -144,7 +143,33 @@ export function AllergyModal({
     [t],
   );
 
-  const { fetchCatalogActivePrinciples } = useCatalog();
+  const { fetchCatalogActivePrinciplesSearch, loadingCatalogActivePrinciples } =
+    useCatalog();
+
+  // Se dispara desde MultiSelect (onSearch, ver JSX de Principio Activo) en
+  // cada cambio de texto: con 3+ caracteres, con debounce (lo maneja el
+  // propio MultiSelect); por debajo del umbral (incluido "" al reabrir el
+  // dropdown o al borrar) lo avisa de inmediato, sin debounce, para poder
+  // descartar el resultado de una búsqueda anterior. Ya no se precarga el
+  // catálogo completo al abrir el modal — solo se consulta al escribir.
+  const handleActivePrincipleSearch = useCallback(
+    async (query: string) => {
+      if (query.trim().length < 3) {
+        setOptionsActivePrinciples([]);
+        return;
+      }
+      const results = await fetchCatalogActivePrinciplesSearch(query);
+      if (results && Array.isArray(results)) {
+        setOptionsActivePrinciples(
+          results.map(({ legacyActivePrincipleId, name }) => ({
+            value: legacyActivePrincipleId,
+            label: name,
+          })),
+        );
+      }
+    },
+    [fetchCatalogActivePrinciplesSearch],
+  );
 
   const {
     data: allergyDeclaration,
@@ -359,29 +384,6 @@ const handleSave = useCallback(async () => {
     [],
   );
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const results = await Promise.all([fetchCatalogActivePrinciples()]);
-        const [activePrinciples] = results;
-
-        if (activePrinciples && Array.isArray(activePrinciples)) {
-          const transformerOptions = activePrinciples
-            .filter((p) => p.is_active)
-            .map(({ active_principle_id, substance_name }) => ({
-              value: String(active_principle_id),
-              label: substance_name,
-            }));
-          setOptionsActivePrinciples(transformerOptions);
-        }
-      } catch (err) {
-        setLoadError(t("allergy.catalogError"));
-      }
-    };
-
-    loadData();
-  }, [fetchCatalogActivePrinciples]);
-
   return (
     <>
       <HceModal
@@ -402,7 +404,7 @@ const handleSave = useCallback(async () => {
 
       {!confirm && (
         <HceFormModal
-          open={open && !loadError}
+          open={open}
           onClose={handleClose}
           title={t("allergy.title")}
           maxWidth={allergyEditionOpen ? "md" : 1200}
@@ -496,6 +498,9 @@ const handleSave = useCallback(async () => {
                             setValuePrincipioActivo(values);
                             set("api", values);
                           }}
+                          onSearch={handleActivePrincipleSearch}
+                          minSearchLength={3}
+                          loading={loadingCatalogActivePrinciples}
                           testId="mf-clinical-record-allergy-modal-active-principle"
                         />
                       </Grid>
